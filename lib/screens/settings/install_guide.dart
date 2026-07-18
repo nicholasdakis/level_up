@@ -166,15 +166,15 @@ class _InstallGuideState extends ConsumerState<InstallGuide> {
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: lightenColor(appColor, 0.1).withAlpha(20),
+                            color: cardColors(appColor).iconBox,
                             border: Border.all(
-                              color: lightenColor(appColor, 0.3).withAlpha(180),
+                              color: cardColors(appColor).iconBorder,
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             Icons.arrow_back_ios_new,
-                            color: lightenColor(appColor, 0.3).withAlpha(180),
+                            color: cardColors(appColor).onCard,
                             size: Responsive.font(context, 13),
                           ),
                         ),

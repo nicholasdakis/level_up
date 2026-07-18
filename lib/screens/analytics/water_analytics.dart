@@ -173,8 +173,8 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, int>> entries,
   ) {
-    final accent = lightenColor(appColor, 0.45);
-    final dimAccent = lightenColor(appColor, 0.3);
+    final accent = onTheme(appColor);
+    final dimAccent = onTheme(appColor);
     final goalMl = ref.watch(userDataProvider).value?.waterMlGoal ?? 0;
 
     if (entries.isEmpty) {
@@ -193,7 +193,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
                 icon: _rangeSelected
                     ? HugeIcons.strokeRoundedDroplet
                     : HugeIcons.strokeRoundedCalendar02,
-                color: Colors.white24,
+                color: onTheme(appColor).withAlpha(120),
                 size: Responsive.scale(context, 28),
               ),
               SizedBox(height: Responsive.height(context, 10)),
@@ -429,8 +429,8 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
 
   Widget _buildLogEntries(BuildContext context) {
     final unit = isImperial ? 'oz' : 'ml';
-    final accent = lightenColor(appColor, 0.45);
-    final dimAccent = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dimAccent = onTheme(appColor);
     // all entries newest-first, each entry is the daily total
     final all = _sortedEntries().reversed.toList();
 
@@ -609,13 +609,13 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
                                               context,
                                               13,
                                             ),
-                                            color: lightenColor(appColor, 0.35),
+                                            color: onTheme(appColor),
                                             fontWeight: FontWeight.w700,
                                           ),
                                         )
                                       : HugeIcon(
                                           icon: HugeIcons.strokeRoundedDelete02,
-                                          color: lightenColor(appColor, 0.3),
+                                          color: onTheme(appColor),
                                           size: Responsive.font(context, 18),
                                         ),
                                 ),
@@ -661,15 +661,15 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
                       padding: EdgeInsets.all(Responsive.scale(context, 12)),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: lightenColor(appColor, 0.1).withAlpha(20),
+                        color: cardColors(appColor).iconBox,
                         border: Border.all(
-                          color: lightenColor(appColor, 0.3).withAlpha(180),
+                          color: cardColors(appColor).iconBorder,
                           width: 1.5,
                         ),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new,
-                        color: lightenColor(appColor, 0.3).withAlpha(180),
+                        color: cardColors(appColor).onCard,
                         size: Responsive.font(context, 13),
                       ),
                     ),
@@ -701,7 +701,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
                                   Responsive.scale(context, 12),
                                 ),
                                 border: Border.all(
-                                  color: Colors.white.withAlpha(20),
+                                  color: cardColors(appColor).border,
                                 ),
                               ),
                               child: Row(
@@ -713,7 +713,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
                                       'Free plan shows the last 14 days. Upgrade for full history.',
                                       style: GoogleFonts.manrope(
                                         fontSize: Responsive.font(context, 12),
-                                        color: lightenColor(appColor, 0.35),
+                                        color: onTheme(appColor),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -722,7 +722,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
                                     'Upgrade',
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(context, 12),
-                                      color: lightenColor(appColor, 0.45),
+                                      color: onTheme(appColor),
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),

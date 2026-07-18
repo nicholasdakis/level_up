@@ -208,7 +208,7 @@ class _ResultsState extends ConsumerState<Results> {
             healthyRange,
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 13),
-              color: Colors.white54,
+              color: onTheme(appColor),
               height: 1.5,
             ),
           ),
@@ -225,7 +225,7 @@ class _ResultsState extends ConsumerState<Results> {
                         entry.rate,
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 13),
-                          color: Colors.white54,
+                          color: onTheme(appColor),
                         ),
                       ),
                       ShaderMask(
@@ -249,7 +249,7 @@ class _ResultsState extends ConsumerState<Results> {
             ),
             if (entry != rates.last)
               Divider(
-                color: Colors.white.withAlpha(20),
+                color: onTheme(appColor).withAlpha(50),
                 height: Responsive.height(context, 24),
               ),
           ],
@@ -260,7 +260,7 @@ class _ResultsState extends ConsumerState<Results> {
 
   Widget _setGoalButton(int calories) {
     if (isGuest) {
-      final accent = lightenColor(appColor, 0.45);
+      final accent = onTheme(appColor);
       return GestureDetector(
         onTap: () => Guest.block(
           context,
@@ -277,7 +277,7 @@ class _ResultsState extends ConsumerState<Results> {
           decoration: BoxDecoration(
             color: lightenColor(appColor, 0.1).withAlpha(30),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: accent.withAlpha(120), width: 1),
+            border: Border.all(color: accent.withAlpha(120), width: 1.5),
           ),
           child: PulsingLockBadge(accent: accent),
         ),
@@ -294,7 +294,7 @@ class _ResultsState extends ConsumerState<Results> {
                 title: "Set calorie goal?",
                 content: Text(
                   "This will set your daily calorie goal to $calories kcal.",
-                  style: GoogleFonts.manrope(color: Colors.white70),
+                  style: GoogleFonts.manrope(color: onTheme(appColor)),
                 ),
                 actions: [
                   TextButton(
@@ -328,7 +328,7 @@ class _ResultsState extends ConsumerState<Results> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: lightenColor(appColor, 0.35).withAlpha(isSet ? 200 : 120),
-            width: 1,
+            width: 1.5,
           ),
         ),
         child: Row(
@@ -336,7 +336,7 @@ class _ResultsState extends ConsumerState<Results> {
           children: [
             Icon(
               isSet ? Icons.check : Icons.flag_outlined,
-              color: lightenColor(appColor, 0.45),
+              color: onTheme(appColor),
               size: Responsive.scale(context, 13),
             ),
             SizedBox(width: Responsive.width(context, 4)),
@@ -345,7 +345,7 @@ class _ResultsState extends ConsumerState<Results> {
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 12),
                 fontWeight: FontWeight.w600,
-                color: lightenColor(appColor, 0.45),
+                color: onTheme(appColor),
               ),
             ),
           ],
@@ -447,19 +447,19 @@ class _ResultsState extends ConsumerState<Results> {
                 aboveDividerText,
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 13),
-                  color: Colors.white60,
+                  color: onTheme(appColor),
                 ),
               ),
               SizedBox(height: Responsive.height(context, 6)),
             ],
-            Divider(color: Colors.white.withAlpha(20), height: 1),
+            Divider(color: onTheme(appColor).withAlpha(50), height: 1),
             SizedBox(height: Responsive.height(context, 10)),
           ],
           Text(
             text,
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 15),
-              color: Colors.white70,
+              color: onTheme(appColor),
               height: 1.6,
             ),
           ),
@@ -499,7 +499,7 @@ class _ResultsState extends ConsumerState<Results> {
             unit,
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 12),
-              color: Colors.white38,
+              color: onTheme(appColor).withAlpha(140),
               letterSpacing: 0.5,
             ),
           ),
@@ -510,20 +510,24 @@ class _ResultsState extends ConsumerState<Results> {
               note,
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 13),
-                color: Colors.white54,
+                color: onTheme(appColor),
                 height: 1.5,
               ),
             ),
           ],
           SizedBox(height: Responsive.height(context, 12)),
-          Divider(color: Colors.white.withAlpha(20), height: 1),
+          Divider(
+            color: onTheme(appColor).withAlpha(120),
+            thickness: 1.5,
+            height: 1,
+          ),
           SizedBox(height: Responsive.height(context, 10)),
           // Equation shown as secondary context below the big number
           Text(
             equation,
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 13),
-              color: Colors.white38,
+              color: onTheme(appColor).withAlpha(140),
               height: 1.5,
             ),
           ),
@@ -565,13 +569,17 @@ class _ResultsState extends ConsumerState<Results> {
             ],
           ),
           SizedBox(height: Responsive.height(context, 10)),
-          Divider(color: Colors.white.withAlpha(20), height: 1),
+          Divider(
+            color: onTheme(appColor).withAlpha(120),
+            thickness: 1.5,
+            height: 1,
+          ),
           SizedBox(height: Responsive.height(context, 10)),
           Text(
             formula,
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 15),
-              color: Colors.white70,
+              color: onTheme(appColor),
               height: 1.6,
             ),
           ),
@@ -588,7 +596,7 @@ class _ResultsState extends ConsumerState<Results> {
         children: [
           HugeIcon(
             icon: icon,
-            color: Colors.white38,
+            color: onTheme(appColor).withAlpha(140),
             size: Responsive.scale(context, 13),
           ),
           SizedBox(width: Responsive.width(context, 6)),
@@ -596,7 +604,7 @@ class _ResultsState extends ConsumerState<Results> {
             text,
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 11),
-              color: Colors.white38,
+              color: onTheme(appColor).withAlpha(140),
               fontWeight: FontWeight.w700,
               letterSpacing: 1.4,
             ),
@@ -646,15 +654,15 @@ class _ResultsState extends ConsumerState<Results> {
                         padding: EdgeInsets.all(Responsive.scale(context, 12)),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: lightenColor(appColor, 0.1).withAlpha(20),
+                          color: cardColors(appColor).iconBox,
                           border: Border.all(
-                            color: lightenColor(appColor, 0.3).withAlpha(180),
+                            color: cardColors(appColor).iconBorder,
                             width: 1.5,
                           ),
                         ),
                         child: Icon(
                           Icons.arrow_back_ios_new,
-                          color: lightenColor(appColor, 0.3).withAlpha(180),
+                          color: cardColors(appColor).onCard,
                           size: Responsive.font(context, 13),
                         ),
                       ),
@@ -697,8 +705,8 @@ class _ResultsState extends ConsumerState<Results> {
                     splashBorderRadius: BorderRadius.circular(
                       Responsive.scale(context, 20),
                     ), // clips ripple to pill shape
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white38,
+                    labelColor: onTheme(appColor),
+                    unselectedLabelColor: onTheme(appColor).withAlpha(140),
                     labelStyle: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 15),
                       fontWeight: FontWeight.w700,
@@ -782,14 +790,14 @@ class _ResultsState extends ConsumerState<Results> {
                         _formulaCard(
                           _bmrFormulaText("Male"),
                           "Male",
-                          lightenColor(appColor, 0.3),
+                          onTheme(appColor),
                           HugeIcons.strokeRoundedMaleSymbol,
                         ),
                         SizedBox(height: Responsive.height(context, 20)),
                         _formulaCard(
                           _bmrFormulaText("Female"),
                           "Female",
-                          lightenColor(appColor, 0.3),
+                          onTheme(appColor),
                           HugeIcons.strokeRoundedFemaleSymbol,
                         ),
                         SizedBox(height: Responsive.height(context, 20)),
@@ -838,7 +846,7 @@ class _ResultsState extends ConsumerState<Results> {
                                 "Multiply your BMR by your activity level to get the total calories your body burns each day.",
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 13),
-                                  color: Colors.white54,
+                                  color: onTheme(appColor),
                                   height: 1.5,
                                 ),
                               ),

@@ -129,7 +129,10 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
       title: "Delete Entry",
       content: Text(
         "Delete $entryDisplay ${UnitConverter.weightUnit(imperial: isImperial)} from ${labelFor(DateTime.parse(entryKey))}?",
-        style: GoogleFonts.manrope(color: Colors.white54, fontSize: 13),
+        style: GoogleFonts.manrope(
+          color: onTheme(widget.appColor),
+          fontSize: 13,
+        ),
         textAlign: TextAlign.center,
       ),
       actions: [

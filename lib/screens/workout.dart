@@ -65,7 +65,7 @@ class _WorkoutState extends ConsumerState<Workout> {
   void _updateResetCountdown() {
     final now = DateTime.now();
     final int raw = (DateTime.monday - now.weekday + 7) % 7;
-    // 0 means today is Monday — next reset is 7 days away, not 0
+    // 0 means today is Monday, next reset is 7 days away not 0
     final int daysUntilMonday = raw == 0 ? 7 : raw;
     final nextMonday = DateTime(now.year, now.month, now.day + daysUntilMonday);
     final remaining = nextMonday.difference(now);
@@ -85,8 +85,8 @@ class _WorkoutState extends ConsumerState<Workout> {
     _dismissHeatmapTooltip();
     final box = cellContext.findRenderObject() as RenderBox;
     final offset = box.localToGlobal(Offset.zero);
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     _heatmapTooltip = OverlayEntry(
       builder: (context) => GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -194,8 +194,8 @@ class _WorkoutState extends ConsumerState<Workout> {
       appColor: appColor,
       child: StatefulBuilder(
         builder: (context, setDialogState) {
-          final accent = lightenColor(appColor, 0.45);
-          final dim = lightenColor(appColor, 0.35);
+          final accent = onTheme(appColor);
+          final dim = onTheme(appColor);
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -226,7 +226,9 @@ class _WorkoutState extends ConsumerState<Workout> {
                         : null,
                     icon: Icon(
                       Icons.remove_circle_outline,
-                      color: selected > 1 ? accent : Colors.white24,
+                      color: selected > 1
+                          ? accent
+                          : onTheme(appColor).withAlpha(100),
                     ),
                   ),
                   SizedBox(width: Responsive.width(context, 12)),
@@ -245,7 +247,9 @@ class _WorkoutState extends ConsumerState<Workout> {
                         : null,
                     icon: Icon(
                       Icons.add_circle_outline,
-                      color: selected < 7 ? accent : Colors.white24,
+                      color: selected < 7
+                          ? accent
+                          : onTheme(appColor).withAlpha(100),
                     ),
                   ),
                 ],
@@ -307,8 +311,8 @@ class _WorkoutState extends ConsumerState<Workout> {
   }
 
   Widget _buildRecentWorkoutsCard(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     final recentWorkouts = ref.watch(
       workoutProvider.select((s) => s.value?.recentWorkouts ?? const []),
     );
@@ -414,7 +418,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                                         content: Text(
                                           'Remove ${w['name'] != null ? '"${w['name']}"' : 'this workout'} from your history? This cannot be undone.',
                                           style: GoogleFonts.manrope(
-                                            color: Colors.white70,
+                                            color: onTheme(appColor),
                                           ),
                                         ),
                                         actions: [
@@ -450,7 +454,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                                 },
                                 child: HugeIcon(
                                   icon: HugeIcons.strokeRoundedDelete02,
-                                  color: lightenColor(appColor, 0.30),
+                                  color: onTheme(appColor),
                                   size: Responsive.scale(context, 18),
                                 ),
                               ),
@@ -469,8 +473,8 @@ class _WorkoutState extends ConsumerState<Workout> {
     BuildContext context,
     Map<String, dynamic> routine,
   ) async {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
       appColor: appColor,
@@ -567,7 +571,11 @@ class _WorkoutState extends ConsumerState<Workout> {
               ),
             ),
           ),
-          Divider(color: Colors.white.withAlpha(12), height: 1),
+          Divider(
+            color: onTheme(appColor).withAlpha(120),
+            thickness: 1.5,
+            height: 1,
+          ),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
@@ -616,8 +624,8 @@ class _WorkoutState extends ConsumerState<Workout> {
   }
 
   Widget _buildStartWorkoutCard(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     final bool inProgress =
         ref.watch(workoutProvider.select((s) => s.value?.activeSession)) !=
         null;
@@ -637,11 +645,11 @@ class _WorkoutState extends ConsumerState<Workout> {
               width: Responsive.scale(context, 44),
               height: Responsive.scale(context, 44),
               decoration: BoxDecoration(
-                color: Colors.white.withAlpha(18),
+                color: cardColors(appColor).iconBox,
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 12),
                 ),
-                border: Border.all(color: Colors.white.withAlpha(30)),
+                border: Border.all(color: cardColors(appColor).iconBorder),
               ),
               child: Center(
                 child: HugeIcon(
@@ -710,8 +718,8 @@ class _WorkoutState extends ConsumerState<Workout> {
     String subtitle,
     VoidCallback onTap,
   ) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     return GestureDetector(
       onTap: onTap,
       child: frostedGlassCard(
@@ -781,8 +789,8 @@ class _WorkoutState extends ConsumerState<Workout> {
   }
 
   Widget _buildMyRoutinesCard(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     final List<Map<String, dynamic>> routines = ref.watch(
       workoutProvider.select((s) => s.value?.myRoutines ?? const []),
     );
@@ -836,7 +844,11 @@ class _WorkoutState extends ConsumerState<Workout> {
               children: [
                 for (int i = 0; i < routines.length; i++) ...[
                   if (i > 0)
-                    Divider(color: Colors.white.withAlpha(12), height: 1),
+                    Divider(
+                      color: onTheme(appColor).withAlpha(120),
+                      thickness: 1.5,
+                      height: 1,
+                    ),
                   Padding(
                     padding: EdgeInsets.symmetric(
                       vertical: Responsive.height(context, 10),
@@ -892,7 +904,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                                 content: Text(
                                   'Finish or discard your current workout before starting a new one.',
                                   style: GoogleFonts.manrope(
-                                    color: Colors.white70,
+                                    color: onTheme(appColor),
                                   ),
                                 ),
                                 actions: [
@@ -960,9 +972,8 @@ class _WorkoutState extends ConsumerState<Workout> {
 
   Widget _buildLiftsCard(BuildContext context) {
     final c = cardColors(appColor);
-    final accent = c.onCard;
-    final dim = c.onCard.withAlpha(180);
-    final subtle = c.onCard.withAlpha(120);
+    final accent = onTheme(appColor);
+    final subtle = onTheme(appColor);
 
     final double volumeKg =
         (ref.watch(
@@ -1046,8 +1057,8 @@ class _WorkoutState extends ConsumerState<Workout> {
           Text(
             label,
             style: GoogleFonts.manrope(
-              color: dim,
-              fontSize: Responsive.font(context, 10),
+              color: onTheme(appColor),
+              fontSize: Responsive.font(context, 11),
             ),
           ),
         ],
@@ -1077,8 +1088,8 @@ class _WorkoutState extends ConsumerState<Workout> {
                 Text(
                   'volume ($volumeUnit)',
                   style: GoogleFonts.manrope(
-                    color: dim,
-                    fontSize: Responsive.font(context, 10),
+                    color: onTheme(appColor),
+                    fontSize: Responsive.font(context, 11),
                   ),
                 ),
               ],
@@ -1098,8 +1109,8 @@ class _WorkoutState extends ConsumerState<Workout> {
                 Text(
                   'duration',
                   style: GoogleFonts.manrope(
-                    color: dim,
-                    fontSize: Responsive.font(context, 10),
+                    color: onTheme(appColor),
+                    fontSize: Responsive.font(context, 11),
                   ),
                 ),
               ],
@@ -1108,7 +1119,7 @@ class _WorkoutState extends ConsumerState<Workout> {
         ),
         SizedBox(height: Responsive.height(context, 10)),
         Divider(
-          color: c.onCard.withAlpha(30),
+          color: onTheme(appColor).withAlpha(120),
           height: Responsive.height(context, 1),
           thickness: Responsive.height(context, 1),
         ),
@@ -1122,7 +1133,7 @@ class _WorkoutState extends ConsumerState<Workout> {
         ),
         SizedBox(height: Responsive.height(context, 10)),
         Divider(
-          color: c.onCard.withAlpha(30),
+          color: onTheme(appColor).withAlpha(120),
           height: Responsive.height(context, 1),
           thickness: Responsive.height(context, 1),
         ),
@@ -1140,9 +1151,9 @@ class _WorkoutState extends ConsumerState<Workout> {
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 12),
                 ),
-                color: lightenColor(appColor, 0.1).withAlpha(40),
+                color: cardColors(appColor).iconBox,
                 border: Border.all(
-                  color: lightenColor(appColor, 0.35).withAlpha(160),
+                  color: cardColors(appColor).iconBorder,
                   width: 1.5,
                 ),
               ),
@@ -1151,7 +1162,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                 children: [
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedAnalytics01,
-                    color: lightenColor(appColor, 0.45),
+                    color: onTheme(appColor),
                     size: Responsive.font(context, 18),
                   ),
                   SizedBox(width: Responsive.width(context, 8)),
@@ -1160,7 +1171,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 14),
                       fontWeight: FontWeight.w800,
-                      color: lightenColor(appColor, 0.45),
+                      color: onTheme(appColor),
                       letterSpacing: 0.3,
                     ),
                   ),
@@ -1195,7 +1206,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                       Text(
                         "Weekly Goal",
                         style: GoogleFonts.manrope(
-                          color: lightenColor(appColor, 0.45),
+                          color: onTheme(appColor),
                           fontSize: Responsive.font(context, 12),
                           fontWeight: FontWeight.w700,
                         ),
@@ -1205,14 +1216,14 @@ class _WorkoutState extends ConsumerState<Workout> {
                           Text(
                             "$workoutsThisWeek / $weeklyGoal workouts",
                             style: GoogleFonts.manrope(
-                              color: lightenColor(appColor, 0.35),
+                              color: onTheme(appColor),
                               fontSize: Responsive.font(context, 11),
                             ),
                           ),
                           SizedBox(width: Responsive.width(context, 6)),
                           HugeIcon(
                             icon: HugeIcons.strokeRoundedPencilEdit01,
-                            color: lightenColor(appColor, 0.35),
+                            color: onTheme(appColor),
                             size: Responsive.scale(context, 13),
                           ),
                         ],
@@ -1229,7 +1240,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                       minHeight: Responsive.height(context, 5),
                       backgroundColor: Colors.white.withAlpha(20),
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        lightenColor(appColor, 0.4),
+                        onTheme(appColor),
                       ),
                     ),
                   ),
@@ -1248,7 +1259,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                       return 'Resets in ${minutes}m';
                     }(),
                     style: GoogleFonts.manrope(
-                      color: lightenColor(appColor, 0.35),
+                      color: onTheme(appColor),
                       fontSize: Responsive.font(context, 10),
                     ),
                   ),
@@ -1258,7 +1269,7 @@ class _WorkoutState extends ConsumerState<Workout> {
             ...[
               SizedBox(height: Responsive.height(context, 12)),
               Divider(
-                color: c.onCard.withAlpha(30),
+                color: onTheme(appColor).withAlpha(120),
                 height: Responsive.height(context, 1),
                 thickness: Responsive.height(context, 1),
               ),
@@ -1354,8 +1365,8 @@ class _WorkoutState extends ConsumerState<Workout> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(Responsive.scale(context, 4)),
           color: _liftsPage == i
-              ? lightenColor(appColor, 0.45)
-              : lightenColor(appColor, 0.2).withAlpha(100),
+              ? onTheme(appColor)
+              : onTheme(appColor).withAlpha(80),
         ),
       ),
     );
@@ -1365,7 +1376,7 @@ class _WorkoutState extends ConsumerState<Workout> {
           onTap: enabled ? onTap : null,
           child: Icon(
             icon,
-            color: enabled ? lightenColor(appColor, 0.4) : Colors.transparent,
+            color: enabled ? onTheme(appColor) : Colors.transparent,
             size: Responsive.scale(context, 32),
           ),
         );
@@ -1493,7 +1504,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                           softWrap: false,
                           overflow: TextOverflow.visible,
                           style: GoogleFonts.manrope(
-                            color: Colors.white,
+                            color: onTheme(appColor),
                             fontSize: Responsive.font(context, 10),
                             fontWeight: FontWeight.w500,
                           ),
@@ -1529,7 +1540,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                           child: Text(
                             dayLabels[d],
                             style: GoogleFonts.manrope(
-                              color: Colors.white,
+                              color: onTheme(appColor),
                               fontSize: Responsive.font(context, 10),
                               fontWeight: FontWeight.w500,
                             ),
@@ -1606,7 +1617,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                   Text(
                     'Less',
                     style: GoogleFonts.manrope(
-                      color: Colors.white,
+                      color: onTheme(appColor),
                       fontSize: Responsive.font(context, 10),
                       fontWeight: FontWeight.w500,
                     ),
@@ -1623,7 +1634,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                   Text(
                     'More',
                     style: GoogleFonts.manrope(
-                      color: Colors.white,
+                      color: onTheme(appColor),
                       fontSize: Responsive.font(context, 10),
                       fontWeight: FontWeight.w500,
                     ),
@@ -1657,8 +1668,8 @@ class _WorkoutState extends ConsumerState<Workout> {
                       ),
                     ),
                 effect: ShimmerEffect(
-                  baseColor: lightenColor(appColor, 0.3),
-                  highlightColor: lightenColor(appColor, 0.1),
+                  baseColor: cardColors(appColor).iconBox,
+                  highlightColor: cardColors(appColor).border,
                   duration: const Duration(milliseconds: 1200),
                 ),
                 child: AppRefreshIndicator(

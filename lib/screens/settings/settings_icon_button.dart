@@ -90,10 +90,7 @@ class _SettingsIconButtonState extends ConsumerState<SettingsIconButton>
                       Responsive.scale(context, 16),
                     ),
                     border: Border.all(
-                      color: lightenColor(
-                        color,
-                        0.30,
-                      ).withValues(alpha: 0.30 + _glowAnimation.value * 0.45),
+                      color: cardColors(color).iconBorder,
                       width: Responsive.scale(context, 1.5),
                     ),
                     boxShadow: [
@@ -116,7 +113,7 @@ class _SettingsIconButtonState extends ConsumerState<SettingsIconButton>
                   child: Icon(
                     Icons.manage_accounts_outlined,
                     size: Responsive.font(context, 26),
-                    color: lightenColor(color, 0.3),
+                    color: onTheme(appColor),
                   ),
                 ),
               ),

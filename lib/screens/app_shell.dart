@@ -284,7 +284,7 @@ class _ThemePreviewCountdownState
                           'Resets in ${_secondsLeft}s. Tap to keep this color.',
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 12),
-                            color: card.onCard.withAlpha(180),
+                            color: card.onCard,
                           ),
                         ),
                       ],

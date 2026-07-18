@@ -175,7 +175,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
         title: 'Name required',
         content: Text(
           'Give your routine a name before saving.',
-          style: GoogleFonts.manrope(color: Colors.white70),
+          style: GoogleFonts.manrope(color: onTheme(appColor)),
         ),
         actions: [
           TextButton(
@@ -200,7 +200,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
         title: 'No exercises',
         content: Text(
           'Add at least one exercise before saving.',
-          style: GoogleFonts.manrope(color: Colors.white70),
+          style: GoogleFonts.manrope(color: onTheme(appColor)),
         ),
         actions: [
           TextButton(
@@ -263,8 +263,8 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
 
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
@@ -332,7 +332,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
                         'Done Reordering',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.manrope(
-                          color: lightenColor(appColor, 0.45),
+                          color: onTheme(appColor),
                           fontSize: Responsive.font(context, 14),
                           fontWeight: FontWeight.w700,
                         ),
@@ -361,7 +361,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
           Text(
             'Routine Details',
             style: GoogleFonts.manrope(
-              color: Colors.white,
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 17),
               fontWeight: FontWeight.w800,
             ),
@@ -371,16 +371,18 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
             controller: tempName,
             autofocus: true,
             maxLength: 40,
-            style: GoogleFonts.manrope(color: Colors.white),
+            style: GoogleFonts.manrope(color: onTheme(appColor)),
             decoration: InputDecoration(
               labelText: 'Routine Name',
-              labelStyle: GoogleFonts.manrope(color: Colors.white60),
+              labelStyle: GoogleFonts.manrope(color: onTheme(appColor)),
               counterStyle: GoogleFonts.manrope(
-                color: Colors.white38,
+                color: onTheme(appColor).withAlpha(140),
                 fontSize: Responsive.font(context, 10),
               ),
               hintText: 'e.g. Push Day',
-              hintStyle: GoogleFonts.manrope(color: Colors.white38),
+              hintStyle: GoogleFonts.manrope(
+                color: onTheme(appColor).withAlpha(140),
+              ),
               filled: true,
               fillColor: Colors.white.withAlpha(15),
               border: OutlineInputBorder(
@@ -393,23 +395,20 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 14),
                 ),
-                borderSide: BorderSide(color: Colors.white.withAlpha(38)),
+                borderSide: BorderSide(color: cardColors(appColor).border),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 14),
                 ),
-                borderSide: BorderSide(
-                  color: lightenColor(appColor, 0.35),
-                  width: 1.5,
-                ),
+                borderSide: BorderSide(color: onTheme(appColor), width: 1.5),
               ),
               contentPadding: EdgeInsets.symmetric(
                 vertical: Responsive.height(context, 16),
                 horizontal: Responsive.width(context, 16),
               ),
             ),
-            cursorColor: lightenColor(appColor, 0.45),
+            cursorColor: onTheme(appColor),
           ),
           SizedBox(height: Responsive.height(context, 12)),
           TextField(
@@ -417,13 +416,15 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
             keyboardType: TextInputType.number,
             maxLength: 3,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            style: GoogleFonts.manrope(color: Colors.white),
+            style: GoogleFonts.manrope(color: onTheme(appColor)),
             decoration: InputDecoration(
               labelText: 'Est. Duration (min)',
-              labelStyle: GoogleFonts.manrope(color: Colors.white60),
+              labelStyle: GoogleFonts.manrope(color: onTheme(appColor)),
               counterText: '',
               hintText: '0',
-              hintStyle: GoogleFonts.manrope(color: Colors.white38),
+              hintStyle: GoogleFonts.manrope(
+                color: onTheme(appColor).withAlpha(140),
+              ),
               filled: true,
               fillColor: Colors.white.withAlpha(15),
               border: OutlineInputBorder(
@@ -436,23 +437,20 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 14),
                 ),
-                borderSide: BorderSide(color: Colors.white.withAlpha(38)),
+                borderSide: BorderSide(color: cardColors(appColor).border),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 14),
                 ),
-                borderSide: BorderSide(
-                  color: lightenColor(appColor, 0.35),
-                  width: 1.5,
-                ),
+                borderSide: BorderSide(color: onTheme(appColor), width: 1.5),
               ),
               contentPadding: EdgeInsets.symmetric(
                 vertical: Responsive.height(context, 16),
                 horizontal: Responsive.width(context, 16),
               ),
             ),
-            cursorColor: lightenColor(appColor, 0.45),
+            cursorColor: onTheme(appColor),
           ),
           SizedBox(height: Responsive.height(context, 24)),
           gradientButton(
@@ -476,7 +474,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
                 'Cancel',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.manrope(
-                  color: Colors.white.withAlpha(100),
+                  color: onTheme(appColor).withAlpha(140),
                   fontSize: Responsive.font(context, 13),
                   fontWeight: FontWeight.w500,
                 ),
@@ -511,15 +509,15 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
               margin: EdgeInsets.only(right: Responsive.width(context, 10)),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: lightenColor(appColor, 0.1).withAlpha(20),
+                color: cardColors(appColor).iconBox,
                 border: Border.all(
-                  color: Colors.white.withAlpha(60),
+                  color: cardColors(appColor).iconBorder,
                   width: 1.5,
                 ),
               ),
               child: Icon(
                 Icons.arrow_back_ios_new_rounded,
-                color: Colors.white.withAlpha(160),
+                color: cardColors(appColor).onCard,
                 size: Responsive.font(context, 16),
               ),
             ),
@@ -546,14 +544,14 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
       mainAxisSize: MainAxisSize.min,
       children: [
         ShimmerWidget(
-          accent: lightenColor(appColor, 0.45),
+          accent: onTheme(appColor),
           child: AnimatedBuilder(
             animation: _pulseScale,
             builder: (context, child) =>
                 Transform.scale(scale: _pulseScale.value, child: child),
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedNote02,
-              color: Colors.white.withAlpha(220),
+              color: onTheme(appColor),
               size: Responsive.scale(context, 54),
             ),
           ),
@@ -562,7 +560,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
         Text(
           'Add an Exercise',
           style: GoogleFonts.manrope(
-            color: Colors.white.withAlpha(180),
+            color: onTheme(appColor),
             fontSize: Responsive.font(context, 16),
             fontWeight: FontWeight.w600,
           ),
@@ -786,10 +784,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
         begin: Alignment.centerLeft,
         end: Alignment.centerRight,
       ),
-      border: Border.all(
-        color: lightenColor(appColor, 0.35).withAlpha(180),
-        width: 1.5,
-      ),
+      border: Border.all(color: cardColors(appColor).iconBorder, width: 1.5),
     );
 
     Widget pill(Widget child, VoidCallback onTap) => Expanded(
@@ -825,14 +820,14 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
                     children: [
                       Icon(
                         Icons.tune_rounded,
-                        color: Colors.white,
+                        color: onTheme(appColor),
                         size: Responsive.scale(context, 16),
                       ),
                       SizedBox(width: Responsive.width(context, 6)),
                       Text(
                         'Details',
                         style: GoogleFonts.manrope(
-                          color: Colors.white,
+                          color: onTheme(appColor),
                           fontSize: Responsive.font(context, 14),
                           fontWeight: FontWeight.w700,
                         ),
@@ -848,14 +843,14 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
                     children: [
                       Icon(
                         Icons.add_rounded,
-                        color: Colors.white,
+                        color: onTheme(appColor),
                         size: Responsive.scale(context, 20),
                       ),
                       SizedBox(width: Responsive.width(context, 6)),
                       Text(
                         'Add Exercise',
                         style: GoogleFonts.manrope(
-                          color: Colors.white,
+                          color: onTheme(appColor),
                           fontSize: Responsive.font(context, 14),
                           fontWeight: FontWeight.w700,
                         ),
@@ -876,7 +871,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
                 title: 'Discard routine?',
                 content: Text(
                   'You will lose all progress on this routine.',
-                  style: GoogleFonts.manrope(color: Colors.white70),
+                  style: GoogleFonts.manrope(color: onTheme(appColor)),
                 ),
                 actions: [
                   TextButton(
@@ -902,10 +897,10 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
                 vertical: Responsive.height(context, 12),
               ),
               decoration: BoxDecoration(
-                color: Colors.white.withAlpha(8),
+                color: cardColors(appColor).iconBox,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: Colors.white.withAlpha(28),
+                  color: cardColors(appColor).border,
                   width: 1.5,
                 ),
               ),
@@ -914,14 +909,14 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
                 children: [
                   Icon(
                     Icons.delete_outline_rounded,
-                    color: Colors.white.withAlpha(90),
+                    color: onTheme(appColor).withAlpha(130),
                     size: Responsive.scale(context, 15),
                   ),
                   SizedBox(width: Responsive.width(context, 5)),
                   Text(
                     'Discard',
                     style: GoogleFonts.manrope(
-                      color: Colors.white.withAlpha(90),
+                      color: onTheme(appColor).withAlpha(130),
                       fontSize: Responsive.font(context, 13),
                       fontWeight: FontWeight.w600,
                     ),

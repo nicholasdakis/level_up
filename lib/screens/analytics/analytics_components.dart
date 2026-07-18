@@ -18,7 +18,7 @@ Widget analyticsStatTile(
   required String value,
   Color? valueColor,
 }) {
-  final accent = lightenColor(appColor, 0.45);
+  final accent = onTheme(appColor);
   return Expanded(
     child: frostedGlassCard(
       context,
@@ -167,7 +167,7 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
     final appColor = ref.watch(
       userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
     );
-    final accent = lightenColor(appColor, 0.45);
+    final accent = onTheme(appColor);
 
     return GestureDetector(
       onTap: _collapsed
@@ -195,7 +195,7 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 11),
                         fontWeight: FontWeight.w500,
-                        color: Colors.white38,
+                        color: onTheme(appColor).withAlpha(140),
                       ),
                     ),
                     if (_collapsed) ...[
@@ -205,7 +205,7 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 16),
                           fontWeight: FontWeight.w700,
-                          color: Colors.white70,
+                          color: onTheme(appColor),
                         ),
                       ),
                     ],
@@ -271,37 +271,37 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
                               ),
                               rangeHighlightColor: Colors.white.withAlpha(25),
                               defaultTextStyle: GoogleFonts.manrope(
-                                color: Colors.white70,
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 13),
                               ),
                               weekendTextStyle: GoogleFonts.manrope(
-                                color: Colors.white70,
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 13),
                               ),
                               todayTextStyle: GoogleFonts.manrope(
-                                color: Colors.white70,
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 13),
                               ),
                               rangeStartTextStyle: GoogleFonts.manrope(
-                                color: Colors.white,
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 13),
                                 fontWeight: FontWeight.w700,
                               ),
                               rangeEndTextStyle: GoogleFonts.manrope(
-                                color: Colors.white,
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 13),
                                 fontWeight: FontWeight.w700,
                               ),
                               withinRangeTextStyle: GoogleFonts.manrope(
-                                color: Colors.white,
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 13),
                               ),
                               outsideTextStyle: GoogleFonts.manrope(
-                                color: Colors.white24,
+                                color: onTheme(appColor).withAlpha(100),
                                 fontSize: Responsive.font(context, 13),
                               ),
                               disabledTextStyle: GoogleFonts.manrope(
-                                color: Colors.white24,
+                                color: onTheme(appColor).withAlpha(100),
                                 fontSize: Responsive.font(context, 13),
                               ),
                             ),
@@ -309,29 +309,29 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
                               formatButtonVisible: false,
                               titleCentered: true,
                               titleTextStyle: GoogleFonts.manrope(
-                                color: Colors.white,
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 14),
                                 fontWeight: FontWeight.w700,
                               ),
                               leftChevronIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedArrowLeft01,
-                                color: Colors.white70,
+                                color: onTheme(appColor),
                                 size: Responsive.font(context, 22),
                               ),
                               rightChevronIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedArrowRight01,
-                                color: Colors.white70,
+                                color: onTheme(appColor),
                                 size: Responsive.font(context, 22),
                               ),
                             ),
                             daysOfWeekStyle: DaysOfWeekStyle(
                               weekdayStyle: GoogleFonts.manrope(
-                                color: Colors.white38,
+                                color: onTheme(appColor).withAlpha(140),
                                 fontSize: Responsive.font(context, 12),
                                 fontWeight: FontWeight.w600,
                               ),
                               weekendStyle: GoogleFonts.manrope(
-                                color: Colors.white38,
+                                color: onTheme(appColor).withAlpha(140),
                                 fontSize: Responsive.font(context, 12),
                                 fontWeight: FontWeight.w600,
                               ),
@@ -339,7 +339,7 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
                           ),
                           if (!widget.rangeSelected) ...[
                             Divider(
-                              color: Colors.white.withAlpha(20),
+                              color: onTheme(appColor).withAlpha(50),
                               thickness: 1,
                               height: Responsive.height(context, 32),
                             ),
@@ -349,7 +349,7 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 13),
                                 fontWeight: FontWeight.w500,
-                                color: Colors.white38,
+                                color: onTheme(appColor).withAlpha(140),
                               ),
                             ),
                             SizedBox(height: Responsive.height(context, 8)),
@@ -401,7 +401,7 @@ Widget buildRangeChips(
   List<int> shimmerIndices = const [],
   VoidCallback? onLockedTap,
 }) {
-  final accent = lightenColor(appColor, 0.45);
+  final accent = onTheme(appColor);
 
   Widget normalChip(int i) => GestureDetector(
     onTap: () => onTap(i),
@@ -419,7 +419,7 @@ Widget buildRangeChips(
           color: selectedIndex == i
               ? accent.withAlpha(120)
               : accent.withAlpha(20),
-          width: 1,
+          width: 1.5,
         ),
       ),
       child: Text(
@@ -428,7 +428,7 @@ Widget buildRangeChips(
         style: GoogleFonts.manrope(
           fontSize: Responsive.font(context, 13),
           fontWeight: selectedIndex == i ? FontWeight.w700 : FontWeight.w500,
-          color: selectedIndex == i ? accent : lightenColor(appColor, 0.3),
+          color: selectedIndex == i ? accent : onTheme(appColor),
         ),
       ),
     ),
@@ -502,9 +502,9 @@ class _ShimmerChipState extends State<_ShimmerChip>
 
   @override
   Widget build(BuildContext context) {
-    final dim = lightenColor(widget.appColor, 0.3);
-    final mid = lightenColor(widget.appColor, 0.45);
-    final accent = lightenColor(widget.appColor, 0.45);
+    final dim = onTheme(widget.appColor);
+    final mid = onTheme(widget.appColor);
+    final accent = onTheme(widget.appColor);
     return GestureDetector(
       onTap: widget.onTap,
       child: AnimatedBuilder(
@@ -520,7 +520,7 @@ class _ShimmerChipState extends State<_ShimmerChip>
             decoration: BoxDecoration(
               color: accent.withAlpha(10),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: accent.withAlpha(20), width: 1),
+              border: Border.all(color: accent.withAlpha(20), width: 1.5),
             ),
             child: ShaderMask(
               shaderCallback: (bounds) => LinearGradient(

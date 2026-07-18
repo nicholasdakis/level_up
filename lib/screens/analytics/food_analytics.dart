@@ -369,8 +369,8 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
   }
 
   Widget _calorieLineChart(BuildContext context, List<_DayPoint> points) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
 
     if (points.isEmpty) {
       return frostedGlassCard(
@@ -717,7 +717,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 12),
                         fontWeight: FontWeight.w600,
-                        color: Colors.white54,
+                        color: onTheme(appColor),
                       ),
                     ),
                   );
@@ -747,9 +747,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
       formatTopTitle: (i, v) {
         final empty = v == 0;
         final pct = total > 0 ? (v / total * 100).round() : 0;
-        final labelColor = empty
-            ? lightenColor(appColor, 0.25)
-            : lightenColor(appColor, 0.45);
+        final labelColor = empty ? onTheme(appColor) : onTheme(appColor);
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -790,7 +788,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
       formatTopTitle: (i, v) {
         if (v == 0) return const SizedBox.shrink();
         final pct = total > 0 ? (v / total * 100).round() : 0;
-        final accent = lightenColor(appColor, 0.45);
+        final accent = onTheme(appColor);
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -835,7 +833,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 10),
             fontWeight: FontWeight.w700,
-            color: lightenColor(appColor, 0.45),
+            color: onTheme(appColor),
           ),
         );
       },
@@ -844,7 +842,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
 
   // Shown in place of the chart when no data is logged for the selected day
   Widget _emptyState(BuildContext context, String message) {
-    return _chartEmptyState(context, message);
+    return _chartEmptyState(context, message, appColor);
   }
 
   @override
@@ -893,15 +891,15 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                       padding: EdgeInsets.all(Responsive.scale(context, 12)),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: lightenColor(appColor, 0.1).withAlpha(20),
+                        color: cardColors(appColor).iconBox,
                         border: Border.all(
-                          color: lightenColor(appColor, 0.3).withAlpha(180),
+                          color: cardColors(appColor).iconBorder,
                           width: 1.5,
                         ),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new,
-                        color: lightenColor(appColor, 0.3).withAlpha(180),
+                        color: cardColors(appColor).onCard,
                         size: Responsive.font(context, 13),
                       ),
                     ),
@@ -945,8 +943,8 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                   splashBorderRadius: BorderRadius.circular(
                     Responsive.scale(context, 20),
                   ), // clips ripple to pill shape
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white38,
+                  labelColor: onTheme(appColor),
+                  unselectedLabelColor: onTheme(appColor).withAlpha(140),
                   labelStyle: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 15),
                     fontWeight: FontWeight.w700,
@@ -1006,8 +1004,8 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     DateTime start,
     DateTime end,
   ) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     final startKey = FoodLoggingHelper.formatDateKey(start);
     final endKey = FoodLoggingHelper.formatDateKey(end);
     final logs = ref.read(foodLogsAnalyticsProvider).value ?? [];
@@ -1096,9 +1094,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                           value: top[i].value / maxCount,
                           minHeight: Responsive.height(context, 4),
                           backgroundColor: accent.withAlpha(30),
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            accent.withAlpha(180),
-                          ),
+                          valueColor: AlwaysStoppedAnimation<Color>(accent),
                         ),
                       ),
                     ],
@@ -1136,7 +1132,10 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                     borderRadius: BorderRadius.circular(
                       Responsive.scale(context, 12),
                     ),
-                    border: Border.all(color: Colors.white.withAlpha(20)),
+                    border: Border.all(
+                      color: cardColors(appColor).border,
+                      width: 1.5,
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -1147,7 +1146,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                           'Free plan shows the last 14 days. Upgrade for full history.',
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 12),
-                            color: lightenColor(appColor, 0.35),
+                            color: onTheme(appColor),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -1156,7 +1155,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                         'Upgrade',
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 12),
-                          color: lightenColor(appColor, 0.45),
+                          color: onTheme(appColor),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -1226,7 +1225,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                         "No data logged in this range",
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 14),
-                          color: Colors.white38,
+                          color: onTheme(appColor).withAlpha(140),
                         ),
                       ),
                     );
@@ -1523,15 +1522,15 @@ class _FoodLineChartState extends ConsumerState<_FoodLineChart> {
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     final points = widget.points;
     final names = widget.names;
 
     final allSpots = widget.spotsOf(points);
     final baseColors = [
       accent,
-      accent.withAlpha(200),
+      accent,
       accent.withAlpha(130),
       accent.withAlpha(70),
     ];
@@ -1870,7 +1869,11 @@ class _DailyTab extends StatelessWidget {
                   color: appColor,
                   padding: EdgeInsets.all(Responsive.scale(ctx, 20)),
                   child: totalCal == 0
-                      ? _chartEmptyState(ctx, "No calories logged for this day")
+                      ? _chartEmptyState(
+                          ctx,
+                          "No calories logged for this day",
+                          appColor,
+                        )
                       : mealBarChart(
                           ctx,
                           breakfastCal: breakfastCal,
@@ -1905,7 +1908,11 @@ class _DailyTab extends StatelessWidget {
                   color: appColor,
                   padding: EdgeInsets.all(Responsive.scale(ctx, 20)),
                   child: totalMacroCal == 0
-                      ? _chartEmptyState(ctx, "No macro data for this day")
+                      ? _chartEmptyState(
+                          ctx,
+                          "No macro data for this day",
+                          appColor,
+                        )
                       : macroBarChart(
                           ctx,
                           proteinG: macros['protein']!,
@@ -1942,7 +1949,11 @@ class _DailyTab extends StatelessWidget {
                               micros['sugar']! +
                               micros['sodium']!) ==
                           0
-                      ? _chartEmptyState(ctx, "No micro data for this day")
+                      ? _chartEmptyState(
+                          ctx,
+                          "No micro data for this day",
+                          appColor,
+                        )
                       : microBarChart(
                           ctx,
                           fiberG: micros['fiber']!,
@@ -1965,7 +1976,7 @@ class _DailyTab extends StatelessWidget {
   }
 }
 
-Widget _chartEmptyState(BuildContext context, String message) {
+Widget _chartEmptyState(BuildContext context, String message, Color appColor) {
   return Padding(
     padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 28)),
     child: Column(
@@ -1973,7 +1984,7 @@ Widget _chartEmptyState(BuildContext context, String message) {
       children: [
         HugeIcon(
           icon: HugeIcons.strokeRoundedChartHistogram,
-          color: Colors.white24,
+          color: onTheme(appColor).withAlpha(120),
           size: Responsive.scale(context, 28),
         ),
         SizedBox(height: Responsive.height(context, 10)),
@@ -1981,7 +1992,7 @@ Widget _chartEmptyState(BuildContext context, String message) {
           message,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 13),
-            color: Colors.white38,
+            color: onTheme(appColor).withAlpha(140),
           ),
         ),
       ],
@@ -2005,8 +2016,8 @@ Widget _statTilesRow({
   Map<String, double>? dinnerMacros,
   Map<String, double>? snacksMacros,
 }) {
-  final accent = lightenColor(appColor, 0.45);
-  final dim = lightenColor(appColor, 0.35);
+  final accent = onTheme(appColor);
+  final dim = onTheme(appColor);
   final meals = [
     ('Breakfast', breakfastCal),
     ('Lunch', lunchCal),
@@ -2103,7 +2114,7 @@ Widget _statTilesRow({
                         ].join(' · '),
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 10),
-                          color: dim.withAlpha(180),
+                          color: dim,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -2181,8 +2192,8 @@ Widget _calorieSummaryCard(
   _RangeAggregate agg,
   Color appColor,
 ) {
-  final accent = lightenColor(appColor, 0.45);
-  final dim = lightenColor(appColor, 0.35);
+  final accent = onTheme(appColor);
+  final dim = onTheme(appColor);
   final days = agg.daysWithData;
   final total = agg.totalCal;
   final meals = [
@@ -2303,7 +2314,7 @@ Widget _macroSummaryCard(
   _RangeAggregate agg,
   Color appColor,
 ) {
-  final accent = lightenColor(appColor, 0.45);
+  final accent = onTheme(appColor);
   final days = agg.daysWithData;
 
   Widget macroChip(String label, double total, IconData icon) {
@@ -2395,7 +2406,7 @@ Widget _rangeTile({
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 11),
                 fontWeight: FontWeight.w500,
-                color: iconColor.withAlpha(180),
+                color: iconColor,
               ),
             ),
           ],

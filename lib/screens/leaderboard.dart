@@ -129,7 +129,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
     if (index == 0) return Colors.yellow;
     if (index == 1) return Colors.grey;
     if (index == 2) return const Color(0xFFCD7F32);
-    return Colors.white;
+    return onTheme(appColor);
   }
 
   // Medal icon for the top 3 users
@@ -155,7 +155,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
               fit: BoxFit.cover,
             ),
           )
-        : Icon(Icons.person, color: Colors.white, size: size);
+        : Icon(Icons.person, color: onTheme(appColor), size: size);
     return pic;
   }
 
@@ -198,9 +198,9 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
         // Current user gets a tinted background, premium users get a faint accent wash
         decoration: BoxDecoration(
           color: isCurrentUser
-              ? lightenColor(appColor, 0.15)
+              ? Colors.white.withAlpha(60)
               : user.isPremium
-              ? lightenColor(appColor, 0.45).withAlpha(18)
+              ? Colors.white.withAlpha(20)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(Responsive.scale(context, 16)),
         ),
@@ -278,7 +278,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                           : Text(
                               username,
                               style: GoogleFonts.manrope(
-                                color: Colors.white,
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 15),
                                 fontWeight: FontWeight.w600,
                               ),
@@ -287,7 +287,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                       Text(
                         subtext(),
                         style: GoogleFonts.manrope(
-                          color: Colors.white60,
+                          color: onTheme(appColor),
                           fontSize: Responsive.font(context, 12),
                         ),
                       ),
@@ -297,7 +297,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                 Text(
                   trailingText(),
                   style: GoogleFonts.manrope(
-                    color: Colors.white38,
+                    color: onTheme(appColor).withAlpha(140),
                     fontSize: Responsive.font(context, 12),
                   ),
                 ),
@@ -330,8 +330,8 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
   }
 
   Widget _buildTypeChips() {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.30);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
 
     final types = [
       (_LeaderboardType.xp, HugeIcons.strokeRoundedStar, "XP"),
@@ -415,8 +415,8 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
   }
 
   Widget _buildPeriodToggle() {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.30);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
 
     final periods = [
       (_LeaderboardPeriod.allTime, "All time"),
@@ -503,7 +503,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                     "Failed to load the leaderboard.",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
-                      color: Colors.white70,
+                      color: onTheme(appColor),
                       fontSize: 13,
                     ),
                   ),
@@ -515,9 +515,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                       },
                       child: Text(
                         "Go back",
-                        style: GoogleFonts.manrope(
-                          color: lightenColor(appColor, 0.40),
-                        ),
+                        style: GoogleFonts.manrope(color: onTheme(appColor)),
                       ),
                     ),
                     TextButton(
@@ -528,7 +526,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                       child: Text(
                         "Retry",
                         style: GoogleFonts.manrope(
-                          color: lightenColor(appColor, 0.45),
+                          color: onTheme(appColor),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -565,15 +563,15 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: lightenColor(appColor, 0.1).withAlpha(20),
+                            color: cardColors(appColor).iconBox,
                             border: Border.all(
-                              color: lightenColor(appColor, 0.3).withAlpha(180),
+                              color: cardColors(appColor).iconBorder,
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             Icons.arrow_back_ios_new,
-                            color: lightenColor(appColor, 0.3).withAlpha(180),
+                            color: cardColors(appColor).onCard,
                             size: Responsive.font(context, 13),
                           ),
                         ),
@@ -587,7 +585,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                             ? "Create an account to see the leaderboard"
                             : "No users found",
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white70),
+                        style: TextStyle(color: onTheme(appColor)),
                       ),
                     ),
                   ),
@@ -600,8 +598,8 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
             return Skeletonizer(
               enabled: isLoading,
               effect: ShimmerEffect(
-                baseColor: lightenColor(appColor, 0.3),
-                highlightColor: lightenColor(appColor, 0.1),
+                baseColor: cardColors(appColor).iconBox,
+                highlightColor: cardColors(appColor).border,
                 duration: const Duration(milliseconds: 1200),
               ),
               child: AppRefreshIndicator(
@@ -636,24 +634,15 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                                     ),
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: lightenColor(
-                                        appColor,
-                                        0.1,
-                                      ).withAlpha(20),
+                                      color: cardColors(appColor).iconBox,
                                       border: Border.all(
-                                        color: lightenColor(
-                                          appColor,
-                                          0.3,
-                                        ).withAlpha(180),
+                                        color: cardColors(appColor).iconBorder,
                                         width: 1.5,
                                       ),
                                     ),
                                     child: Icon(
                                       Icons.arrow_back_ios_new,
-                                      color: lightenColor(
-                                        appColor,
-                                        0.3,
-                                      ).withAlpha(180),
+                                      color: cardColors(appColor).onCard,
                                       size: Responsive.font(context, 13),
                                     ),
                                   ),
@@ -671,19 +660,13 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                                         0.1,
                                       ).withAlpha(20),
                                       border: Border.all(
-                                        color: lightenColor(
-                                          appColor,
-                                          0.3,
-                                        ).withAlpha(180),
+                                        color: onTheme(appColor),
                                         width: 1.5,
                                       ),
                                     ),
                                     child: Icon(
                                       Icons.refresh,
-                                      color: lightenColor(
-                                        appColor,
-                                        0.3,
-                                      ).withAlpha(180),
+                                      color: onTheme(appColor),
                                       size: Responsive.font(context, 13),
                                     ),
                                   ),

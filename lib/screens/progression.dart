@@ -69,8 +69,8 @@ class _ProgressionState extends ConsumerState<Progression> {
   }
 
   Widget _buildStandingCard(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
 
     final rankLabel = isGuest
         ? "#--"
@@ -95,8 +95,8 @@ class _ProgressionState extends ConsumerState<Progression> {
       enabled:
           !isGuest && (_standingLoading || !ref.watch(userDataLoadedProvider)),
       effect: ShimmerEffect(
-        baseColor: lightenColor(appColor, 0.3),
-        highlightColor: lightenColor(appColor, 0.1),
+        baseColor: cardColors(appColor).iconBox,
+        highlightColor: cardColors(appColor).border,
         duration: const Duration(milliseconds: 1200),
       ),
       child: frostedGlassCard(
@@ -109,7 +109,7 @@ class _ProgressionState extends ConsumerState<Progression> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Type toggle — IntrinsicWidth makes all chips match the widest one
+            // Type toggle, IntrinsicWidth makes all chips match the widest one
             Center(
               child: IntrinsicWidth(
                 child: Row(
@@ -272,7 +272,7 @@ class _ProgressionState extends ConsumerState<Progression> {
     final base = appColor;
     final c = cardColors(base);
     final accent = c.onCard;
-    final dim = c.onCard.withAlpha(180);
+    final dim = c.onCard;
     final radius = BorderRadius.circular(Responsive.scale(context, 20));
 
     return Padding(
@@ -285,7 +285,7 @@ class _ProgressionState extends ConsumerState<Progression> {
             end: Alignment.bottomRight,
             colors: c.gradient,
           ),
-          border: Border.all(color: c.border, width: 1),
+          border: Border.all(color: c.border, width: 1.5),
         ),
         child: ClipRRect(
           borderRadius: radius,
@@ -309,10 +309,7 @@ class _ProgressionState extends ConsumerState<Progression> {
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 13),
                         ),
-                        border: Border.all(
-                          color: lightenColor(base, 0.35).withAlpha(80),
-                          width: 1,
-                        ),
+                        border: Border.all(color: c.iconBorder, width: 1.5),
                       ),
                       child: HugeIcon(
                         icon: icon,
@@ -346,7 +343,7 @@ class _ProgressionState extends ConsumerState<Progression> {
                     ),
                     HugeIcon(
                       icon: HugeIcons.strokeRoundedArrowRight01,
-                      color: lightenColor(base, 0.35).withAlpha(200),
+                      color: onTheme(base),
                       size: Responsive.scale(context, 20),
                     ),
                   ],

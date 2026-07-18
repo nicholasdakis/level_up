@@ -19,7 +19,6 @@ import '/services/user_data_manager.dart';
 import '/utility/responsive.dart';
 import '/services/fcm/notification_service.dart';
 import '../premium_sheet.dart' show showPremiumSheet;
-import 'dart:math';
 
 Future<void> showUsernameDialogBox(
   BuildContext context,
@@ -28,8 +27,8 @@ Future<void> showUsernameDialogBox(
   WidgetRef ref,
   Color appColor,
 ) async {
-  final accent = lightenColor(appColor, 0.45);
-  final dim = lightenColor(appColor, 0.35);
+  final accent = onTheme(appColor);
+  final dim = onTheme(appColor);
   final currentUsername = ref.read(userDataProvider).value?.username;
   final hasUsername =
       currentUsername != null &&
@@ -67,11 +66,13 @@ Future<void> showUsernameDialogBox(
               controller: usernameController,
               autofocus: true,
               maxLength: 20,
-              style: GoogleFonts.manrope(color: Colors.white),
+              style: GoogleFonts.manrope(color: onTheme(appColor)),
               textCapitalization: TextCapitalization.none,
               decoration: InputDecoration(
                 hintText: 'Username',
-                hintStyle: GoogleFonts.manrope(color: Colors.white38),
+                hintStyle: GoogleFonts.manrope(
+                  color: onTheme(appColor).withAlpha(140),
+                ),
                 filled: true,
                 fillColor: Colors.white.withAlpha(10),
                 counterStyle: GoogleFonts.manrope(
@@ -82,26 +83,19 @@ Future<void> showUsernameDialogBox(
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 12),
                   ),
-                  borderSide: BorderSide(
-                    color: lightenColor(appColor, 0.2).withAlpha(100),
-                  ),
+                  borderSide: BorderSide(color: onTheme(appColor)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 12),
                   ),
-                  borderSide: BorderSide(
-                    color: lightenColor(appColor, 0.2).withAlpha(100),
-                  ),
+                  borderSide: BorderSide(color: onTheme(appColor)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 12),
                   ),
-                  borderSide: BorderSide(
-                    color: lightenColor(appColor, 0.4),
-                    width: 1.5,
-                  ),
+                  borderSide: BorderSide(color: onTheme(appColor), width: 1.5),
                 ),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: Responsive.width(context, 16),
@@ -276,39 +270,10 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
     }
   }
 
-  bool isColorTooLight(Color color) {
-    // calculate the relative luminance of the color (0 = black, 1 = white)
-    double luminance = color.computeLuminance();
-    return luminance > 0.5; // threshold for "too light"
-  }
-
-  double getDarknessMultiplier(Color color) {
-    return max(
-      (color.computeLuminance() - 0.5) *
-          0.8, // the lighter the color, the more it gets darkened
-      0.15,
-    ); // lighter colors get darkened more, but minimum darkness multiplier is 0.1
-  }
-
   Future<void> applyAppColor(Color color) async {
     if (isGuest) {
       Guest.block(context);
       return;
-    }
-    // Check if the color is too light for white text / cards to be visible, and if so, darken it slightly
-    if (isColorTooLight(color)) {
-      color = darkenColor(color, getDarknessMultiplier(color));
-      // show a snackbar explaining that the color was adjusted for better visibility
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "The selected color was too light, so it has been slightly darkened to improve visibility.",
-            ),
-            duration: snackBarDurationImportant,
-          ),
-        );
-      }
     }
     unawaited(ref.read(userDataProvider.notifier).setAppColor(color, context));
 
@@ -369,7 +334,10 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 20),
                 ),
-                border: Border.all(color: Colors.white.withAlpha(22), width: 1),
+                border: Border.all(
+                  color: cardColors(appColor).border,
+                  width: 1,
+                ),
               ),
               padding: EdgeInsets.symmetric(
                 horizontal: Responsive.width(context, 28),
@@ -384,7 +352,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 15),
-                      color: Colors.white,
+                      color: onTheme(appColor),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -394,7 +362,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 12),
-                      color: Colors.white54,
+                      color: onTheme(appColor),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -435,7 +403,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 9),
-                                  color: Colors.white54,
+                                  color: onTheme(appColor),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -478,7 +446,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                   ],
                                 ),
                                 border: Border.all(
-                                  color: Colors.white.withAlpha(40),
+                                  color: cardColors(appColor).border,
                                   width: 1.5,
                                 ),
                               ),
@@ -489,7 +457,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                 ),
                                 child: Icon(
                                   Icons.lock_rounded,
-                                  color: Colors.white70,
+                                  color: Colors.white.withAlpha(200),
                                   size: Responsive.scale(context, 18),
                                 ),
                               ),
@@ -500,7 +468,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                               textAlign: TextAlign.center,
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 9),
-                                color: Colors.white54,
+                                color: onTheme(appColor),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -549,7 +517,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                     Responsive.scale(context, 20),
                   ),
                   border: Border.all(
-                    color: Colors.white.withAlpha(22),
+                    color: cardColors(appColor).border,
                     width: 1,
                   ),
                 ),
@@ -565,7 +533,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       textAlign: TextAlign.center,
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 15),
-                        color: Colors.white,
+                        color: onTheme(appColor),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -721,7 +689,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
               Text(
                 "Goal type",
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: onTheme(appColor),
                   fontSize: Responsive.font(context, 13),
                 ),
               ),
@@ -749,15 +717,15 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                             ),
                             decoration: BoxDecoration(
                               color: weightGoalType == option
-                                  ? Colors.white.withAlpha(28)
+                                  ? cardColors(appColor).iconBox
                                   : Colors.white.withAlpha(10),
                               borderRadius: BorderRadius.circular(
                                 Responsive.scale(context, 10),
                               ),
                               border: Border.all(
                                 color: weightGoalType == option
-                                    ? Colors.white.withAlpha(80)
-                                    : Colors.white.withAlpha(25),
+                                    ? cardColors(appColor).border
+                                    : cardColors(appColor).border.withAlpha(80),
                                 width: 1,
                               ),
                             ),
@@ -766,8 +734,8 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                               textAlign: TextAlign.center,
                               style: GoogleFonts.manrope(
                                 color: weightGoalType == option
-                                    ? Colors.white
-                                    : Colors.white54,
+                                    ? onTheme(appColor)
+                                    : onTheme(appColor),
                                 fontSize: Responsive.font(context, 14),
                                 fontWeight: weightGoalType == option
                                     ? FontWeight.w600
@@ -831,8 +799,8 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
       title: "Weekly Workout Goal",
       content: StatefulBuilder(
         builder: (sbContext, setDialogState) {
-          final accent = lightenColor(appColor, 0.45);
-          final dim = lightenColor(appColor, 0.35);
+          final accent = onTheme(appColor);
+          final dim = onTheme(appColor);
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -854,7 +822,9 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                         : null,
                     icon: Icon(
                       Icons.remove_circle_outline,
-                      color: selected > 1 ? accent : Colors.white24,
+                      color: selected > 1
+                          ? accent
+                          : onTheme(appColor).withAlpha(100),
                     ),
                   ),
                   SizedBox(width: Responsive.width(context, 12)),
@@ -873,7 +843,9 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                         : null,
                     icon: Icon(
                       Icons.add_circle_outline,
-                      color: selected < 7 ? accent : Colors.white24,
+                      color: selected < 7
+                          ? accent
+                          : onTheme(appColor).withAlpha(100),
                     ),
                   ),
                 ],
@@ -976,27 +948,20 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
           FilteringTextInputFormatter.digitsOnly,
           LengthLimitingTextInputFormatter(maxLength),
         ],
-        style: GoogleFonts.manrope(color: Colors.white),
+        style: GoogleFonts.manrope(color: onTheme(appColor)),
         decoration: InputDecoration(
           labelText: hint,
-          labelStyle: GoogleFonts.manrope(color: Colors.white54),
-          floatingLabelStyle: GoogleFonts.manrope(
-            color: lightenColor(appColor, 0.4),
-          ),
+          labelStyle: GoogleFonts.manrope(color: onTheme(appColor)),
+          floatingLabelStyle: GoogleFonts.manrope(color: onTheme(appColor)),
           filled: true,
           fillColor: Colors.white.withAlpha(12),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-            borderSide: BorderSide(
-              color: lightenColor(appColor, 0.2).withAlpha(80),
-            ),
+            borderSide: BorderSide(color: onTheme(appColor)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-            borderSide: BorderSide(
-              color: lightenColor(appColor, 0.4),
-              width: 1.5,
-            ),
+            borderSide: BorderSide(color: onTheme(appColor), width: 1.5),
           ),
           contentPadding: EdgeInsets.symmetric(
             horizontal: Responsive.width(context, 16),
@@ -1023,27 +988,20 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
             return newValue;
           }),
         ],
-        style: GoogleFonts.manrope(color: Colors.white),
+        style: GoogleFonts.manrope(color: onTheme(appColor)),
         decoration: InputDecoration(
           labelText: hint,
-          labelStyle: GoogleFonts.manrope(color: Colors.white54),
-          floatingLabelStyle: GoogleFonts.manrope(
-            color: lightenColor(appColor, 0.4),
-          ),
+          labelStyle: GoogleFonts.manrope(color: onTheme(appColor)),
+          floatingLabelStyle: GoogleFonts.manrope(color: onTheme(appColor)),
           filled: true,
           fillColor: Colors.white.withAlpha(12),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-            borderSide: BorderSide(
-              color: lightenColor(appColor, 0.2).withAlpha(80),
-            ),
+            borderSide: BorderSide(color: onTheme(appColor)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-            borderSide: BorderSide(
-              color: lightenColor(appColor, 0.4),
-              width: 1.5,
-            ),
+            borderSide: BorderSide(color: onTheme(appColor), width: 1.5),
           ),
           contentPadding: EdgeInsets.symmetric(
             horizontal: Responsive.width(context, 16),
@@ -1093,9 +1051,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                 ),
                 child: HugeIcon(
                   icon: icon,
-                  color: appColor == defaultAppColor
-                      ? Colors.white70
-                      : lightenColor(appColor, 0.2),
+                  color: onTheme(appColor),
                   size: Responsive.scale(context, 22),
                 ),
               ),
@@ -1109,7 +1065,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       label,
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 15),
-                        color: lightenColor(appColor, 0.45),
+                        color: onTheme(appColor),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1119,7 +1075,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                         subtitle,
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 12),
-                          color: lightenColor(appColor, 0.45),
+                          color: onTheme(appColor),
                         ),
                       ),
                     ],
@@ -1134,7 +1090,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
               else if (onTap != null)
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedArrowRight01,
-                  color: lightenColor(appColor, 0.45),
+                  color: onTheme(appColor),
                   size: Responsive.scale(context, 20),
                 ),
             ],
@@ -1149,9 +1105,9 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: Responsive.width(context, 20)),
       child: Divider(
-        color: Colors.white.withAlpha(20),
+        color: onTheme(appColor).withAlpha(120),
         height: 1,
-        thickness: 1,
+        thickness: 1.5,
       ),
     );
   }
@@ -1218,10 +1174,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                               ),
                               child: Icon(
                                 Icons.arrow_back_ios_new,
-                                color: lightenColor(
-                                  appColor,
-                                  0.3,
-                                ).withAlpha(180),
+                                color: onTheme(appColor),
                                 size: Responsive.font(context, 13),
                               ),
                             ),
@@ -1362,15 +1315,17 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                         ),
                                         decoration: BoxDecoration(
                                           color: _units == option
-                                              ? Colors.white.withAlpha(28)
+                                              ? cardColors(appColor).iconBox
                                               : Colors.white.withAlpha(10),
                                           borderRadius: BorderRadius.circular(
                                             Responsive.scale(context, 8),
                                           ),
                                           border: Border.all(
                                             color: _units == option
-                                                ? Colors.white.withAlpha(80)
-                                                : Colors.white.withAlpha(25),
+                                                ? cardColors(appColor).border
+                                                : cardColors(
+                                                    appColor,
+                                                  ).border.withAlpha(80),
                                           ),
                                         ),
                                         child: Text(
@@ -1379,8 +1334,10 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                               : "Imperial",
                                           style: GoogleFonts.manrope(
                                             color: _units == option
-                                                ? Colors.white
-                                                : Colors.white38,
+                                                ? onTheme(appColor)
+                                                : onTheme(
+                                                    appColor,
+                                                  ).withAlpha(140),
                                             fontSize: Responsive.font(
                                               context,
                                               12,
@@ -1615,11 +1572,11 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        CircularProgressIndicator(color: Colors.white),
+                        CircularProgressIndicator(color: onTheme(appColor)),
                         SizedBox(height: Responsive.height(context, 16)),
                         Text(
                           "Preparing image editor...",
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: onTheme(appColor)),
                         ),
                       ],
                     ),

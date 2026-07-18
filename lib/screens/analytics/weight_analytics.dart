@@ -169,8 +169,8 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, double>> entries,
   ) {
-    final accent = lightenColor(appColor, 0.45);
-    final dimAccent = lightenColor(appColor, 0.3);
+    final accent = onTheme(appColor);
+    final dimAccent = onTheme(appColor);
     final goalKg = ref.watch(userDataProvider).value?.weightKgGoal;
 
     if (entries.isEmpty) {
@@ -189,7 +189,7 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                 icon: _rangeSelected
                     ? HugeIcons.strokeRoundedWeightScale
                     : HugeIcons.strokeRoundedCalendar02,
-                color: Colors.white24,
+                color: onTheme(appColor).withAlpha(120),
                 size: Responsive.scale(context, 28),
               ),
               SizedBox(height: Responsive.height(context, 10)),
@@ -437,8 +437,8 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
 
   Widget _buildLogEntries(BuildContext context) {
     final unit = UnitConverter.weightUnit(imperial: isImperial);
-    final accent = lightenColor(appColor, 0.45);
-    final dimAccent = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dimAccent = onTheme(appColor);
     final all = _sortedEntries().reversed.toList();
 
     return frostedGlassCard(
@@ -618,12 +618,12 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                                               12,
                                             ),
                                             fontWeight: FontWeight.w700,
-                                            color: lightenColor(appColor, 0.3),
+                                            color: onTheme(appColor),
                                           ),
                                         )
                                       : HugeIcon(
                                           icon: HugeIcons.strokeRoundedDelete02,
-                                          color: lightenColor(appColor, 0.3),
+                                          color: onTheme(appColor),
                                           size: Responsive.font(context, 18),
                                         ),
                                 ),
@@ -669,15 +669,15 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                       padding: EdgeInsets.all(Responsive.scale(context, 12)),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: lightenColor(appColor, 0.1).withAlpha(20),
+                        color: cardColors(appColor).iconBox,
                         border: Border.all(
-                          color: lightenColor(appColor, 0.3).withAlpha(180),
+                          color: cardColors(appColor).iconBorder,
                           width: 1.5,
                         ),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new,
-                        color: lightenColor(appColor, 0.3).withAlpha(180),
+                        color: cardColors(appColor).onCard,
                         size: Responsive.font(context, 13),
                       ),
                     ),
@@ -709,7 +709,7 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                                   Responsive.scale(context, 12),
                                 ),
                                 border: Border.all(
-                                  color: Colors.white.withAlpha(20),
+                                  color: cardColors(appColor).border,
                                 ),
                               ),
                               child: Row(
@@ -721,7 +721,7 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                                       'Free plan shows the last 14 days. Upgrade for full history.',
                                       style: GoogleFonts.manrope(
                                         fontSize: Responsive.font(context, 12),
-                                        color: lightenColor(appColor, 0.35),
+                                        color: onTheme(appColor),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -730,7 +730,7 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                                     'Upgrade',
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(context, 12),
-                                      color: lightenColor(appColor, 0.45),
+                                      color: onTheme(appColor),
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),

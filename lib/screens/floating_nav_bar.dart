@@ -134,7 +134,7 @@ class _NavItem extends StatelessWidget {
     final isLight = appColor.computeLuminance() >= 0.18;
     final activeColor = isLight
         ? darkenColor(appColor, 0.35)
-        : lightenColor(appColor, 0.5);
+        : onTheme(appColor);
     final inactiveColor = isLight
         ? Colors.black.withAlpha(100)
         : Colors.white38;

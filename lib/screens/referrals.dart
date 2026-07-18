@@ -42,7 +42,7 @@ Future<void> checkPendingReferralReward(
       children: [
         HugeIcon(
           icon: HugeIcons.strokeRoundedUserAdd01,
-          color: lightenColor(appColor, 0.45),
+          color: onTheme(appColor),
           size: Responsive.scale(context, 40),
         ),
         SizedBox(height: Responsive.height(context, 12)),
@@ -120,7 +120,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
           ref.read(userDataProvider).value?.referralCount ?? 0;
       final c = cardColors(base);
       final accent = c.onCard;
-      final accentDim = c.onCard.withAlpha(180);
+      final accentDim = onTheme(appColor);
 
       final card = DecoratedBox(
         decoration: BoxDecoration(
@@ -130,7 +130,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
             end: Alignment.bottomRight,
             colors: c.gradient,
           ),
-          border: Border.all(color: c.border, width: 1),
+          border: Border.all(color: c.border, width: 1.5),
         ),
         child: ClipRRect(
           borderRadius: radius,
@@ -184,12 +184,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: appColor.withAlpha(80),
-                                  border: Border.all(
-                                    color: lightenColor(
-                                      appColor,
-                                      0.3,
-                                    ).withAlpha(160),
-                                  ),
+                                  border: Border.all(color: onTheme(appColor)),
                                 ),
                                 child: Center(
                                   child: Text(
@@ -238,9 +233,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                             borderRadius: BorderRadius.circular(
                               Responsive.scale(context, 12),
                             ),
-                            border: Border.all(
-                              color: lightenColor(appColor, 0.3).withAlpha(160),
-                            ),
+                            border: Border.all(color: onTheme(appColor)),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -323,7 +316,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                             suffixIcon: IconButton(
                               icon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedArrowRight01,
-                                color: lightenColor(appColor, 0.45),
+                                color: onTheme(appColor),
                                 size: Responsive.scale(context, 20),
                               ),
                               onPressed: () async {
@@ -431,7 +424,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 10),
                         ),
-                        border: Border.all(color: accent.withAlpha(40), width: 1),
+                        border: Border.all(color: c.iconBorder, width: 1.5),
                       ),
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedUserAdd01,
@@ -455,8 +448,9 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                           : '$referralCount referred',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 11),
+                        fontSize: Responsive.font(context, 12),
                         color: accentDim,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],

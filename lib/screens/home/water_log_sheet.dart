@@ -104,7 +104,10 @@ class _WaterLogSheetState extends ConsumerState<_WaterLogSheet> {
         isImperial
             ? "Remove ${UnitConverter.displayWater(entries[index], imperial: isImperial)} oz from ${labelFor(selectedDate).toLowerCase()}?"
             : "Remove ${entries[index]} ml from ${labelFor(selectedDate).toLowerCase()}?",
-        style: GoogleFonts.manrope(color: Colors.white54, fontSize: 13),
+        style: GoogleFonts.manrope(
+          color: onTheme(widget.appColor),
+          fontSize: 13,
+        ),
         textAlign: TextAlign.center,
       ),
       actions: [

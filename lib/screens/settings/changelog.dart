@@ -56,15 +56,15 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
                       padding: EdgeInsets.all(Responsive.scale(context, 12)),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: lightenColor(appColor, 0.1).withAlpha(20),
+                        color: cardColors(appColor).iconBox,
                         border: Border.all(
-                          color: lightenColor(appColor, 0.3).withAlpha(180),
+                          color: cardColors(appColor).iconBorder,
                           width: 1.5,
                         ),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new,
-                        color: lightenColor(appColor, 0.3).withAlpha(180),
+                        color: cardColors(appColor).onCard,
                         size: Responsive.font(context, 13),
                       ),
                     ),
@@ -306,7 +306,7 @@ Widget _buildChangelogCard(
 }) {
   final c = cardColors(appColor);
   final accent = c.onCard;
-  final dim = c.onCard.withAlpha(180);
+  final dim = c.onCard;
 
   return Padding(
     padding: EdgeInsets.only(bottom: Responsive.height(context, 16)),
@@ -339,7 +339,7 @@ Widget _buildChangelogCard(
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 20),
                   ),
-                  border: Border.all(color: c.border, width: 1),
+                  border: Border.all(color: c.border, width: 1.5),
                 ),
                 child: Text(
                   'v$version',
@@ -376,7 +376,7 @@ Widget _buildChangelogCard(
                     change,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
-                      color: accent.withAlpha(200),
+                      color: accent,
                       height: 1.5,
                     ),
                   ),

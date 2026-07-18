@@ -218,8 +218,8 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
   Widget build(BuildContext context) {
     final c = cardColors(appColor);
     final accent = c.onCard;
-    final dim = c.onCard.withAlpha(180);
-    final subtle = c.onCard.withAlpha(120);
+    final dim = c.onCard;
+    final subtle = c.onCard;
 
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
@@ -242,15 +242,15 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
                     padding: EdgeInsets.all(Responsive.scale(context, 10)),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: lightenColor(appColor, 0.1).withAlpha(20),
+                      color: cardColors(appColor).iconBox,
                       border: Border.all(
-                        color: lightenColor(appColor, 0.3).withAlpha(180),
+                        color: cardColors(appColor).iconBorder,
                         width: 1.5,
                       ),
                     ),
                     child: Icon(
                       Icons.arrow_back_ios_new,
-                      color: lightenColor(appColor, 0.3).withAlpha(180),
+                      color: cardColors(appColor).onCard,
                       size: Responsive.font(context, 13),
                     ),
                   ),
@@ -260,8 +260,8 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
                 child: Skeletonizer(
                   enabled: _loading,
                   effect: ShimmerEffect(
-                    baseColor: lightenColor(appColor, 0.3),
-                    highlightColor: lightenColor(appColor, 0.1),
+                    baseColor: cardColors(appColor).iconBox,
+                    highlightColor: cardColors(appColor).border,
                     duration: const Duration(milliseconds: 1200),
                   ),
                   child: ScrollConfiguration(
@@ -912,7 +912,7 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
           end: Alignment.bottomRight,
           colors: c.gradient,
         ),
-        border: Border.all(color: c.border, width: 1),
+        border: Border.all(color: c.border, width: 1.5),
       ),
       padding: padding,
       child: child,

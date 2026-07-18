@@ -80,6 +80,16 @@ Color _oklabShift(Color color, double amount) {
   return _fromOklab(lab);
 }
 
+// Primary text/icon color for a given theme color
+// Returns near-white on dark themes, dark tinted on light themes
+// Use everywhere instead of hardcoded Colors.white or lightenColor(appColor, 0.45) for text
+Color onTheme(Color base) {
+  final lum = _relativeLuminance(base);
+  if (lum < 0.18) return lightenColor(base, 0.45); // dark theme: light text
+  if (lum < 0.40) return Colors.white; // medium theme: pure white reads cleanly
+  return darkenColor(base, 0.40); // light theme: dark tinted text
+}
+
 // Button gradient colors: brighter/more saturated than card colors so the button stands out
 ({
   List<Color> gradient,
@@ -105,6 +115,7 @@ buttonColors(Color base) {
   List<Color> gradient,
   Color border,
   Color iconBox,
+  Color iconBorder,
   Color splashColor,
   Color highlightColor,
   Color onCard, // text and icon color that stays readable on the card surface
@@ -118,17 +129,18 @@ cardColors(Color base) {
         : [_oklabShift(base, -0.08), _oklabShift(base, -0.05)],
     border: isDark
         ? _oklabShift(base, 0.20).withAlpha(180)
-        : _oklabShift(base, -0.16).withAlpha(180),
-    iconBox: isDark
-        ? _oklabShift(base, 0.18).withAlpha(160)
-        : _oklabShift(base, -0.14).withAlpha(160),
+        : _oklabShift(base, -0.22).withAlpha(220),
+    iconBox: isDark ? _oklabShift(base, 0.20) : _oklabShift(base, -0.08),
+    iconBorder: isDark
+        ? _oklabShift(base, 0.30).withAlpha(180)
+        : _oklabShift(base, -0.30).withAlpha(220),
     splashColor: isDark
         ? _oklabShift(base, 0.25).withAlpha(60)
         : _oklabShift(base, -0.20).withAlpha(60),
     highlightColor: isDark
         ? _oklabShift(base, 0.25).withAlpha(30)
         : _oklabShift(base, -0.20).withAlpha(30),
-    onCard: lightenColor(base, 0.45),
+    onCard: onTheme(base),
   );
 }
 

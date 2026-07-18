@@ -305,18 +305,18 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
 
     if (claimed) {
       bgColor = appColor.withAlpha(60);
-      labelColor = Colors.white38;
+      labelColor = onTheme(appColor).withAlpha(140);
       borderColor = lightenColor(appColor, 0.25).withAlpha(60);
       statusIcon = HugeIcons.strokeRoundedCheckmarkCircle01;
     } else if (reachable) {
       bgColor = appColor.withAlpha(180);
-      labelColor = Colors.white;
+      labelColor = onTheme(appColor);
       borderColor = lightenColor(appColor, 0.4).withAlpha(220);
       statusIcon = HugeIcons.strokeRoundedGift;
     } else {
-      bgColor = Colors.white.withAlpha(22);
-      labelColor = Colors.white38;
-      borderColor = Colors.white.withAlpha(40);
+      bgColor = cardColors(appColor).iconBox;
+      labelColor = onTheme(appColor);
+      borderColor = cardColors(appColor).iconBorder;
       statusIcon = HugeIcons.strokeRoundedLockKey;
     }
 
@@ -426,8 +426,8 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
     final progressFraction = allClaimed
         ? 1.0
         : (currentProgress / nextTier).clamp(0.0, 1.0);
-    final accent = lightenColor(appColor, 0.45);
-    final barColor = lightenColor(appColor, 0.3);
+    final accent = onTheme(appColor);
+    final barColor = onTheme(appColor);
 
     final card = Padding(
       padding: EdgeInsets.only(bottom: Responsive.height(context, 12)),
@@ -443,7 +443,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
               ),
               border: Border.all(
                 color: allClaimed
-                    ? lightenColor(appColor, 0.45).withAlpha(120)
+                    ? onTheme(appColor).withAlpha(120)
                     : cardColors(appColor).border,
                 width: allClaimed
                     ? Responsive.width(context, 1.5)
@@ -509,7 +509,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                               def.description,
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 11),
-                                color: lightenColor(appColor, 0.35),
+                                color: onTheme(appColor),
                               ),
                             ),
                           ],
@@ -548,7 +548,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                                 "$unclaimedCount to claim",
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 10),
-                                  color: lightenColor(appColor, 0.45),
+                                  color: onTheme(appColor),
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -560,7 +560,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                         SizedBox(width: Responsive.width(context, 8)),
                         HugeIcon(
                           icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                          color: lightenColor(appColor, 0.4),
+                          color: onTheme(appColor),
                           size: Responsive.scale(context, 18),
                         ),
                       ],
@@ -627,8 +627,8 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
   }
 
   Widget _buildFilterChips(List<String> sections) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.30);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     // "All" + each section (display name) + "Claimable"
     final labels = [
       'All',
@@ -731,26 +731,29 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                       padding: EdgeInsets.all(Responsive.scale(context, 12)),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: lightenColor(appColor, 0.1).withAlpha(20),
+                        color: cardColors(appColor).iconBox,
                         border: Border.all(
-                          color: lightenColor(appColor, 0.3).withAlpha(180),
+                          color: cardColors(appColor).iconBorder,
                           width: 1.5,
                         ),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new,
-                        color: lightenColor(appColor, 0.3).withAlpha(180),
+                        color: cardColors(appColor).onCard,
                         size: Responsive.font(context, 13),
                       ),
                     ),
                   ),
                 ),
               ),
-              const Expanded(
+              Expanded(
                 child: Center(
                   child: Text(
                     "Sign up to track your badges",
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                    style: GoogleFonts.manrope(
+                      color: onTheme(appColor),
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ),
@@ -838,8 +841,8 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                 Skeletonizer(
                   enabled: _isLoading,
                   effect: ShimmerEffect(
-                    baseColor: lightenColor(appColor, 0.10),
-                    highlightColor: lightenColor(appColor, 0.22),
+                    baseColor: cardColors(appColor).iconBox,
+                    highlightColor: cardColors(appColor).border,
                     duration: const Duration(milliseconds: 1200),
                   ),
                   child: CustomScrollView(
@@ -873,24 +876,17 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                                       ),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: lightenColor(
-                                          appColor,
-                                          0.1,
-                                        ).withAlpha(20),
+                                        color: cardColors(appColor).iconBox,
                                         border: Border.all(
-                                          color: lightenColor(
+                                          color: cardColors(
                                             appColor,
-                                            0.3,
-                                          ).withAlpha(180),
+                                          ).iconBorder,
                                           width: 1.5,
                                         ),
                                       ),
                                       child: Icon(
                                         Icons.arrow_back_ios_new,
-                                        color: lightenColor(
-                                          appColor,
-                                          0.3,
-                                        ).withAlpha(180),
+                                        color: cardColors(appColor).onCard,
                                         size: Responsive.font(context, 13),
                                       ),
                                     ),
@@ -908,19 +904,13 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                                           0.1,
                                         ).withAlpha(20),
                                         border: Border.all(
-                                          color: lightenColor(
-                                            appColor,
-                                            0.3,
-                                          ).withAlpha(180),
+                                          color: onTheme(appColor),
                                           width: 1.5,
                                         ),
                                       ),
                                       child: Icon(
                                         Icons.refresh,
-                                        color: lightenColor(
-                                          appColor,
-                                          0.3,
-                                        ).withAlpha(180),
+                                        color: onTheme(appColor),
                                         size: Responsive.font(context, 13),
                                       ),
                                     ),
@@ -1012,6 +1002,10 @@ class _TierCarousel extends ConsumerStatefulWidget {
 }
 
 class _TierCarouselState extends ConsumerState<_TierCarousel> {
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -1045,7 +1039,7 @@ class _TierCarouselState extends ConsumerState<_TierCarousel> {
                       Responsive.scale(context, 16),
                     ),
                     border: Border.all(
-                      color: Colors.white.withAlpha(28),
+                      color: cardColors(appColor).border,
                       width: Responsive.width(context, 1),
                     ),
                   ),

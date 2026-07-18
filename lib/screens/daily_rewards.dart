@@ -159,9 +159,9 @@ class DailyRewardDialog {
 
     if (!context.mounted) return;
 
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
-    final faint = lightenColor(appColor, 0.3);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
+    final faint = onTheme(appColor);
     const milestones = [(3, 1.1), (10, 1.25), (30, 1.4), (50, 1.5)];
     int? nextDays;
     double? nextMult;
@@ -346,8 +346,8 @@ Future<bool> _showShieldDialog(
   WidgetRef ref,
   int shieldCount,
 ) async {
-  final accent = lightenColor(appColor, 0.45);
-  final dim = lightenColor(appColor, 0.35);
+  final accent = onTheme(appColor);
+  final dim = onTheme(appColor);
   final used = await showFrostedDialog<bool>(
     context: context,
     appColor: appColor,
@@ -363,7 +363,7 @@ Future<bool> _showShieldDialog(
         Text(
           'Your streak broke.',
           style: GoogleFonts.manrope(
-            color: Colors.white,
+            color: onTheme(appColor),
             fontSize: Responsive.font(context, 16),
             fontWeight: FontWeight.w700,
           ),
@@ -426,8 +426,8 @@ Future<bool> _showShieldUpsellDialog(
   WidgetRef ref,
 ) async {
   logAnalyticsEvent('shield_upsell_shown');
-  final accent = lightenColor(appColor, 0.45);
-  final dim = lightenColor(appColor, 0.35);
+  final accent = onTheme(appColor);
+  final dim = onTheme(appColor);
   final shouldClaim = await showFrostedDialog<bool>(
     context: context,
     appColor: appColor,
@@ -443,7 +443,7 @@ Future<bool> _showShieldUpsellDialog(
         Text(
           'Your streak broke.',
           style: GoogleFonts.manrope(
-            color: Colors.white,
+            color: onTheme(appColor),
             fontSize: Responsive.font(context, 16),
             fontWeight: FontWeight.w700,
           ),
@@ -494,7 +494,7 @@ Future<bool> _showShieldUpsellDialog(
           child: Text(
             "Don't show again",
             style: GoogleFonts.manrope(
-              color: Colors.white.withAlpha(60),
+              color: onTheme(appColor).withAlpha(120),
               fontSize: Responsive.font(context, 10),
               fontWeight: FontWeight.w400,
             ),
@@ -511,8 +511,8 @@ Future<void> _showFirstClaimNotificationPrompt(
   Color appColor,
   WidgetRef ref,
 ) async {
-  final accent = lightenColor(appColor, 0.45);
-  final dim = lightenColor(appColor, 0.35);
+  final accent = onTheme(appColor);
+  final dim = onTheme(appColor);
   final confirmed = await showFrostedDialog<bool>(
     context: context,
     appColor: appColor,
@@ -528,7 +528,7 @@ Future<void> _showFirstClaimNotificationPrompt(
         Text(
           'Never miss a reward',
           style: GoogleFonts.manrope(
-            color: Colors.white,
+            color: onTheme(appColor),
             fontSize: Responsive.font(context, 16),
             fontWeight: FontWeight.w700,
           ),

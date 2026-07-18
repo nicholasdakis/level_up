@@ -98,8 +98,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
   VoidCallback get onShowWeightSheet => widget.onShowWeightSheet;
 
   void _showMealPicker(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     final meals = [
       (
         label: 'Breakfast',
@@ -123,7 +123,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
             textAlign: TextAlign.center,
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 13),
-              color: Colors.white60,
+              color: onTheme(appColor),
             ),
           ),
           SizedBox(height: Responsive.height(context, 16)),
@@ -154,7 +154,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                     borderRadius: BorderRadius.circular(
                       Responsive.scale(context, 12),
                     ),
-                    border: Border.all(color: accent.withAlpha(40), width: 1),
+                    border: Border.all(color: accent.withAlpha(80), width: 1.5),
                   ),
                   child: Row(
                     children: [
@@ -206,7 +206,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
     VoidCallback? onChart,
     Widget? progressBar,
   }) {
-    final accentColor = lightenColor(appColor, 0.45);
+    final accentColor = onTheme(appColor);
 
     Widget actionButton(IconData btnIcon, VoidCallback? onTap) =>
         GestureDetector(
@@ -216,8 +216,11 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
             height: Responsive.scale(context, 34),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withAlpha(18),
-              border: Border.all(color: Colors.white.withAlpha(40), width: 1),
+              color: cardColors(appColor).iconBox,
+              border: Border.all(
+                color: cardColors(appColor).iconBorder,
+                width: 1.5,
+              ),
             ),
             child: Icon(
               btnIcon,
@@ -256,8 +259,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                           label,
                           style: GoogleFonts.manrope(
                             color: accentColor,
-                            fontSize: Responsive.font(context, 11),
-                            fontWeight: FontWeight.w600,
+                            fontSize: Responsive.font(context, 12),
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -279,7 +282,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                   subtext,
                   style: GoogleFonts.manrope(
                     color: accentColor,
-                    fontSize: Responsive.font(context, 11),
+                    fontSize: Responsive.font(context, 12),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 if (progressBar != null) ...[
@@ -311,8 +315,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
   Widget _buildMacrosCard(BuildContext context) {
     final userData = ref.watch(userDataProvider).value;
     final foodLogs = ref.watch(foodLogsProvider).value ?? [];
-    final accentColor = lightenColor(appColor, 0.45);
-    final dimColor = lightenColor(appColor, 0.35);
+    final accentColor = onTheme(appColor);
+    final dimColor = onTheme(appColor);
     final logs = isGuest ? Guest.fakeFoodLogs(_todayDateKey()) : foodLogs;
     final macros = _todayMacros(logs);
     final micros = _todayMicros(logs);
@@ -327,8 +331,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
               label,
               style: GoogleFonts.manrope(
                 color: dimColor,
-                fontSize: Responsive.font(context, 11),
-                fontWeight: FontWeight.w600,
+                fontSize: Responsive.font(context, 12),
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -351,7 +355,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                       text: " /$goal",
                       style: GoogleFonts.manrope(
                         color: dimColor,
-                        fontSize: Responsive.font(context, 11),
+                        fontSize: Responsive.font(context, 12),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                 ],
@@ -485,8 +490,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
   }
 
   Widget _pageIndicator() {
-    final active = lightenColor(appColor, 0.45);
-    final inactive = lightenColor(appColor, 0.20);
+    final active = onTheme(appColor);
+    final inactive = onTheme(appColor).withAlpha(80);
     dot(bool filled) => Container(
       width: Responsive.scale(context, 5),
       height: Responsive.scale(context, 5),
@@ -546,10 +551,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(Responsive.scale(context, 7)),
-            border: Border.all(
-              color: Colors.white.withAlpha(45),
-              width: Responsive.scale(context, 1),
-            ),
+            border: Border.all(color: cardColors(appColor).border, width: 1.5),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
@@ -558,7 +560,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                 Container(
                   height: Responsive.height(context, 8),
                   width: double.infinity,
-                  color: Colors.white.withAlpha(18),
+                  color: onTheme(appColor).withAlpha(30),
                 ),
                 FractionallySizedBox(
                   widthFactor: fraction,
@@ -567,7 +569,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                     decoration: BoxDecoration(
                       color: overIsRed && fraction >= 1.0
                           ? lightenColor(appColor, 0.45)
-                          : lightenColor(appColor, 0.3),
+                          : onTheme(appColor),
                       borderRadius: BorderRadius.circular(
                         Responsive.scale(context, 6),
                       ),
@@ -585,7 +587,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
             "No calorie goal set",
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 10),
-              color: lightenColor(appColor, 0.35),
+              color: onTheme(appColor),
             ),
           );
     final waterProgressBar = waterGoalMl > 0
@@ -645,8 +647,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                   child: Skeletonizer(
                     enabled: !isGuest && ref.watch(waterLogsProvider).isLoading,
                     effect: ShimmerEffect(
-                      baseColor: lightenColor(appColor, 0.10),
-                      highlightColor: lightenColor(appColor, 0.22),
+                      baseColor: cardColors(appColor).iconBox,
+                      highlightColor: cardColors(appColor).border,
                     ),
                     child: _guestLock(
                       context,
@@ -812,8 +814,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
     return Skeletonizer(
       enabled: isLoading,
       effect: ShimmerEffect(
-        baseColor: lightenColor(appColor, 0.10),
-        highlightColor: lightenColor(appColor, 0.22),
+        baseColor: cardColors(appColor).iconBox,
+        highlightColor: cardColors(appColor).border,
       ),
       child: _buildLoggingCards(context),
     );

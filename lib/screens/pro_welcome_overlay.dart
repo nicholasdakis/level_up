@@ -108,9 +108,9 @@ class _ProWelcomeOverlayState extends State<_ProWelcomeOverlay>
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(widget.appColor, 0.45);
-    final dim = lightenColor(widget.appColor, 0.35);
-    final faint = lightenColor(widget.appColor, 0.3);
+    final accent = onTheme(widget.appColor);
+    final dim = onTheme(widget.appColor);
+    final faint = onTheme(widget.appColor);
 
     final perks = [
       (

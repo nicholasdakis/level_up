@@ -63,15 +63,15 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: lightenColor(appColor, 0.1).withAlpha(20),
+                            color: cardColors(appColor).iconBox,
                             border: Border.all(
-                              color: lightenColor(appColor, 0.3).withAlpha(180),
+                              color: cardColors(appColor).iconBorder,
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             Icons.arrow_back_ios_new,
-                            color: lightenColor(appColor, 0.3).withAlpha(180),
+                            color: cardColors(appColor).onCard,
                             size: Responsive.font(context, 13),
                           ),
                         ),
@@ -91,7 +91,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                             "I'm Nicholas Dakis, a Computer Science student.",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
-                              color: lightenColor(appColor, 0.45),
+                              color: onTheme(appColor),
                               height: 1.6,
                             ),
                           ),
@@ -100,7 +100,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                             "I built Level Up! as a solo project to put my skills into practice. It covers the full stack: Flutter, Python, Supabase, cloud deployment, and everything in between.",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
-                              color: lightenColor(appColor, 0.45),
+                              color: onTheme(appColor),
                               height: 1.6,
                             ),
                           ),
@@ -162,7 +162,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                             "Have a suggestion or found a bug? I read every message!",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
-                              color: lightenColor(appColor, 0.45),
+                              color: onTheme(appColor),
                               height: 1.5,
                             ),
                           ),
@@ -195,7 +195,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                             "If you've been enjoying the app and want to support development, any contribution is appreciated!",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
-                              color: lightenColor(appColor, 0.45),
+                              color: onTheme(appColor),
                               height: 1.5,
                             ),
                           ),
@@ -226,7 +226,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                                 children: [
                                   HugeIcon(
                                     icon: HugeIcons.strokeRoundedFavourite,
-                                    color: lightenColor(appColor, 0.45),
+                                    color: onTheme(appColor),
                                     size: Responsive.scale(context, 20),
                                   ),
                                   SizedBox(
@@ -237,14 +237,14 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                                       "Donate via PayPal",
                                       style: GoogleFonts.manrope(
                                         fontSize: Responsive.font(context, 14),
-                                        color: lightenColor(appColor, 0.45),
+                                        color: onTheme(appColor),
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ),
                                   HugeIcon(
                                     icon: HugeIcons.strokeRoundedArrowRight01,
-                                    color: lightenColor(appColor, 0.45),
+                                    color: onTheme(appColor),
                                     size: Responsive.scale(context, 20),
                                   ),
                                 ],

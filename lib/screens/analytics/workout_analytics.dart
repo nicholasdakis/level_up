@@ -175,8 +175,8 @@ class _WorkoutAnalyticsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
 
     return Container(
@@ -200,15 +200,15 @@ class _WorkoutAnalyticsScreenState
                         padding: EdgeInsets.all(Responsive.scale(context, 10)),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: lightenColor(appColor, 0.1).withAlpha(20),
+                          color: cardColors(appColor).iconBox,
                           border: Border.all(
-                            color: lightenColor(appColor, 0.3).withAlpha(180),
+                            color: cardColors(appColor).iconBorder,
                             width: 1.5,
                           ),
                         ),
                         child: Icon(
                           Icons.arrow_back_ios_new,
-                          color: lightenColor(appColor, 0.3).withAlpha(180),
+                          color: cardColors(appColor).onCard,
                           size: Responsive.font(context, 13),
                         ),
                       ),
@@ -242,7 +242,8 @@ class _WorkoutAnalyticsScreenState
                                   Responsive.scale(context, 12),
                                 ),
                                 border: Border.all(
-                                  color: Colors.white.withAlpha(20),
+                                  color: cardColors(appColor).border,
+                                  width: 1.5,
                                 ),
                               ),
                               child: Row(
@@ -254,7 +255,7 @@ class _WorkoutAnalyticsScreenState
                                       'Free plan shows the last 14 days. Upgrade for full history.',
                                       style: GoogleFonts.manrope(
                                         fontSize: Responsive.font(context, 12),
-                                        color: lightenColor(appColor, 0.35),
+                                        color: onTheme(appColor),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -263,7 +264,7 @@ class _WorkoutAnalyticsScreenState
                                     'Upgrade',
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(context, 12),
-                                      color: lightenColor(appColor, 0.45),
+                                      color: onTheme(appColor),
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -322,8 +323,8 @@ class _WorkoutAnalyticsScreenState
                         Skeletonizer(
                           enabled: _loading,
                           effect: ShimmerEffect(
-                            baseColor: lightenColor(appColor, 0.3),
-                            highlightColor: lightenColor(appColor, 0.1),
+                            baseColor: cardColors(appColor).iconBox,
+                            highlightColor: cardColors(appColor).border,
                             duration: const Duration(milliseconds: 1200),
                           ),
                           child: Column(
@@ -460,7 +461,7 @@ class _WorkoutAnalyticsScreenState
               Text(
                 'Personal Records',
                 style: GoogleFonts.manrope(
-                  color: Colors.white,
+                  color: onTheme(appColor),
                   fontSize: Responsive.font(context, 14),
                   fontWeight: FontWeight.w700,
                 ),
@@ -560,7 +561,7 @@ class _WorkoutAnalyticsScreenState
               Text(
                 'Muscle Groups Worked',
                 style: GoogleFonts.manrope(
-                  color: Colors.white,
+                  color: onTheme(appColor),
                   fontSize: Responsive.font(context, 14),
                   fontWeight: FontWeight.w700,
                 ),
@@ -569,7 +570,7 @@ class _WorkoutAnalyticsScreenState
               Text(
                 'At least 3 primary muscles are needed to view the Radar Chart',
                 style: GoogleFonts.manrope(
-                  color: lightenColor(appColor, 0.45),
+                  color: onTheme(appColor),
                   fontSize: Responsive.font(context, 12),
                 ),
               ),
@@ -596,7 +597,7 @@ class _WorkoutAnalyticsScreenState
           Text(
             'Muscle Groups Worked',
             style: GoogleFonts.manrope(
-              color: Colors.white,
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 14),
               fontWeight: FontWeight.w700,
             ),
@@ -604,7 +605,7 @@ class _WorkoutAnalyticsScreenState
           Text(
             'primary muscles, by frequency',
             style: GoogleFonts.manrope(
-              color: Colors.white38,
+              color: onTheme(appColor).withAlpha(140),
               fontSize: Responsive.font(context, 11),
             ),
           ),
@@ -659,7 +660,7 @@ class _WorkoutAnalyticsScreenState
           ),
           if (_secondaryMuscles.isNotEmpty) ...[
             SizedBox(height: Responsive.height(context, 12)),
-            Divider(color: Colors.white.withAlpha(15), height: 1),
+            Divider(color: onTheme(appColor).withAlpha(40), height: 1),
             SizedBox(height: Responsive.height(context, 10)),
             Text(
               'Secondary muscles',
@@ -687,7 +688,10 @@ class _WorkoutAnalyticsScreenState
                       borderRadius: BorderRadius.circular(
                         Responsive.scale(context, 20),
                       ),
-                      border: Border.all(color: Colors.white.withAlpha(25)),
+                      border: Border.all(
+                        color: cardColors(appColor).border,
+                        width: 1.5,
+                      ),
                     ),
                     child: Text(
                       '${e.key[0].toUpperCase()}${e.key.substring(1)} ×${e.value}',
@@ -717,7 +721,7 @@ class _WorkoutAnalyticsScreenState
         Text(
           value,
           style: GoogleFonts.manrope(
-            color: Colors.white,
+            color: onTheme(appColor),
             fontSize: Responsive.font(context, 16),
             fontWeight: FontWeight.w800,
           ),
@@ -725,7 +729,7 @@ class _WorkoutAnalyticsScreenState
         Text(
           label,
           style: GoogleFonts.manrope(
-            color: Colors.white38,
+            color: onTheme(appColor).withAlpha(140),
             fontSize: Responsive.font(context, 11),
           ),
         ),
@@ -736,7 +740,7 @@ class _WorkoutAnalyticsScreenState
   Widget _vDivider(BuildContext context) => Container(
     width: 1,
     height: Responsive.height(context, 32),
-    color: Colors.white.withAlpha(15),
+    color: onTheme(appColor).withAlpha(120),
   );
 
   Widget _workoutChartEmptyState(BuildContext context) {
@@ -756,7 +760,7 @@ class _WorkoutAnalyticsScreenState
             children: [
               HugeIcon(
                 icon: HugeIcons.strokeRoundedChartHistogram,
-                color: Colors.white24,
+                color: onTheme(appColor).withAlpha(120),
                 size: Responsive.scale(context, 32),
               ),
               SizedBox(height: Responsive.height(context, 10)),
@@ -765,7 +769,7 @@ class _WorkoutAnalyticsScreenState
                 textAlign: TextAlign.center,
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 13),
-                  color: Colors.white38,
+                  color: onTheme(appColor).withAlpha(140),
                 ),
               ),
             ],
@@ -808,7 +812,7 @@ class _WorkoutAnalyticsScreenState
           Text(
             isImperial ? 'lbs' : 'kg',
             style: GoogleFonts.manrope(
-              color: Colors.white38,
+              color: onTheme(appColor).withAlpha(140),
               fontSize: Responsive.font(context, 11),
             ),
           ),
@@ -866,7 +870,7 @@ class _WorkoutAnalyticsScreenState
                       getTitlesWidget: (v, _) => Text(
                         v.toInt().toString(),
                         style: GoogleFonts.manrope(
-                          color: Colors.white38,
+                          color: onTheme(appColor).withAlpha(140),
                           fontSize: Responsive.font(context, 9),
                         ),
                       ),
@@ -884,7 +888,7 @@ class _WorkoutAnalyticsScreenState
                         return Text(
                           formatDateKeyShort(sorted[i].key),
                           style: GoogleFonts.manrope(
-                            color: Colors.white38,
+                            color: onTheme(appColor).withAlpha(140),
                             fontSize: Responsive.font(context, 9),
                           ),
                         );
@@ -957,7 +961,7 @@ class _WorkoutAnalyticsScreenState
           Text(
             'minutes',
             style: GoogleFonts.manrope(
-              color: Colors.white38,
+              color: onTheme(appColor).withAlpha(140),
               fontSize: Responsive.font(context, 11),
             ),
           ),
@@ -1017,7 +1021,7 @@ class _WorkoutAnalyticsScreenState
                       getTitlesWidget: (v, _) => Text(
                         '${v.toInt()}m',
                         style: GoogleFonts.manrope(
-                          color: Colors.white38,
+                          color: onTheme(appColor).withAlpha(140),
                           fontSize: Responsive.font(context, 9),
                         ),
                       ),
@@ -1037,7 +1041,7 @@ class _WorkoutAnalyticsScreenState
                             sorted[i]['date'] as String? ?? '',
                           ),
                           style: GoogleFonts.manrope(
-                            color: Colors.white38,
+                            color: onTheme(appColor).withAlpha(140),
                             fontSize: Responsive.font(context, 9),
                           ),
                         );
@@ -1058,13 +1062,13 @@ class _WorkoutAnalyticsScreenState
                     spots: spots,
                     isCurved: true,
                     curveSmoothness: 0.3,
-                    color: lightenColor(appColor, 0.30),
+                    color: onTheme(appColor),
                     barWidth: 2.5,
                     dotData: FlDotData(
                       show: spots.length <= 14,
                       getDotPainter: (p, q, r, s) => FlDotCirclePainter(
                         radius: 3,
-                        color: lightenColor(appColor, 0.30),
+                        color: onTheme(appColor),
                         strokeWidth: 0,
                       ),
                     ),

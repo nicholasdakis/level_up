@@ -312,7 +312,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
       if (rank == 1) return Colors.yellow;
       if (rank == 2) return const Color(0xFFB0B8C1);
       if (rank == 3) return const Color(0xFFCD7F32);
-      return cardColors(appColor).onCard.withAlpha(180);
+      return cardColors(appColor).onCard;
     }
 
     Widget? rankMedal() {
@@ -359,7 +359,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
         name,
         style: GoogleFonts.manrope(
           fontSize: Responsive.font(context, 14),
-          color: cardColors(appColor).onCard.withAlpha(180),
+          color: cardColors(appColor).onCard,
           fontWeight: FontWeight.w600,
         ),
       );
@@ -426,7 +426,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                 ),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedUser02,
-                  color: accent.withAlpha(160),
+                  color: accent,
                   size: Responsive.scale(context, 18),
                 ),
               ),
@@ -889,7 +889,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                                   'Free',
                                   style: GoogleFonts.manrope(
                                     fontSize: Responsive.font(context, 9),
-                                    color: accent.withAlpha(160),
+                                    color: accent,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 0.5,
                                   ),
@@ -899,7 +899,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                                   r.$3,
                                   style: GoogleFonts.manrope(
                                     fontSize: Responsive.font(context, 12),
-                                    color: accent.withAlpha(180),
+                                    color: accent,
                                     fontWeight: FontWeight.w600,
                                     decoration: TextDecoration.lineThrough,
                                     decorationColor: accent.withAlpha(120),
@@ -1077,8 +1077,8 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     final hPad = Responsive.width(context, 20);
 
     ref.listen(userDataProvider.select((s) => s.value?.isPremium ?? false), (
@@ -1309,7 +1309,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                               textAlign: TextAlign.center,
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 13),
-                                color: lightenColor(appColor, 0.4),
+                                color: onTheme(appColor),
                               ),
                             ),
                             SizedBox(height: Responsive.height(context, 12)),
@@ -1535,7 +1535,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                                             context,
                                             11,
                                           ),
-                                          color: accent.withAlpha(180),
+                                          color: accent,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -1668,7 +1668,7 @@ class _PlanTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
+    final accent = onTheme(appColor);
 
     return GestureDetector(
       onTap: onTap,
@@ -1724,9 +1724,7 @@ class _PlanTile extends StatelessWidget {
                         label,
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, large ? 17 : 15),
-                          color: selected
-                              ? accent
-                              : lightenColor(appColor, 0.45),
+                          color: selected ? accent : onTheme(appColor),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -1761,7 +1759,7 @@ class _PlanTile extends StatelessWidget {
                     subtitle,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 11),
-                      color: lightenColor(appColor, 0.45).withAlpha(180),
+                      color: onTheme(appColor),
                     ),
                   ),
                 ],
@@ -1774,7 +1772,7 @@ class _PlanTile extends StatelessWidget {
                   price,
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, large ? 17 : 15),
-                    color: selected ? accent : lightenColor(appColor, 0.45),
+                    color: selected ? accent : onTheme(appColor),
                     fontWeight: FontWeight.w700,
                   ),
                 ),

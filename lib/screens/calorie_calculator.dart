@@ -142,7 +142,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
             label,
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 12),
-              color: Colors.white54,
+              color: onTheme(appColor),
               fontWeight: FontWeight.w600,
               letterSpacing: 0.8,
             ),
@@ -168,13 +168,15 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? appColor.withAlpha(200)
-                        : Colors.white.withAlpha(18),
+                        : cardColors(appColor).iconBox,
                     borderRadius: BorderRadius.circular(
                       Responsive.scale(context, 12),
                     ),
                     border: Border.all(
-                      color: isSelected ? appColor : Colors.white.withAlpha(30),
-                      width: 1,
+                      color: isSelected
+                          ? appColor
+                          : cardColors(appColor).border,
+                      width: 1.5,
                     ),
                   ),
                   child: Row(
@@ -184,7 +186,9 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                         HugeIcon(
                           icon: opt.icon!,
                           size: Responsive.scale(context, 15),
-                          color: isSelected ? Colors.white : Colors.white54,
+                          color: isSelected
+                              ? onTheme(appColor)
+                              : onTheme(appColor),
                         ),
                         SizedBox(width: Responsive.width(context, 6)),
                       ],
@@ -199,7 +203,9 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                             fontWeight: isSelected
                                 ? FontWeight.w700
                                 : FontWeight.w500,
-                            color: isSelected ? Colors.white : Colors.white54,
+                            color: isSelected
+                                ? onTheme(appColor)
+                                : onTheme(appColor),
                           ),
                         ),
                       ),
@@ -246,7 +252,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
               label,
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 12),
-                color: Colors.white54,
+                color: onTheme(appColor),
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.8,
               ),
@@ -260,12 +266,12 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   vertical: Responsive.height(context, 4),
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(15),
+                  color: cardColors(appColor).iconBox,
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 20),
                   ),
                   border: Border.all(
-                    color: Colors.white.withAlpha(40),
+                    color: cardColors(appColor).border,
                     width: Responsive.scale(context, 1),
                   ),
                 ),
@@ -273,7 +279,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   isSet ? valueLabel(value) : "Tap to choose",
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, isSet ? 13 : 11),
-                    color: isSet ? lightenColor(appColor, 0.5) : Colors.white38,
+                    color: isSet ? onTheme(appColor) : onTheme(appColor),
                     fontWeight: isSet ? FontWeight.w700 : FontWeight.w400,
                   ),
                 ),
@@ -321,13 +327,16 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
         width: Responsive.scale(context, 28),
         height: Responsive.scale(context, 28),
         decoration: BoxDecoration(
-          color: Colors.white.withAlpha(18),
+          color: cardColors(appColor).iconBox,
           borderRadius: BorderRadius.circular(Responsive.scale(context, 8)),
-          border: Border.all(color: Colors.white.withAlpha(30)),
+          border: Border.all(
+            color: cardColors(appColor).iconBorder,
+            width: 1.5,
+          ),
         ),
         child: HugeIcon(
           icon: icon,
-          color: Colors.white70,
+          color: onTheme(appColor),
           size: Responsive.font(context, 14),
         ),
       ),
@@ -349,7 +358,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
             label,
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 12),
-              color: Colors.white54,
+              color: onTheme(appColor),
               fontWeight: FontWeight.w600,
               letterSpacing: 0.8,
             ),
@@ -372,13 +381,13 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? appColor.withAlpha(200)
-                      : Colors.white.withAlpha(18),
+                      : cardColors(appColor).iconBox,
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 12),
                   ),
                   border: Border.all(
-                    color: isSelected ? appColor : Colors.white.withAlpha(30),
-                    width: 1,
+                    color: isSelected ? appColor : cardColors(appColor).border,
+                    width: 1.5,
                   ),
                 ),
                 child: Text(
@@ -386,7 +395,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 13),
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? Colors.white : Colors.white54,
+                    color: isSelected ? onTheme(appColor) : onTheme(appColor),
                   ),
                 ),
               ),
@@ -427,7 +436,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
             label,
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 12),
-              color: Colors.white54,
+              color: onTheme(appColor),
               fontWeight: FontWeight.w600,
               letterSpacing: 0.8,
             ),
@@ -450,28 +459,28 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
               LengthLimitingTextInputFormatter(maxLength),
             ],
             style: GoogleFonts.manrope(
-              color: Colors.white,
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 16),
             ),
             onChanged: onChanged,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: GoogleFonts.manrope(
-                color: Colors.white38,
+                color: onTheme(appColor).withAlpha(140),
                 fontSize: Responsive.font(context, 16),
               ),
               suffix: Text(
                 suffix,
                 style: GoogleFonts.manrope(
-                  color: Colors.white54,
+                  color: onTheme(appColor),
                   fontSize: Responsive.font(context, 14),
                 ),
               ),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white24),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: onTheme(appColor).withAlpha(120)),
               ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white54),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: onTheme(appColor)),
               ),
               contentPadding: EdgeInsets.only(
                 bottom: Responsive.height(context, 4),
@@ -518,15 +527,15 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: lightenColor(appColor, 0.1).withAlpha(20),
+                            color: cardColors(appColor).iconBox,
                             border: Border.all(
-                              color: lightenColor(appColor, 0.3).withAlpha(180),
+                              color: cardColors(appColor).iconBorder,
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             Icons.arrow_back_ios_new,
-                            color: lightenColor(appColor, 0.3).withAlpha(180),
+                            color: cardColors(appColor).onCard,
                             size: Responsive.font(context, 13),
                           ),
                         ),
@@ -694,7 +703,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                           "HEIGHT",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 12),
-                            color: Colors.white54,
+                            color: onTheme(appColor),
                             fontWeight: FontWeight.w600,
                             letterSpacing: 0.8,
                           ),
@@ -760,7 +769,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                           "WEIGHT",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 12),
-                            color: Colors.white54,
+                            color: onTheme(appColor),
                             fontWeight: FontWeight.w600,
                             letterSpacing: 0.8,
                           ),
@@ -806,7 +815,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                             ],
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 15),
-                              color: Colors.white,
+                              color: onTheme(appColor),
                             ),
                             decoration: InputDecoration(
                               filled: true,
@@ -828,12 +837,12 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                                         : 'lbs')
                                   : null,
                               suffixStyle: GoogleFonts.manrope(
-                                color: Colors.white70,
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 14),
                               ),
                               hintStyle: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 14),
-                                color: Colors.white38,
+                                color: onTheme(appColor).withAlpha(140),
                               ),
                               contentPadding: EdgeInsets.symmetric(
                                 horizontal: Responsive.width(context, 16),
@@ -998,7 +1007,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                                     HugeIcon(
                                       icon: HugeIcons
                                           .strokeRoundedInformationCircle,
-                                      color: Colors.white,
+                                      color: onTheme(appColor),
                                       size: Responsive.scale(context, 20),
                                     ),
                                     SizedBox(
@@ -1071,7 +1080,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
           HugeIcon(
             icon: icon,
             size: Responsive.scale(context, 16),
-            color: Colors.white38,
+            color: onTheme(appColor).withAlpha(140),
           ),
           SizedBox(width: Responsive.width(context, 10)),
           Expanded(
@@ -1082,7 +1091,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                     text: "$level: ",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
-                      color: Colors.white60,
+                      color: onTheme(appColor),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -1090,7 +1099,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                     text: description,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
-                      color: Colors.white38,
+                      color: onTheme(appColor).withAlpha(140),
                     ),
                   ),
                 ],

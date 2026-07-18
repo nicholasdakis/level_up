@@ -74,9 +74,9 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
-    final dimmer = lightenColor(appColor, 0.30);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
+    final dimmer = onTheme(appColor);
 
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
     final prCount = widget.prDetails.length;
@@ -144,7 +144,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                                       child: HugeIcon(
                                         icon: HugeIcons
                                             .strokeRoundedCheckmarkCircle02,
-                                        color: Colors.white,
+                                        color: onTheme(appColor),
                                         size: Responsive.scale(context, 52),
                                       ),
                                     )
@@ -160,7 +160,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                                       'Workout Complete',
                                       textAlign: TextAlign.center,
                                       style: GoogleFonts.manrope(
-                                        color: Colors.white,
+                                        color: onTheme(appColor),
                                         fontSize: Responsive.font(context, 30),
                                         fontWeight: FontWeight.w800,
                                       ),
@@ -178,7 +178,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                                       '+${widget.xpGained} XP',
                                       textAlign: TextAlign.center,
                                       style: GoogleFonts.manrope(
-                                        color: Colors.white,
+                                        color: onTheme(appColor),
                                         fontSize: Responsive.font(context, 28),
                                         fontWeight: FontWeight.w800,
                                       ),
@@ -192,7 +192,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                                     'XP already earned from a workout today',
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.manrope(
-                                      color: Colors.white54,
+                                      color: onTheme(appColor),
                                       fontSize: Responsive.font(context, 13),
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -228,7 +228,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                             Text(
                               'SUMMARY',
                               style: GoogleFonts.manrope(
-                                color: Colors.white70,
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 13),
                                 fontWeight: FontWeight.w700,
                               ),
@@ -281,7 +281,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                               Text(
                                 'PERSONAL RECORDS',
                                 style: GoogleFonts.manrope(
-                                  color: Colors.white70,
+                                  color: onTheme(appColor),
                                   fontSize: Responsive.font(context, 13),
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -303,7 +303,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                               Text(
                                 'MUSCLES WORKED',
                                 style: GoogleFonts.manrope(
-                                  color: Colors.white70,
+                                  color: onTheme(appColor),
                                   fontSize: Responsive.font(context, 13),
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -333,7 +333,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                                   Text(
                                     'Primary',
                                     style: GoogleFonts.manrope(
-                                      color: Colors.white54,
+                                      color: onTheme(appColor),
                                       fontSize: Responsive.font(context, 11),
                                     ),
                                   ),
@@ -344,10 +344,10 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                                     width: 10,
                                     height: 10,
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withAlpha(18),
+                                      color: cardColors(appColor).iconBox,
                                       borderRadius: BorderRadius.circular(3),
                                       border: Border.all(
-                                        color: Colors.white.withAlpha(50),
+                                        color: cardColors(appColor).border,
                                       ),
                                     ),
                                   ),
@@ -355,7 +355,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                                   Text(
                                     'Secondary',
                                     style: GoogleFonts.manrope(
-                                      color: Colors.white54,
+                                      color: onTheme(appColor),
                                       fontSize: Responsive.font(context, 11),
                                     ),
                                   ),
@@ -393,7 +393,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                             Text(
                               'EXERCISES',
                               style: GoogleFonts.manrope(
-                                color: Colors.white70,
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 13),
                                 fontWeight: FontWeight.w700,
                               ),
@@ -458,7 +458,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                           ),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: lightenColor(appColor, 0.25).withAlpha(180),
+                            color: cardColors(appColor).iconBorder,
                             width: 1.5,
                           ),
                         ),
@@ -466,7 +466,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                           'Done',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.manrope(
-                            color: Colors.white,
+                            color: onTheme(appColor),
                             fontSize: Responsive.font(context, 15),
                             fontWeight: FontWeight.w700,
                           ),
@@ -525,7 +525,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
             Text(
               'Level ${ref.watch(userDataProvider).value?.level ?? 1}',
               style: GoogleFonts.manrope(
-                color: Colors.white70,
+                color: onTheme(appColor),
                 fontSize: Responsive.font(context, 11),
                 fontWeight: FontWeight.w600,
               ),
@@ -533,7 +533,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
             Text(
               '$exp / $expNeeded XP',
               style: GoogleFonts.manrope(
-                color: Colors.white54,
+                color: onTheme(appColor),
                 fontSize: Responsive.font(context, 11),
                 fontWeight: FontWeight.w500,
               ),
@@ -579,9 +579,9 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
     Widget statChip(String label, String? oldVal, String newVal) {
       return Container(
         decoration: BoxDecoration(
-          color: Colors.white.withAlpha(28),
+          color: cardColors(appColor).iconBox,
           borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
-          border: Border.all(color: Colors.white.withAlpha(45), width: 1),
+          border: Border.all(color: cardColors(appColor).border, width: 1),
         ),
         child: IntrinsicHeight(
           child: Row(
@@ -595,14 +595,14 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                 child: Text(
                   label,
                   style: GoogleFonts.manrope(
-                    color: Colors.white54,
+                    color: onTheme(appColor),
                     fontSize: Responsive.font(context, 11),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
               VerticalDivider(
-                color: Colors.white.withAlpha(45),
+                color: onTheme(appColor).withAlpha(120),
                 width: 1,
                 thickness: 1,
               ),
@@ -618,10 +618,10 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                       Text(
                         oldVal,
                         style: GoogleFonts.manrope(
-                          color: Colors.white38,
+                          color: onTheme(appColor).withAlpha(140),
                           fontSize: Responsive.font(context, 11),
                           decoration: TextDecoration.lineThrough,
-                          decorationColor: Colors.white38,
+                          decorationColor: onTheme(appColor).withAlpha(140),
                         ),
                       ),
                       Padding(
@@ -630,7 +630,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                         ),
                         child: Icon(
                           Icons.arrow_forward_rounded,
-                          color: Colors.white38,
+                          color: onTheme(appColor).withAlpha(140),
                           size: Responsive.scale(context, 10),
                         ),
                       ),
@@ -638,7 +638,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                     Text(
                       newVal,
                       style: GoogleFonts.manrope(
-                        color: Colors.white,
+                        color: onTheme(appColor),
                         fontSize: Responsive.font(context, 11),
                         fontWeight: FontWeight.w700,
                       ),
@@ -666,7 +666,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
             children: [
               HugeIcon(
                 icon: HugeIcons.strokeRoundedMedal01,
-                color: Colors.white,
+                color: onTheme(appColor),
                 size: Responsive.scale(context, 20),
               ),
               SizedBox(width: Responsive.width(context, 10)),
@@ -675,7 +675,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                     ? '1 Personal Record'
                     : '${widget.prDetails.length} Personal Records',
                 style: GoogleFonts.manrope(
-                  color: Colors.white,
+                  color: onTheme(appColor),
                   fontSize: Responsive.font(context, 15),
                   fontWeight: FontWeight.w800,
                 ),
@@ -696,12 +696,12 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                     vertical: Responsive.height(context, 10),
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(10),
+                    color: cardColors(appColor).iconBox,
                     borderRadius: BorderRadius.circular(
                       Responsive.scale(context, 10),
                     ),
                     border: Border.all(
-                      color: Colors.white.withAlpha(18),
+                      color: cardColors(appColor).iconBorder,
                       width: 1,
                     ),
                   ),
@@ -711,13 +711,17 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                       Text(
                         entry.key,
                         style: GoogleFonts.manrope(
-                          color: Colors.white,
+                          color: onTheme(appColor),
                           fontSize: Responsive.font(context, 13),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       SizedBox(height: Responsive.height(context, 8)),
-                      Divider(color: Colors.white.withAlpha(15), height: 1),
+                      Divider(
+                        color: onTheme(appColor).withAlpha(120),
+                        thickness: 1.5,
+                        height: 1,
+                      ),
                       SizedBox(height: Responsive.height(context, 8)),
                       Wrap(
                         spacing: Responsive.width(context, 6),
@@ -776,7 +780,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                 child: Text(
                   exerciseName,
                   style: GoogleFonts.manrope(
-                    color: Colors.white,
+                    color: onTheme(appColor),
                     fontSize: Responsive.font(context, 14),
                     fontWeight: FontWeight.w700,
                   ),
@@ -803,14 +807,14 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                         color: appColor.withAlpha(60),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: Colors.white.withAlpha(80),
+                          color: cardColors(appColor).border,
                           width: 1,
                         ),
                       ),
                       child: Text(
                         label,
                         style: GoogleFonts.manrope(
-                          color: Colors.white,
+                          color: onTheme(appColor),
                           fontSize: Responsive.font(context, 10),
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
@@ -855,7 +859,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
             '$setNum',
             textAlign: TextAlign.center,
             style: GoogleFonts.manrope(
-              color: Colors.white38,
+              color: onTheme(appColor).withAlpha(140),
               fontSize: Responsive.font(context, 12),
               fontWeight: FontWeight.w600,
             ),
@@ -866,7 +870,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
           Text(
             '$reps reps',
             style: GoogleFonts.manrope(
-              color: Colors.white,
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 13),
               fontWeight: FontWeight.w600,
             ),
@@ -875,7 +879,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
           Text(
             ' x ',
             style: GoogleFonts.manrope(
-              color: Colors.white38,
+              color: onTheme(appColor).withAlpha(140),
               fontSize: Responsive.font(context, 13),
             ),
           ),
@@ -883,7 +887,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
           Text(
             weightDisplay,
             style: GoogleFonts.manrope(
-              color: Colors.white,
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 13),
               fontWeight: FontWeight.w600,
             ),
@@ -920,7 +924,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
         child: Text(
           label,
           style: GoogleFonts.manrope(
-            color: Colors.white,
+            color: onTheme(appColor),
             fontSize: Responsive.font(context, 12),
             fontWeight: FontWeight.w700,
           ),
@@ -933,14 +937,14 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
         vertical: Responsive.height(context, 6),
       ),
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha(18),
+        color: cardColors(appColor).iconBox,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withAlpha(50), width: 1),
+        border: Border.all(color: cardColors(appColor).border, width: 1),
       ),
       child: Text(
         label,
         style: GoogleFonts.manrope(
-          color: Colors.white70,
+          color: onTheme(appColor),
           fontSize: Responsive.font(context, 12),
           fontWeight: FontWeight.w500,
         ),
@@ -960,7 +964,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
         Text(
           value,
           style: GoogleFonts.manrope(
-            color: Colors.white,
+            color: onTheme(appColor),
             fontSize: Responsive.font(context, 18),
             fontWeight: FontWeight.w800,
           ),
@@ -968,7 +972,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
         Text(
           label,
           style: GoogleFonts.manrope(
-            color: Colors.white38,
+            color: onTheme(appColor).withAlpha(140),
             fontSize: Responsive.font(context, 11),
           ),
         ),
@@ -979,6 +983,6 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
   Widget _divider(BuildContext context) => Container(
     width: 1,
     height: Responsive.height(context, 32),
-    color: Colors.white.withAlpha(15),
+    color: onTheme(appColor).withAlpha(120),
   );
 }

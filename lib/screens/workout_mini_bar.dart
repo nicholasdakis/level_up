@@ -55,8 +55,8 @@ class _MiniWorkoutBarState extends State<MiniWorkoutBar>
   @override
   Widget build(BuildContext context) {
     final appColor = widget.appColor;
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
     final exerciseCount = widget.session.exercises.length;
     final isLight = appColor.computeLuminance() > 0.18;
 
@@ -212,7 +212,7 @@ class _CollapsedWorkoutDotState extends State<CollapsedWorkoutDot>
   @override
   Widget build(BuildContext context) {
     final appColor = widget.appColor;
-    final accent = lightenColor(appColor, 0.45);
+    final accent = onTheme(appColor);
     final isLight = appColor.computeLuminance() > 0.18;
     final size = Responsive.scale(context, 48); // diameter of the circle
 

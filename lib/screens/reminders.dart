@@ -254,14 +254,14 @@ class _RemindersState extends ConsumerState<Reminders> {
       content: RichText(
         text: TextSpan(
           style: GoogleFonts.manrope(
-            color: Colors.white70,
+            color: onTheme(appColor),
             fontSize: Responsive.font(context, 13),
           ),
           children: [
             TextSpan(
               text: '"${reminder.message}"',
               style: GoogleFonts.manrope(
-                color: Colors.white,
+                color: onTheme(appColor),
                 fontWeight: FontWeight.w600,
                 fontSize: Responsive.font(context, 13),
               ),
@@ -506,15 +506,15 @@ class _RemindersState extends ConsumerState<Reminders> {
                     padding: EdgeInsets.all(Responsive.scale(context, 8)),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: lightenColor(appColor, 0.1).withAlpha(20),
+                      color: cardColors(appColor).iconBox,
                       border: Border.all(
-                        color: lightenColor(appColor, 0.3).withAlpha(180),
+                        color: cardColors(appColor).iconBorder,
                         width: 1.5,
                       ),
                     ),
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedNotification01,
-                      color: lightenColor(appColor, 0.3).withAlpha(180),
+                      color: onTheme(appColor),
                       size: Responsive.scale(context, 20),
                     ),
                   ),
@@ -546,7 +546,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                     onTap: () => _deleteReminder(reminder),
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedDelete02,
-                      color: lightenColor(appColor, 0.3).withAlpha(180),
+                      color: onTheme(appColor),
                       size: Responsive.scale(context, 20),
                     ),
                   ),
@@ -600,24 +600,15 @@ class _RemindersState extends ConsumerState<Reminders> {
                                   ),
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: lightenColor(
-                                      appColor,
-                                      0.1,
-                                    ).withAlpha(20),
+                                    color: cardColors(appColor).iconBox,
                                     border: Border.all(
-                                      color: lightenColor(
-                                        appColor,
-                                        0.3,
-                                      ).withAlpha(180),
+                                      color: cardColors(appColor).iconBorder,
                                       width: 1.5,
                                     ),
                                   ),
                                   child: Icon(
                                     Icons.arrow_back_ios_new,
-                                    color: lightenColor(
-                                      appColor,
-                                      0.3,
-                                    ).withAlpha(180),
+                                    color: cardColors(appColor).onCard,
                                     size: Responsive.font(context, 13),
                                   ),
                                 ),
@@ -640,7 +631,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                               context,
                                               13,
                                             ),
-                                            color: Colors.white70,
+                                            color: onTheme(appColor),
                                             fontWeight: FontWeight.w600,
                                             height: 1.5,
                                           ),
@@ -655,7 +646,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                               context,
                                               13,
                                             ),
-                                            color: Colors.white54,
+                                            color: onTheme(appColor),
                                             height: 1.6,
                                           ),
                                         ),
@@ -672,7 +663,9 @@ class _RemindersState extends ConsumerState<Reminders> {
                                             HugeIcon(
                                               icon: HugeIcons
                                                   .strokeRoundedSmartPhone01,
-                                              color: Colors.white38,
+                                              color: onTheme(
+                                                appColor,
+                                              ).withAlpha(140),
                                               size: Responsive.scale(
                                                 context,
                                                 18,
@@ -692,7 +685,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                                     context,
                                                     13,
                                                   ),
-                                                  color: Colors.white54,
+                                                  color: onTheme(appColor),
                                                   height: 1.5,
                                                 ),
                                               ),
@@ -712,10 +705,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                             child: Text(
                                               "Dismiss",
                                               style: GoogleFonts.manrope(
-                                                color: lightenColor(
-                                                  appColor,
-                                                  0.45,
-                                                ),
+                                                color: onTheme(appColor),
                                                 fontWeight: FontWeight.w700,
                                               ),
                                             ),
@@ -745,10 +735,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                       child: Text(
                                         "?",
                                         style: GoogleFonts.manrope(
-                                          color: lightenColor(
-                                            appColor,
-                                            0.3,
-                                          ).withAlpha(180),
+                                          color: onTheme(appColor),
                                           fontSize: Responsive.font(
                                             context,
                                             15,
@@ -786,7 +773,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                 keyboardType: TextInputType.text,
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 15),
-                                  color: Colors.white,
+                                  color: onTheme(appColor),
                                 ),
                                 decoration: InputDecoration(
                                   prefixIcon: Padding(
@@ -796,7 +783,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                     ),
                                     child: HugeIcon(
                                       icon: HugeIcons.strokeRoundedMessage01,
-                                      color: lightenColor(appColor, 0.3),
+                                      color: onTheme(appColor),
                                       size: Responsive.scale(context, 18),
                                     ),
                                   ),
@@ -818,10 +805,9 @@ class _RemindersState extends ConsumerState<Reminders> {
                                                   : HugeIcons
                                                         .strokeRoundedMic02,
                                               color: _voiceSearch.isListening
-                                                  ? lightenColor(appColor, 0.45)
-                                                  : lightenColor(
+                                                  ? onTheme(appColor)
+                                                  : onTheme(
                                                       appColor,
-                                                      0.45,
                                                     ).withAlpha(140),
                                               size: Responsive.scale(
                                                 context,
@@ -836,7 +822,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                       "Enter a reminder message (E.g. $placeholderMessage)",
                                   hintStyle: GoogleFonts.manrope(
                                     fontSize: Responsive.font(context, 14),
-                                    color: Colors.white38,
+                                    color: onTheme(appColor).withAlpha(140),
                                   ),
                                   filled: true,
                                   fillColor: Colors.white.withAlpha(12),
@@ -845,7 +831,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                       Responsive.scale(context, 12),
                                     ),
                                     borderSide: BorderSide(
-                                      color: Colors.white.withAlpha(40),
+                                      color: cardColors(appColor).border,
                                       width: Responsive.scale(context, 1),
                                     ),
                                   ),
@@ -854,7 +840,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                       Responsive.scale(context, 12),
                                     ),
                                     borderSide: BorderSide(
-                                      color: Colors.white.withAlpha(40),
+                                      color: cardColors(appColor).border,
                                       width: Responsive.scale(context, 1),
                                     ),
                                   ),
@@ -863,7 +849,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                       Responsive.scale(context, 12),
                                     ),
                                     borderSide: BorderSide(
-                                      color: Colors.white.withAlpha(80),
+                                      color: onTheme(appColor),
                                       width: Responsive.scale(context, 1.5),
                                     ),
                                   ),
@@ -905,12 +891,12 @@ class _RemindersState extends ConsumerState<Reminders> {
                                     vertical: Responsive.height(context, 12),
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withAlpha(12),
+                                    color: cardColors(appColor).iconBox,
                                     borderRadius: BorderRadius.circular(
                                       Responsive.scale(context, 12),
                                     ),
                                     border: Border.all(
-                                      color: Colors.white.withAlpha(40),
+                                      color: cardColors(appColor).border,
                                       width: Responsive.scale(context, 1),
                                     ),
                                   ),
@@ -918,7 +904,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                     children: [
                                       HugeIcon(
                                         icon: HugeIcons.strokeRoundedClock01,
-                                        color: lightenColor(appColor, 0.3),
+                                        color: onTheme(appColor),
                                         size: Responsive.scale(context, 18),
                                       ),
                                       SizedBox(
@@ -934,7 +920,9 @@ class _RemindersState extends ConsumerState<Reminders> {
                                               context,
                                               15,
                                             ),
-                                            color: Colors.white38,
+                                            color: onTheme(
+                                              appColor,
+                                            ).withAlpha(140),
                                           ),
                                         ),
                                       ),
@@ -942,7 +930,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                       HugeIcon(
                                         icon:
                                             HugeIcons.strokeRoundedArrowRight01,
-                                        color: Colors.white38,
+                                        color: onTheme(appColor).withAlpha(140),
                                         size: Responsive.scale(context, 18),
                                       ),
                                     ],
@@ -990,8 +978,8 @@ class _RemindersState extends ConsumerState<Reminders> {
                             if (!isGuest && isLoading) {
                               return Skeletonizer(
                                 effect: ShimmerEffect(
-                                  baseColor: lightenColor(appColor, 0.3),
-                                  highlightColor: lightenColor(appColor, 0.1),
+                                  baseColor: cardColors(appColor).iconBox,
+                                  highlightColor: cardColors(appColor).border,
                                   duration: const Duration(milliseconds: 1200),
                                 ),
                                 child: Column(
@@ -1034,7 +1022,9 @@ class _RemindersState extends ConsumerState<Reminders> {
                                           HugeIcon(
                                             icon: HugeIcons
                                                 .strokeRoundedNotification02,
-                                            color: Colors.white24,
+                                            color: onTheme(
+                                              appColor,
+                                            ).withAlpha(120),
                                             size: Responsive.scale(context, 48),
                                           ),
                                           SizedBox(
@@ -1050,7 +1040,9 @@ class _RemindersState extends ConsumerState<Reminders> {
                                                 context,
                                                 15,
                                               ),
-                                              color: Colors.white38,
+                                              color: onTheme(
+                                                appColor,
+                                              ).withAlpha(140),
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
@@ -1068,7 +1060,9 @@ class _RemindersState extends ConsumerState<Reminders> {
                                                 context,
                                                 13,
                                               ),
-                                              color: Colors.white24,
+                                              color: onTheme(
+                                                appColor,
+                                              ).withAlpha(120),
                                               height: 1.5,
                                             ),
                                           ),

@@ -43,7 +43,7 @@ Widget buildSettingsDrawer(
       : userData!.username!;
 
   // Consistent tile for items that show a dialog or external action instead of navigating
-  final accentColor = lightenColor(appColor, 0.45);
+  final accentColor = onTheme(appColor);
 
   Widget buildActionTile({
     required IconData icon,
@@ -112,7 +112,7 @@ Widget buildSettingsDrawer(
             topRight: Radius.circular(28),
             bottomRight: Radius.circular(28),
           ),
-          border: Border.all(color: Colors.white.withAlpha(25), width: 3),
+          border: Border.all(color: cardColors(appColor).border, width: 3),
         ),
         child: Column(
           children: [
@@ -149,9 +149,9 @@ Widget buildSettingsDrawer(
                                     height: 40,
                                     fit: BoxFit.cover,
                                   )
-                                : const Icon(
+                                : Icon(
                                     Icons.person,
-                                    color: Colors.white,
+                                    color: onTheme(appColor),
                                     size: 40,
                                   ),
                           ),
@@ -189,8 +189,8 @@ Widget buildSettingsDrawer(
                       horizontal: Responsive.width(context, 16),
                     ),
                     child: Divider(
-                      color: Colors.white.withAlpha(25),
-                      thickness: 1,
+                      color: onTheme(appColor).withAlpha(120),
+                      thickness: 1.5,
                     ),
                   ),
                   buildActionTile(
@@ -319,8 +319,8 @@ Widget buildSettingsDrawer(
                       vertical: Responsive.height(context, 8),
                     ),
                     child: Divider(
-                      color: Colors.white.withAlpha(25),
-                      thickness: 1,
+                      color: onTheme(appColor).withAlpha(120),
+                      thickness: 1.5,
                     ),
                   ),
                   buildActionTile(

@@ -292,7 +292,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         title: "Failed to load",
         content: Text(
           "Check your connection and try again.",
-          style: GoogleFonts.manrope(color: Colors.white54, fontSize: 13),
+          style: GoogleFonts.manrope(color: onTheme(appColor), fontSize: 13),
           textAlign: TextAlign.center,
         ),
         actions: [
@@ -354,9 +354,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     Text(
                       label,
                       style: GoogleFonts.manrope(
-                        color: lightenColor(appColor, 0.45),
+                        color: onTheme(appColor),
                         fontSize: Responsive.font(context, 14),
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
@@ -365,8 +365,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               ? "Best: $best ${best == 1 ? 'day' : 'days'}"
                               : "No best yet"),
                       style: GoogleFonts.manrope(
-                        color: lightenColor(appColor, 0.45),
-                        fontSize: Responsive.font(context, 11),
+                        color: onTheme(appColor),
+                        fontSize: Responsive.font(context, 12),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -397,7 +398,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ],
           ),
         ),
-        if (!isLast) Divider(color: Colors.white.withAlpha(15), height: 1),
+        if (!isLast)
+          Divider(
+            color: onTheme(appColor).withAlpha(120),
+            height: 1,
+            thickness: 1.5,
+          ),
       ],
     );
   }
@@ -416,7 +422,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       final daysSince = DateTime.now().difference(last).inDays;
       return daysSince > 1 ? 0 : streak;
     }();
-    final accentColor = lightenColor(appColor, 0.45);
+    final accentColor = onTheme(appColor);
     final foodStreakBest =
         ref.watch(userDataProvider).value?.foodLogStreakBest ?? 0;
     final workoutStreakBest =
@@ -476,7 +482,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ? Colors.white.withAlpha(18)
               : Colors.white.withAlpha(50),
           border: Border.all(
-            color: Colors.white.withAlpha(35),
+            color: cardColors(appColor).border,
             width: Responsive.width(context, 1.5),
           ),
           padding: EdgeInsets.symmetric(
@@ -501,7 +507,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     Text(
                       "Create an account for the full experience",
                       style: GoogleFonts.manrope(
-                        color: Colors.white54,
+                        color: onTheme(appColor),
                         fontSize: Responsive.font(context, 12),
                       ),
                     ),
@@ -532,7 +538,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget _buildXpCard() {
     final c = cardColors(appColor);
     final accent = c.onCard;
-    final dim = c.onCard.withAlpha(180);
     final level = ref.watch(userDataProvider).value?.level ?? 1;
     final exp =
         ref.watch(userDataProvider.select((u) => u.value?.expPoints)) ?? 0;
@@ -566,7 +571,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               end: Alignment.bottomRight,
               colors: c.gradient,
             ),
-            border: Border.all(color: c.border, width: 1),
+            border: Border.all(color: c.border, width: 2),
           ),
           child: Padding(
             padding: EdgeInsets.symmetric(
@@ -685,9 +690,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               Text(
                                 "${animatedExp.round()} / ${ref.read(userDataProvider.notifier).experienceNeeded ?? 0} XP",
                                 style: GoogleFonts.manrope(
-                                  color: dim,
+                                  color: accent,
                                   fontSize: Responsive.font(context, 12),
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ],
@@ -705,8 +710,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       Responsive.scale(context, 7),
                     ),
                     border: Border.all(
-                      color: Colors.white.withAlpha(45),
-                      width: Responsive.scale(context, 1),
+                      color: cardColors(appColor).border,
+                      width: 1.5,
                     ),
                   ),
                   child: ClipRRect(
@@ -718,14 +723,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         Container(
                           height: Responsive.height(context, 10),
                           width: double.infinity,
-                          color: Colors.white.withAlpha(18),
+                          color: onTheme(appColor).withAlpha(30),
                         ),
                         FractionallySizedBox(
                           widthFactor: progress,
                           child: Container(
                             height: Responsive.height(context, 10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withAlpha(200),
+                              color: onTheme(appColor),
                               borderRadius: BorderRadius.circular(
                                 Responsive.scale(context, 6),
                               ),
@@ -745,16 +750,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       "$remaining XP to Level ${level + 1}",
                       style: GoogleFonts.manrope(
                         color: accent,
-                        fontSize: Responsive.font(context, 11),
-                        fontWeight: FontWeight.w500,
+                        fontSize: Responsive.font(context, 12),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     Text(
                       "Total: ${_formatNumber(ref.read(userDataProvider.notifier).totalXpEarned ?? 0)} XP",
                       style: GoogleFonts.manrope(
-                        color: dim,
-                        fontSize: Responsive.font(context, 11),
-                        fontWeight: FontWeight.w500,
+                        color: accent,
+                        fontSize: Responsive.font(context, 12),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -772,7 +777,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final canClaim = canClaimDailyReward();
     final c = cardColors(appColor);
     final accent = c.onCard;
-    final dim = c.onCard.withAlpha(180);
+    final dim = onTheme(appColor);
     final radius = BorderRadius.circular(Responsive.scale(context, 16));
     final isPremium = ref.watch(
       userDataProvider.select((s) => s.value?.isPremium ?? false),
@@ -789,7 +794,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           end: Alignment.bottomRight,
           colors: c.gradient,
         ),
-        border: Border.all(color: c.border, width: 1),
+        border: Border.all(color: c.border, width: 2),
       ),
       child: ClipRRect(
         borderRadius: radius,
@@ -980,7 +985,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }) {
     final c = cardColors(appColor);
     final accent = c.onCard;
-    final dim = c.onCard.withAlpha(180);
+    final dim = onTheme(appColor);
     final radius = BorderRadius.circular(Responsive.scale(context, 16));
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -990,7 +995,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           end: Alignment.bottomRight,
           colors: c.gradient,
         ),
-        border: Border.all(color: c.border, width: 1),
+        border: Border.all(color: c.border, width: 2),
       ),
       child: ClipRRect(
         borderRadius: radius,
@@ -1008,7 +1013,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 10),
                   ),
-                  border: Border.all(color: accent.withAlpha(40), width: 1),
+                  border: Border.all(color: c.iconBorder, width: 1.5),
                 ),
                 child: HugeIcon(
                   icon: icon,
@@ -1030,8 +1035,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 subtitle,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 11),
+                  fontSize: Responsive.font(context, 12),
                   color: dim,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -1044,7 +1050,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget _buildEarnXpCard() {
     final c = cardColors(appColor);
     final accent = c.onCard;
-    final dim = c.onCard.withAlpha(180);
+    final dim = onTheme(appColor);
     final radius = BorderRadius.circular(Responsive.scale(context, 16));
 
     final card = DecoratedBox(
@@ -1055,7 +1061,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           end: Alignment.bottomRight,
           colors: c.gradient,
         ),
-        border: Border.all(color: c.border, width: 1),
+        border: Border.all(color: c.border, width: 2),
       ),
       child: ClipRRect(
         borderRadius: radius,
@@ -1073,7 +1079,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 10),
                   ),
-                  border: Border.all(color: accent.withAlpha(40), width: 1),
+                  border: Border.all(color: c.iconBorder, width: 1.5),
                 ),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedPlayCircle,
@@ -1095,8 +1101,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 "Watch & earn XP",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 11),
+                  fontSize: Responsive.font(context, 12),
                   color: dim,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -1119,7 +1126,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     "Rewarded ads are currently under review and will be available soon.",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
-                      color: Colors.white60,
+                      color: onTheme(appColor),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -1157,7 +1164,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           "Sign up to earn XP for every ad you watch and start leveling up.",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 13),
-                            color: Colors.white60,
+                            color: onTheme(appColor),
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -1237,8 +1244,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return Skeletonizer(
       enabled: (!isGuest && !_initialized) || _onboardingInProgress,
       effect: ShimmerEffect(
-        baseColor: lightenColor(appColor, 0.10),
-        highlightColor: lightenColor(appColor, 0.22),
+        baseColor: cardColors(appColor).iconBox,
+        highlightColor: cardColors(appColor).border,
         duration: const Duration(milliseconds: 1200),
       ),
       child: Container(
@@ -1306,7 +1313,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                             ? _timeOfDayLabel()
                                             : "WELCOME TO LEVEL UP!",
                                         style: GoogleFonts.manrope(
-                                          color: lightenColor(appColor, 0.45),
+                                          color: onTheme(appColor),
                                           fontSize: Responsive.font(
                                             context,
                                             username != null ? 14 : 20,
@@ -1326,7 +1333,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                             ? "$username${_greetingIsQuestion ? "?" : "!"}"
                                             : "",
                                         style: GoogleFonts.manrope(
-                                          color: lightenColor(appColor, 0.45),
+                                          color: onTheme(appColor),
                                           fontSize: Responsive.font(
                                             context,
                                             26,

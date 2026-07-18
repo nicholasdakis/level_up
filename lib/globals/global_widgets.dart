@@ -101,7 +101,7 @@ Widget socialLink({
           ),
           Icon(
             Icons.chevron_right,
-            color: cardColors(appColor).onCard.withAlpha(160),
+            color: cardColors(appColor).onCard,
             size: Responsive.width(context, 22),
           ),
         ],
@@ -555,20 +555,20 @@ Widget sectionHeader(
           text,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, baseFontSize),
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             letterSpacing: 1.4,
             foreground: Paint()
               ..style = PaintingStyle.stroke
               ..strokeWidth = 2.5
-              ..color = Colors.black.withAlpha(25),
+              ..color = onTheme(appColor).withAlpha(15),
           ),
         ),
         Text(
           text,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, baseFontSize),
-            color: lightenColor(appColor, 0.45),
-            fontWeight: FontWeight.w700,
+            color: onTheme(appColor),
+            fontWeight: FontWeight.w800,
             letterSpacing: 1.4,
           ),
         ),
@@ -770,7 +770,7 @@ Widget frostedGlassCard(
               colors: c.gradient,
             ),
       color: backgroundColor,
-      border: border ?? Border.all(color: c.border, width: 1),
+      border: border ?? Border.all(color: c.border, width: 1.5),
       boxShadow: shadow
           ? [
               BoxShadow(

@@ -2800,7 +2800,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed a bug where finishing a workout multiple times would create duplicate workout entries
 - The client now generates a UUID per session and the backend uses ON CONFLICT DO NOTHING so only the first submission inserts
 
-## 2026-07-18
+## 2026-07-17
 - Deleted dead textWithFont method
 - Extracted shared analytics stat tile widget and premium gate helper into analytics_components.dart; water, weight, and workout analytics screens now use these instead of duplicating the logic
 - Collapsed the three near-identical food analytics line chart classes (meal, macro, micro) into a single _FoodLineChart widget parameterized by series names, spot extraction, and tooltip/axis formatters
@@ -2839,4 +2839,18 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Changed the weight card empty state value from "--" to "Not logged" with a smaller font size
 - Extracted a shared gradientButton widget in globals.dart and replaced all inline gradient button implementations across exercise_picker_screen, create_routine_screen, and active_workout_screen with it
 - Made the gradient button look better on light themes
+
+## 2026-07-18
+- Overhauled the entire app theming system to support light and very light theme colors correctly
+- Replaced all hardcoded white and lightenColor text/icon colors with onTheme(appColor), which adapts to dark and light themes automatically
+- Replaced all hardcoded white and lightenColor border colors with cardColors(appColor).border and iconBorder, which darken correctly on light themes
+- Added iconBorder to cardColors so icon box borders have stronger contrast against the icon box background on all themes
+- Removed the "color too light" clamp in personal preferences that prevented users from picking very light theme colors
+- All secondary/subtext now uses full opacity with font weight for hierarchy instead of reduced alpha, matching the readability of primary text
+- All skeleton/shimmer bone colors now use cardColors(appColor).iconBox and .border so loading states are visible on light themes
+- All dividers now use onTheme(appColor).withAlpha(120) at thickness 1.5 across every screen
+- All icon box backgrounds now use cardColors(appColor).iconBox across every screen
+- All progress bar tracks in food logging and workout now use onTheme(appColor).withAlpha(30) instead of white
+- The leaderboard self-highlight now uses a white overlay so it reads as a lighter card on any theme color
+- All back button icon boxes are now unified to use cardColors(appColor).iconBox, .iconBorder, and .onCard across all screens
 - Made near-invisible text look more visible on light themes

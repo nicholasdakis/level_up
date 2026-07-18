@@ -20,12 +20,7 @@ import '../services/user_data_manager.dart';
 import '../utility/shared_preferences/shared_prefs_async.dart';
 
 List<Color> _mealColors(Color base) {
-  return [
-    lightenColor(base, 0.30),
-    lightenColor(base, 0.30),
-    lightenColor(base, 0.30),
-    lightenColor(base, 0.30),
-  ];
+  return [onTheme(base), onTheme(base), onTheme(base), onTheme(base)];
 }
 
 class FoodLogging extends ConsumerStatefulWidget {
@@ -220,7 +215,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       title: "Delete food?",
       content: Text(
         "Are you sure you want to remove ${foods[idx].foodName.isNotEmpty ? foods[idx].foodName : 'this food'}?",
-        style: GoogleFonts.manrope(color: Colors.white70),
+        style: GoogleFonts.manrope(color: onTheme(appColor)),
       ),
       actions: [
         TextButton(
@@ -259,8 +254,8 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   Future<void> _moveFood(String fromMeal, FoodLog food) async {
     const meals = ['breakfast', 'lunch', 'dinner', 'snacks'];
     const labels = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
 
     final toMeal = await showFrostedDialog<String>(
       context: context,
@@ -332,7 +327,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     FoodLog food,
     int idx,
   ) async {
-    final accent = lightenColor(appColor, 0.45);
+    final accent = onTheme(appColor);
 
     Widget menuItem(IconData icon, String label, String value) =>
         GestureDetector(
@@ -379,7 +374,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
             ),
           ),
           SizedBox(height: Responsive.height(context, 4)),
-          Divider(color: Colors.white12),
+          Divider(color: onTheme(appColor).withAlpha(120), thickness: 1.5),
           menuItem(HugeIcons.strokeRoundedEdit03, 'Edit Serving', 'edit'),
           menuItem(HugeIcons.strokeRoundedArrowRight01, 'Move Food', 'move'),
         ],
@@ -535,7 +530,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
         : servingAmt.toString();
     final cal = food.calories ?? 0;
     final base = appColor;
-    final dim = lightenColor(base, 0.35);
+    final dim = onTheme(base);
 
     Widget chip(String label, double value, {String unit = 'g'}) {
       return Container(
@@ -544,19 +539,16 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           vertical: Responsive.height(context, 3),
         ),
         decoration: BoxDecoration(
-          color: lightenColor(base, 0.3).withAlpha(40),
+          color: cardColors(base).iconBox,
           borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
-          border: Border.all(
-            color: lightenColor(base, 0.3).withAlpha(80),
-            width: 1,
-          ),
+          border: Border.all(color: cardColors(base).border, width: 1.5),
         ),
         child: Text(
           '$label ${value.toStringAsFixed(1)}$unit',
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 11),
             fontWeight: FontWeight.w600,
-            color: lightenColor(base, 0.45),
+            color: onTheme(base),
           ),
         ),
       );
@@ -628,7 +620,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           Text(
             label,
             style: GoogleFonts.manrope(
-              color: lightenColor(appColor, 0.45),
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 16),
               fontWeight: FontWeight.w700,
             ),
@@ -640,21 +632,21 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             style: GoogleFonts.manrope(
-              color: lightenColor(appColor, 0.45),
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 24),
               fontWeight: FontWeight.w700,
             ),
             decoration: InputDecoration(
               suffixText: unit,
               suffixStyle: GoogleFonts.manrope(
-                color: lightenColor(appColor, 0.35),
+                color: onTheme(appColor),
                 fontSize: Responsive.font(context, 14),
               ),
               enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white24),
+                borderSide: BorderSide(color: onTheme(appColor).withAlpha(120)),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: lightenColor(appColor, 0.45)),
+                borderSide: BorderSide(color: onTheme(appColor)),
               ),
             ),
           ),
@@ -705,9 +697,9 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
         ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
-          color: lightenColor(appColor, 0.1).withAlpha(40),
+          color: cardColors(appColor).iconBox,
           border: Border.all(
-            color: lightenColor(appColor, 0.35).withAlpha(160),
+            color: cardColors(appColor).iconBorder,
             width: 1.5,
           ),
         ),
@@ -716,7 +708,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           children: [
             HugeIcon(
               icon: HugeIcons.strokeRoundedAnalytics01,
-              color: lightenColor(appColor, 0.45),
+              color: onTheme(appColor),
               size: Responsive.font(context, 20),
             ),
             SizedBox(width: Responsive.width(context, 8)),
@@ -725,7 +717,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 15),
                 fontWeight: FontWeight.w800,
-                color: lightenColor(appColor, 0.45),
+                color: onTheme(appColor),
                 letterSpacing: 0.3,
               ),
             ),
@@ -769,7 +761,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 36),
                               fontWeight: FontWeight.w800,
-                              color: lightenColor(appColor, 0.45),
+                              color: onTheme(appColor),
                               height: 1,
                             ),
                           ),
@@ -781,7 +773,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                               ' / 2000 kcal',
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 13),
-                                color: lightenColor(appColor, 0.45),
+                                color: onTheme(appColor),
                               ),
                             ),
                           ),
@@ -794,14 +786,14 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 13),
                                   fontWeight: FontWeight.w600,
-                                  color: lightenColor(appColor, 0.45),
+                                  color: onTheme(appColor),
                                 ),
                               ),
                               Text(
                                 'daily goal',
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 11),
-                                  color: lightenColor(appColor, 0.45),
+                                  color: onTheme(appColor),
                                 ),
                               ),
                             ],
@@ -818,13 +810,13 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                             Container(
                               height: Responsive.height(context, 8),
                               width: double.infinity,
-                              color: Colors.white.withAlpha(18),
+                              color: onTheme(appColor).withAlpha(30),
                             ),
                             FractionallySizedBox(
                               widthFactor: 0.79,
                               child: Container(
                                 height: Responsive.height(context, 8),
-                                color: lightenColor(appColor, 0.45),
+                                color: onTheme(appColor).withAlpha(120),
                               ),
                             ),
                           ],
@@ -870,7 +862,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
             },
             icon: HugeIcon(
               icon: HugeIcons.strokeRoundedTarget01,
-              color: lightenColor(appColor, 0.30),
+              color: onTheme(appColor),
               size: Responsive.scale(context, 24),
             ),
             label: Text(
@@ -878,7 +870,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 14),
                 fontWeight: FontWeight.w600,
-                color: lightenColor(appColor, 0.30),
+                color: onTheme(appColor),
               ),
             ),
           ),
@@ -889,7 +881,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     final total = _totalCalories();
     final progress = (total / _goalCalories).clamp(0.0, 1.0);
     final remaining = (_goalCalories - total).round();
-    final barColor = lightenColor(appColor, 0.45);
+    final barColor = onTheme(appColor);
     final isOver = total > _goalCalories;
 
     return frostedGlassCard(
@@ -912,7 +904,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 36),
                   fontWeight: FontWeight.w800,
-                  color: lightenColor(appColor, 0.45),
+                  color: onTheme(appColor),
                   height: 1,
                 ),
               ),
@@ -924,7 +916,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                       " / ${_goalCalories.round()} kcal",
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 13),
-                        color: lightenColor(appColor, 0.45),
+                        color: onTheme(appColor),
                       ),
                     ),
                     SizedBox(width: Responsive.width(context, 4)),
@@ -932,7 +924,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                       onTap: () => _editGoal(context, 'calories'),
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedPencilEdit01,
-                        color: Colors.white24,
+                        color: onTheme(appColor).withAlpha(140),
                         size: Responsive.scale(context, 13),
                       ),
                     ),
@@ -951,14 +943,14 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
                       fontWeight: FontWeight.w600,
-                      color: isOver ? lightenColor(appColor, 0.45) : barColor,
+                      color: isOver ? onTheme(appColor) : barColor,
                     ),
                   ),
                   Text(
                     "daily goal",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 11),
-                      color: lightenColor(appColor, 0.45),
+                      color: onTheme(appColor),
                     ),
                   ),
                 ],
@@ -973,7 +965,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(Responsive.scale(context, 7)),
               border: Border.all(
-                color: Colors.white.withAlpha(45),
+                color: cardColors(appColor).border,
                 width: Responsive.scale(context, 1),
               ),
             ),
@@ -985,7 +977,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                   Container(
                     height: Responsive.height(context, 8),
                     width: double.infinity,
-                    color: Colors.white.withAlpha(18),
+                    color: onTheme(appColor).withAlpha(30),
                   ),
                   // Fill
                   FractionallySizedBox(
@@ -1052,7 +1044,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                     child: CustomPaint(
                       painter: _SemiDonutPainter(
                         progress: progress,
-                        trackColor: Colors.white.withAlpha(18),
+                        trackColor: onTheme(appColor).withAlpha(30),
                         fillColor: color,
                         strokeWidth: Responsive.scale(context, 10),
                       ),
@@ -1077,14 +1069,14 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 13),
             fontWeight: FontWeight.w700,
-            color: lightenColor(appColor, 0.45),
+            color: onTheme(appColor),
           ),
         ),
         Text(
           label,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 11),
-            color: lightenColor(appColor, 0.45),
+            color: onTheme(appColor),
           ),
         ),
         Row(
@@ -1094,7 +1086,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               "/ ${goal.toStringAsFixed(0)}g",
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 10),
-                color: lightenColor(appColor, 0.45),
+                color: onTheme(appColor),
               ),
             ),
             SizedBox(width: Responsive.width(context, 3)),
@@ -1102,7 +1094,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               onTap: () => _editGoal(context, label.toLowerCase()),
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedPencilEdit01,
-                color: Colors.white24,
+                color: onTheme(appColor).withAlpha(140),
                 size: Responsive.scale(context, 10),
               ),
             ),
@@ -1115,7 +1107,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   // Builds the 3 macro goal gauges
   Widget _buildMacroGauges(Color appColor) {
     if (isGuest) {
-      final color = lightenColor(appColor, 0.30);
+      final color = onTheme(appColor);
       return GestureDetector(
         onTap: () => Guest.block(
           context,
@@ -1176,7 +1168,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                   label: "Protein",
                   current: _totalNutrient('protein'),
                   goal: _goalProtein,
-                  color: lightenColor(appColor, 0.30),
+                  color: onTheme(appColor),
                 )
               : _buildMacroPlaceholder("Protein", appColor),
         ),
@@ -1187,7 +1179,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                   label: "Carbs",
                   current: _totalNutrient('carbs'),
                   goal: _goalCarbs,
-                  color: lightenColor(appColor, 0.30),
+                  color: onTheme(appColor),
                 )
               : _buildMacroPlaceholder("Carbs", appColor),
         ),
@@ -1198,7 +1190,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                   label: "Fat",
                   current: _totalNutrient('fat'),
                   goal: _goalFat,
-                  color: lightenColor(appColor, 0.30),
+                  color: onTheme(appColor),
                 )
               : _buildMacroPlaceholder("Fat", appColor),
         ),
@@ -1229,14 +1221,14 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
         },
         icon: HugeIcon(
           icon: HugeIcons.strokeRoundedAddCircle,
-          color: lightenColor(appColor, 0.30),
+          color: onTheme(appColor),
           size: Responsive.scale(context, 14),
         ),
         label: Text(
           "Set $label",
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 11),
-            color: lightenColor(appColor, 0.30),
+            color: onTheme(appColor),
           ),
         ),
       ),
@@ -1267,25 +1259,25 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               LengthLimitingTextInputFormatter(5),
             ],
             style: GoogleFonts.manrope(
-              color: lightenColor(appColor, 0.45),
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 20),
               fontWeight: FontWeight.w700,
             ),
             textAlign: TextAlign.center,
             decoration: InputDecoration(
               labelText: '$label ($unit)',
-              labelStyle: TextStyle(color: Colors.white54),
-              floatingLabelStyle: TextStyle(color: Colors.white70),
+              labelStyle: TextStyle(color: onTheme(appColor)),
+              floatingLabelStyle: TextStyle(color: onTheme(appColor)),
               suffixText: unit,
               suffixStyle: GoogleFonts.manrope(
-                color: lightenColor(appColor, 0.35),
+                color: onTheme(appColor),
                 fontSize: Responsive.font(context, 14),
               ),
               enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white24),
+                borderSide: BorderSide(color: onTheme(appColor).withAlpha(120)),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: lightenColor(appColor, 0.45)),
+                borderSide: BorderSide(color: onTheme(appColor)),
               ),
             ),
           ),
@@ -1349,9 +1341,9 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   Widget _buildMicroGoalsRow() {
     if (!_goalsSet) return const SizedBox.shrink();
 
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
-    final color = lightenColor(appColor, 0.30);
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
+    final color = onTheme(appColor);
 
     Widget microBar(String label, double current, double goal, String unit) {
       final progress = (current / goal).clamp(0.0, 1.0);
@@ -1387,7 +1379,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                 Container(
                   height: Responsive.height(context, 3),
                   width: double.infinity,
-                  color: Colors.white.withAlpha(18),
+                  color: onTheme(appColor).withAlpha(30),
                 ),
                 FractionallySizedBox(
                   widthFactor: progress,
@@ -1457,7 +1449,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                                   onTap: _editMicroGoals,
                                   child: HugeIcon(
                                     icon: HugeIcons.strokeRoundedPencilEdit01,
-                                    color: Colors.white24,
+                                    color: onTheme(appColor).withAlpha(140),
                                     size: Responsive.scale(context, 13),
                                   ),
                                 ),
@@ -1494,9 +1486,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                         'Create a free account to set micro goals and track fiber, sugar, and sodium.',
                   ),
                   child: Center(
-                    child: PulsingLockBadge(
-                      accent: lightenColor(appColor, 0.45),
-                    ),
+                    child: PulsingLockBadge(accent: onTheme(appColor)),
                   ),
                 ),
               ),
@@ -1561,7 +1551,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                     "${title.toUpperCase()} (${foods.length})",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 14),
-                      color: lightenColor(appColor, 0.45),
+                      color: onTheme(appColor),
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.8,
                     ),
@@ -1587,7 +1577,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                               text: " cal",
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 11),
-                                color: lightenColor(appColor, 0.45),
+                                color: onTheme(appColor),
                               ),
                             ),
                           ],
@@ -1597,7 +1587,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                         'P ${mealProtein.round()}g · C ${mealCarbs.round()}g · F ${mealFat.round()}g',
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 10),
-                          color: lightenColor(appColor, 0.35),
+                          color: onTheme(appColor),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -1615,7 +1605,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 10),
-                            color: lightenColor(appColor, 0.30),
+                            color: onTheme(appColor),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -1628,7 +1618,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                   duration: const Duration(milliseconds: 200),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedArrowDown01,
-                    color: lightenColor(appColor, 0.45),
+                    color: onTheme(appColor),
                     size: Responsive.scale(context, 20),
                   ),
                 ),
@@ -1656,7 +1646,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                     "No foods logged",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
-                      color: lightenColor(appColor, 0.45),
+                      color: onTheme(appColor),
                     ),
                   ),
                 )
@@ -1696,7 +1686,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                                             context,
                                             14,
                                           ),
-                                          color: lightenColor(appColor, 0.45),
+                                          color: onTheme(appColor),
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -1713,7 +1703,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                                             context,
                                             13,
                                           ),
-                                          color: lightenColor(appColor, 0.35),
+                                          color: onTheme(appColor),
                                         ),
                                       ),
                                   ],
@@ -1727,7 +1717,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                             onTap: () => _deleteFood(mealKey, idx, foods),
                             child: HugeIcon(
                               icon: HugeIcons.strokeRoundedDelete02,
-                              color: lightenColor(appColor, 0.45),
+                              color: onTheme(appColor),
                               size: Responsive.scale(context, 24),
                             ),
                           ),
@@ -1743,7 +1733,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                               ),
                               child: HugeIcon(
                                 icon: HugeIcons.strokeRoundedMoreVertical,
-                                color: lightenColor(appColor, 0.45),
+                                color: onTheme(appColor),
                                 size: Responsive.scale(context, 24),
                               ),
                             ),
@@ -1871,8 +1861,8 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               enabled:
                   !isGuest && (isLoading || !ref.watch(userDataLoadedProvider)),
               effect: ShimmerEffect(
-                baseColor: lightenColor(appColor, 0.3),
-                highlightColor: lightenColor(appColor, 0.1),
+                baseColor: cardColors(appColor).iconBox,
+                highlightColor: cardColors(appColor).border,
                 duration: const Duration(milliseconds: 1200),
               ),
               child: AppRefreshIndicator(
@@ -1910,18 +1900,15 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                             ),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: lightenColor(appColor, 0.1).withAlpha(20),
+                              color: cardColors(appColor).iconBox,
                               border: Border.all(
-                                color: lightenColor(
-                                  appColor,
-                                  0.3,
-                                ).withAlpha(180),
+                                color: cardColors(appColor).iconBorder,
                                 width: 1.5,
                               ),
                             ),
                             child: Icon(
                               Icons.refresh,
-                              color: lightenColor(appColor, 0.3).withAlpha(180),
+                              color: onTheme(appColor),
                               size: Responsive.font(context, 13),
                             ),
                           ),
@@ -1957,7 +1944,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                                   duration: const Duration(milliseconds: 200),
                                   child: HugeIcon(
                                     icon: HugeIcons.strokeRoundedArrowDown01,
-                                    color: lightenColor(appColor, 0.45),
+                                    color: onTheme(appColor),
                                     size: Responsive.scale(context, 20),
                                   ),
                                 ),
@@ -2006,9 +1993,11 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                                 "Powered by FatSecret",
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 11),
-                                  color: Colors.white24,
+                                  color: onTheme(appColor).withAlpha(100),
                                   decoration: TextDecoration.underline,
-                                  decorationColor: Colors.white24,
+                                  decorationColor: onTheme(
+                                    appColor,
+                                  ).withAlpha(100),
                                 ),
                               ),
                             ),
@@ -2016,7 +2005,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                               "  ·  ",
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 11),
-                                color: Colors.white24,
+                                color: onTheme(appColor).withAlpha(100),
                               ),
                             ),
                             GestureDetector(
@@ -2027,9 +2016,11 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                                 "Open Food Facts (ODbL)",
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 11),
-                                  color: Colors.white24,
+                                  color: onTheme(appColor).withAlpha(100),
                                   decoration: TextDecoration.underline,
-                                  decorationColor: Colors.white24,
+                                  decorationColor: onTheme(
+                                    appColor,
+                                  ).withAlpha(100),
                                 ),
                               ),
                             ),
