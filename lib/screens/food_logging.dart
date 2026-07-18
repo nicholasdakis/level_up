@@ -1521,7 +1521,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Copy from another day',
+                          'Copy a meal',
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 15),
                             fontWeight: FontWeight.w600,
@@ -1612,7 +1612,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     final confirmed = await showHoldToConfirmDialog(
       context: context,
       appColor: appColor,
-      title: 'Delete all foods?',
+      title: 'Clear $title?',
       subtitle:
           'This will remove all ${foods.length} food${foods.length == 1 ? '' : 's'} from $title.',
       icon: HugeIcons.strokeRoundedDelete02,

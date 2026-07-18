@@ -35,19 +35,20 @@ A personal dashboard that gives you a full picture of your progress:
 
 ### 2) Food Logging
 
-A full-featured nutrition tracker with macro-level detail:
+A full-featured nutrition tracker with macro and micronutrient detail:
 
 - Track food intake across **breakfast**, **lunch**, **dinner**, and **snack** categories
 - **Search** millions of foods via the **FatSecret API** with serving size adjustment and automatic macro scaling
 - **Barcode scanning** via the **Open Food Facts API** for instant food lookup
-- **Manual entry** for custom foods with name, calories, macros, serving size, and a custom unit option
-- **Edit serving sizes** and **macro values** directly on already-logged foods
-- **Full macro breakdown** (protein, carbs, fat) displayed per food and per meal
-- **Food Analytics** with rich line charts, calorie and macro breakdowns by meal, and a most-logged foods card
+- **Manual entry** for custom foods with name, calories, macros, micros, serving size, and a custom unit option
+- **Voice search** to find foods hands-free
+- **Recent foods** and **suggested foods** (weighted by meal slot and logging frequency) for quick re-logging
+- **Edit serving sizes** and **macro/micro values** directly on already-logged foods
+- **Move** foods between meal types, copy an entire meal from any date, or clear a meal in one action
+- **Full macro breakdown** (protein, carbs, fat) and **micronutrient tracking** (fiber, sodium, sugar) per food and per meal, with configurable goals
+- **Food Analytics** with rich line charts, calorie and macro breakdowns by meal, micronutrient trends, and a most-logged foods card
 - **Water analytics** showing hydration trends over time
 - **Weight analytics** with a goal line, stat tiles, and full entry history
-- **Recent foods** synced across devices for quick re-logging
-- **Voice search** to find foods hands-free
 
 ### 3) Workout
 
@@ -57,19 +58,22 @@ A full-featured workout tracker for building and logging workout sessions:
 - **Build your own routines** with custom exercises, set counts, and estimated duration
 - **Create custom exercises** with your own name, muscle groups, and equipment
 - **Log any workout** with per-set weight and reps tracking, a live elapsed timer, and a Previous column showing your last session's numbers
+- **Configurable rest timer** between sets with an optional auto-start after checking off a set
 - **Personal Record detection** in real time during a session, with a summary on the finish screen
 - **Earn XP** on workout completion with a bonus for longer sessions
+- **Workout Analytics** with volume trends, muscle group breakdowns, PR tracking, and session statistics
 - **Activity heatmap** showing 16 weeks of training frequency
 - **Today's overview** card with daily volume, sets, reps, duration, and muscles worked
 - **Recent workouts** card for a quick look at past sessions
 - **Collapsible mini bar** stays above the nav bar while a session is active so you can use other tabs without losing your workout
+- **Persistent foreground notification** during active sessions for quick access without reopening the app
 - **Session persistence** so active workouts survive app kills and are fully restored on relaunch
 
 ### 4) Progress
 
 A dedicated progression hub combining leveling, achievements, and leaderboard in one place:
 
-- **Leaderboard** showing the top players sorted by level and XP, with your own rank highlighted
+- **Leaderboards** showing the top players with filters for XP, foods logged, and workouts logged, with your own rank highlighted
 - **Rank system** with named tiers (Beginner, Rising, Committed, Dedicated, Unstoppable, Legendary)
 - **Badges** earned by completing achievements across food logging, exploration, streaks, referrals, and more
 - **Multi-tier badges** with progress bars and percentage labels showing advancement toward the next tier
@@ -106,7 +110,7 @@ Turn your surroundings into an XP source:
 
 ### Settings
 
-- **Theme color picker** that adapts the entire app to your chosen color using perceptual color math
+- **Theme color picker** with 15 free presets including light themes, or any color at all for Pro users, adapting the entire app using perceptual color math
 - **Profile picture** upload with cropping and compression
 - **Username** with server-side uniqueness checking
 - **Nutrition goals** for calories, protein, carbs, fat, water, weight targets, and weekly workout count
