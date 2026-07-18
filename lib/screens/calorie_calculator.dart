@@ -476,14 +476,23 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   fontSize: Responsive.font(context, 14),
                 ),
               ),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: onTheme(appColor).withAlpha(120)),
+              filled: true,
+              fillColor: Colors.white.withAlpha(12),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 12),
+                ),
+                borderSide: BorderSide(color: cardColors(appColor).border),
               ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: onTheme(appColor)),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 12),
+                ),
+                borderSide: BorderSide(color: onTheme(appColor), width: 1.5),
               ),
-              contentPadding: EdgeInsets.only(
-                bottom: Responsive.height(context, 4),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 16),
+                vertical: Responsive.height(context, 14),
               ),
             ),
           ),
@@ -820,11 +829,22 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: Colors.white.withAlpha(12),
-                              border: OutlineInputBorder(
+                              enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
                                   Responsive.scale(context, 12),
                                 ),
-                                borderSide: BorderSide.none,
+                                borderSide: BorderSide(
+                                  color: cardColors(appColor).border,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  Responsive.scale(context, 12),
+                                ),
+                                borderSide: BorderSide(
+                                  color: onTheme(appColor),
+                                  width: 1.5,
+                                ),
                               ),
                               hintText: isMetric
                                   ? "Enter your weight in kg"
