@@ -24,6 +24,7 @@ import 'utility/remove_splash_stub.dart'
 import 'utility/viewport_height_stub.dart'
     if (dart.library.js_interop) 'utility/viewport_height_web.dart';
 import 'services/user_data_manager.dart' show backendBaseUrl, defaultAppColor;
+import 'package:facebook_app_events/facebook_app_events.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/user_data_provider.dart';
 import 'providers/app_ready_provider.dart';
@@ -64,6 +65,10 @@ Future<void> main() async {
   }
   FirebaseAnalytics.instance; // initialize analytics
   confettiControllerinit();
+  // log app launch to Facebook for campaign attribution, skipped in debug and on web
+  if (!kIsWeb && !kDebugMode) {
+    FacebookAppEvents().logEvent(name: 'fb_mobile_activate_app');
+  }
   appLaunchUri = Uri.base;
   listenToViewportHeight((h) => viewportHeightNotifier.value = h);
   final container = ProviderContainer();

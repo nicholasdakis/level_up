@@ -350,7 +350,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 15),
-                      color: onTheme(appColor),
+                      color: Colors.white,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -360,7 +360,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 12),
-                      color: onTheme(appColor),
+                      color: Colors.white,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -401,7 +401,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 9),
-                                  color: onTheme(appColor),
+                                  color: Colors.white,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
