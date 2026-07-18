@@ -1465,6 +1465,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
               controller: ctrl,
               autofocus: true,
               maxLength: 40,
+              keyboardType: TextInputType.visiblePassword,
               autofillHints: const [],
               style: GoogleFonts.manrope(
                 color: Colors.white,
