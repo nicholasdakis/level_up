@@ -2878,3 +2878,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Deleting all foods in a meal requires holding a button to confirm, preventing accidental deletions
 - Moving a food to a different meal now uses a single targeted UPDATE instead of replacing the entire day's logs
 - Editing a food's serving size or macros now uses a single targeted UPDATE instead of replacing the entire day's logs
+- Copying a meal from another date now uses an atomic bulk INSERT via a Postgres RPC instead of a full-day replace
+- Added bulk_add_food_logs Postgres function, repository method, service method, Flask route, and provider method to support atomic multi-row inserts
+- Added BulkAddFoodLogItem and BulkAddFoodLogsRequest Pydantic schemas with full field validation for the bulk insert payload
+- Removed upsertForDate from the Flutter provider now that all food log mutations use surgical endpoints
+- Removed _saveFoodData from food_logging.dart as move and edit now call their own endpoints directly
+- Marked upsert_food_log_v2 backend endpoint for deletion once MIN_APP_VERSION forces all clients onto the new endpoints

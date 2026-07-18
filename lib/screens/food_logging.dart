@@ -2046,45 +2046,29 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     );
 
     if (confirmed != true || !mounted) return;
-    // build the full day meal map so upsert does not wipe existing foods
     final targetDateKey = FoodLoggingHelper.formatDateKey(currentDate);
-    final allLogs = ref.read(foodLogsProvider).value ?? [];
-    final mealMap = <String, List<FoodLog>>{
-      'breakfast': allLogs
-          .where((f) => f.date == targetDateKey && f.meal == 'breakfast')
-          .toList(),
-      'lunch': allLogs
-          .where((f) => f.date == targetDateKey && f.meal == 'lunch')
-          .toList(),
-      'dinner': allLogs
-          .where((f) => f.date == targetDateKey && f.meal == 'dinner')
-          .toList(),
-      'snacks': allLogs
-          .where((f) => f.date == targetDateKey && f.meal == 'snacks')
-          .toList(),
-    };
-    mealMap[targetMeal]!.addAll(
-      sourceFoods.map(
-        (food) => FoodLog(
-          date: targetDateKey,
-          meal: targetMeal,
-          foodName: food.foodName,
-          brandName: food.brandName,
-          foodDescription: food.foodDescription,
-          calories: food.calories,
-          protein: food.protein,
-          carbs: food.carbs,
-          fat: food.fat,
-          fiber: food.fiber,
-          sugar: food.sugar,
-          sodium: food.sodium,
-          servingSize: food.servingSize,
-        ),
-      ),
-    );
+    final newFoods = sourceFoods
+        .map(
+          (food) => FoodLog(
+            date: targetDateKey,
+            meal: targetMeal,
+            foodName: food.foodName,
+            brandName: food.brandName,
+            foodDescription: food.foodDescription,
+            calories: food.calories,
+            protein: food.protein,
+            carbs: food.carbs,
+            fat: food.fat,
+            fiber: food.fiber,
+            sugar: food.sugar,
+            sodium: food.sodium,
+            servingSize: food.servingSize,
+          ),
+        )
+        .toList();
     await ref
         .read(foodLogsProvider.notifier)
-        .upsertForDate(targetDateKey, mealMap);
+        .bulkAddFoodLogs(targetDateKey, newFoods);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -1245,3 +1245,43 @@ AS $$
     ORDER BY logged_at DESC
     LIMIT p_limit;
 $$;
+
+-- bulk_add_food_logs: inserts multiple food log rows atomically for a given user.
+-- all rows succeed or none do, so a network failure cannot leave a partial copy.
+CREATE OR REPLACE FUNCTION bulk_add_food_logs(p_uid TEXT, p_items JSONB)
+RETURNS TABLE (
+    id UUID, date DATE, meal TEXT, food_name TEXT, brand_name TEXT,
+    food_description TEXT, food_id TEXT, calories INTEGER,
+    protein NUMERIC, carbs NUMERIC, fat NUMERIC,
+    fiber NUMERIC, sugar NUMERIC, sodium NUMERIC,
+    serving_size TEXT, logged_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    INSERT INTO food_logs_v2 (
+        uid, date, meal, food_name, brand_name, food_description,
+        food_id, calories, protein, carbs, fat, fiber, sugar, sodium, serving_size
+    )
+    SELECT
+        p_uid,
+        (item->>'date')::DATE,
+        item->>'meal',
+        item->>'food_name',
+        item->>'brand_name',
+        item->>'food_description',
+        item->>'food_id',
+        (item->>'calories')::INTEGER,
+        (item->>'protein')::NUMERIC,
+        (item->>'carbs')::NUMERIC,
+        (item->>'fat')::NUMERIC,
+        (item->>'fiber')::NUMERIC,
+        (item->>'sugar')::NUMERIC,
+        (item->>'sodium')::NUMERIC,
+        item->>'serving_size'
+    FROM jsonb_array_elements(p_items) AS item
+    RETURNING *;
+END;
+$$;

@@ -87,6 +87,25 @@ class EditFoodLogRequest(BaseModel):
     sodium: Optional[float] = None
     serving_size: Optional[str] = None
 
+class BulkAddFoodLogItem(BaseModel):
+    date: str = Field(..., min_length=1)
+    meal: str = Field(..., min_length=1)
+    food_name: str = Field(..., min_length=1)
+    brand_name: Optional[str] = None
+    food_description: Optional[str] = None
+    food_id: Optional[str] = None
+    calories: Optional[int] = None
+    protein: Optional[float] = None
+    carbs: Optional[float] = None
+    fat: Optional[float] = None
+    fiber: Optional[float] = None
+    sugar: Optional[float] = None
+    sodium: Optional[float] = None
+    serving_size: Optional[str] = None
+
+class BulkAddFoodLogsRequest(BaseModel):
+    items: list[BulkAddFoodLogItem] = Field(..., min_length=1)
+
 class SetReminderRequest(BaseModel):
     message: str = Field(..., min_length=1)
     scheduled_at: str = Field(..., min_length=1)

@@ -55,44 +55,6 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
     }
   }
 
-  // upserts food items for a given date and patches local state with the backend response
-  Future<bool> upsertForDate(
-    String date,
-    Map<String, List<FoodLog>> mealMap,
-  ) async {
-    final items = <Map<String, dynamic>>[];
-    for (final meal in ['breakfast', 'lunch', 'dinner', 'snacks']) {
-      for (final food in (mealMap[meal] ?? [])) {
-        items.add({...food.toJson(), 'meal': meal});
-      }
-    }
-    if (items.isEmpty) return true;
-
-    try {
-      final response = await authenticatedPost(
-        'upsert_food_log_v2',
-        body: {'date': date, 'items': items},
-        timeout: const Duration(seconds: 10),
-      );
-
-      if (response.statusCode != 200) return false;
-
-      final responseData = jsonDecode(response.body);
-      final returnedItems = (responseData['items'] as List<dynamic>? ?? [])
-          .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
-
-      _cache[date] = returnedItems;
-      final current = List<FoodLog>.from(state.value ?? []);
-      current.removeWhere((f) => f.date == date);
-      current.addAll(returnedItems);
-      state = AsyncData(current);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
   // inserts a single new food log row
   Future<FoodLog?> addFoodLog(String date, FoodLog food) async {
     try {
@@ -207,6 +169,30 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
       return true;
     } catch (_) {
       state = AsyncData(current);
+      return false;
+    }
+  }
+
+  // atomically inserts a list of new food log rows via the bulk_add_food_logs RPC
+  Future<bool> bulkAddFoodLogs(String date, List<FoodLog> foods) async {
+    if (isGuest) return false;
+    try {
+      final items = foods.map((f) => {...f.toJson(), 'meal': f.meal}).toList();
+      final response = await authenticatedPost(
+        'bulk_add_food_logs',
+        body: {'items': items},
+        timeout: const Duration(seconds: 15),
+      );
+      if (response.statusCode != 200) return false;
+      final returned = (jsonDecode(response.body)['items'] as List)
+          .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+      final current = List<FoodLog>.from(state.value ?? []);
+      current.addAll(returned);
+      _cache[date] = current.where((f) => f.date == date).toList();
+      state = AsyncData(current);
+      return true;
+    } catch (_) {
       return false;
     }
   }

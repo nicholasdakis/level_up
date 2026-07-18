@@ -355,6 +355,14 @@ class UserRepository:
     def edit_food_log(self, uid: str, food_id: str, fields: dict):
         self._supabase.table("food_logs_v2").update(fields).eq("id", food_id).eq("uid", uid).execute()
 
+    def bulk_add_food_logs(self, uid: str, items: list) -> list:
+        # atomic bulk insert via RPC, all rows inserted or none
+        result = self._supabase.rpc("bulk_add_food_logs", {
+            "p_uid": uid,
+            "p_items": items,
+        }).execute()
+        return result.data or []
+
     def get_water_logs(self, uid: str, cutoff: str | None = None):
         query = self._supabase.table("water_logs").select("*").eq("uid", uid)
         if cutoff:

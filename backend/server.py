@@ -46,6 +46,7 @@ from backend.schemas import (
     DeleteFoodLogRequest,
     MoveFoodLogRequest,
     EditFoodLogRequest,
+    BulkAddFoodLogsRequest,
     SimpleSuccessResponse,
     GetLeaderboardResponse,
     LeaderboardUserEntry,
@@ -821,6 +822,15 @@ def edit_food_log():
     fields = {k: v for k, v in body.model_dump().items() if k != 'id' and v is not None}
     progression_service.edit_food_log(uid, body.id, fields)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/bulk_add_food_logs", methods=["POST"])
+def bulk_add_food_logs():
+    uid, body, err = _parse_and_auth(BulkAddFoodLogsRequest)
+    if err:
+        return err
+    enriched = food_service.enrich_items_with_micros([item.model_dump() for item in body.items])
+    results = progression_service.bulk_add_food_logs(uid, enriched)
+    return jsonify({"success": True, "items": results}), 200
 
 @app.route("/leaderboard", methods=["GET"])
 def get_leaderboard():
