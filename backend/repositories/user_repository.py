@@ -352,6 +352,9 @@ class UserRepository:
     def move_food_log(self, uid: str, food_id: str, meal: str):
         self._supabase.table("food_logs_v2").update({"meal": meal}).eq("id", food_id).eq("uid", uid).execute()
 
+    def edit_food_log(self, uid: str, food_id: str, fields: dict):
+        self._supabase.table("food_logs_v2").update(fields).eq("id", food_id).eq("uid", uid).execute()
+
     def get_water_logs(self, uid: str, cutoff: str | None = None):
         query = self._supabase.table("water_logs").select("*").eq("uid", uid)
         if cutoff:

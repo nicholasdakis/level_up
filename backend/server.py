@@ -45,6 +45,7 @@ from backend.schemas import (
     DeleteWeightLogRequest,
     DeleteFoodLogRequest,
     MoveFoodLogRequest,
+    EditFoodLogRequest,
     SimpleSuccessResponse,
     GetLeaderboardResponse,
     LeaderboardUserEntry,
@@ -810,6 +811,15 @@ def move_food_log():
     if err:
         return err
     progression_service.move_food_log(uid, body.id, body.meal)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/edit_food_log", methods=["POST"])
+def edit_food_log():
+    uid, body, err = _parse_and_auth(EditFoodLogRequest)
+    if err:
+        return err
+    fields = {k: v for k, v in body.model_dump().items() if k != 'id' and v is not None}
+    progression_service.edit_food_log(uid, body.id, fields)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 @app.route("/leaderboard", methods=["GET"])

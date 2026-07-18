@@ -2877,3 +2877,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Copy from date flow includes Today/Yesterday/Calendar shortcuts, a meal picker, and a nutrition preview before confirming
 - Deleting all foods in a meal requires holding a button to confirm, preventing accidental deletions
 - Moving a food to a different meal now uses a single targeted UPDATE instead of replacing the entire day's logs
+- Editing a food's serving size or macros now uses a single targeted UPDATE instead of replacing the entire day's logs

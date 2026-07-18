@@ -173,6 +173,44 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
     }
   }
 
+  // updates serving size and macros / micros on a single food log row by id
+  Future<bool> editFoodLog(FoodLog updated) async {
+    if (updated.id == null) return false;
+    final current = List<FoodLog>.from(state.value ?? []);
+    state = AsyncData(
+      current.map((f) => f.id == updated.id ? updated : f).toList(),
+    );
+    try {
+      final response = await authenticatedPost(
+        'edit_food_log',
+        body: {
+          'id': updated.id,
+          'food_description': updated.foodDescription,
+          'calories': updated.calories,
+          'protein': updated.protein,
+          'carbs': updated.carbs,
+          'fat': updated.fat,
+          'fiber': updated.fiber,
+          'sugar': updated.sugar,
+          'sodium': updated.sodium,
+          'serving_size': updated.servingSize,
+        },
+        timeout: const Duration(seconds: 10),
+      );
+      if (response.statusCode != 200) {
+        state = AsyncData(current);
+        return false;
+      }
+      _cache[updated.date] = (state.value ?? [])
+          .where((f) => f.date == updated.date)
+          .toList();
+      return true;
+    } catch (_) {
+      state = AsyncData(current);
+      return false;
+    }
+  }
+
   // clears the cache and all state on sign out
   void clear() {
     _cache.clear();

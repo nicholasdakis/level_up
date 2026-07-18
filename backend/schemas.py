@@ -1,5 +1,6 @@
 # Validation Layer: Pydantic models define the shape of every request / response
 # Incoming JSON is parsed into these models before any business logic, and if the data doesn't match, the request is rejected with a clear error message
+from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -73,6 +74,18 @@ class DeleteFoodLogRequest(BaseModel):
 class MoveFoodLogRequest(BaseModel):
     id: str = Field(..., min_length=1)
     meal: str = Field(..., min_length=1)
+
+class EditFoodLogRequest(BaseModel):
+    id: str = Field(..., min_length=1)
+    food_description: Optional[str] = None
+    calories: Optional[int] = None
+    protein: Optional[float] = None
+    carbs: Optional[float] = None
+    fat: Optional[float] = None
+    fiber: Optional[float] = None
+    sugar: Optional[float] = None
+    sodium: Optional[float] = None
+    serving_size: Optional[str] = None
 
 class SetReminderRequest(BaseModel):
     message: str = Field(..., min_length=1)

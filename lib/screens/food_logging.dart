@@ -471,39 +471,23 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       servingSize: '$newAmt $unit',
       loggedAt: food.loggedAt,
     );
-    setState(() {
-      final idx = foods.indexOf(food);
-      if (idx != -1) foods[idx] = updated;
-    });
-    await _saveFoodData("edit"); // store the changes
-  }
-
-  Future<void> _saveFoodData(String action) async {
-    final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
-    final mealMap = {
-      'breakfast': breakfastFoods,
-      'lunch': lunchFoods,
-      'dinner': dinnerFoods,
-      'snacks': snacksFoods,
-    };
     final success = await ref
         .read(foodLogsProvider.notifier)
-        .upsertForDate(dateKey, mealMap);
+        .editFoodLog(updated);
     if (!mounted) return;
-    final msg = success
-        ? (action == "delete"
-              ? "Food deleted successfully."
-              : action == "move"
-              ? "Food moved successfully."
-              : action == "edit"
-              ? "Food edited successfully."
-              : "Food logged successfully.")
-        : (isConnected
-              ? "Error updating food data."
-              : "No connection. Please try again when online.");
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(msg), duration: snackBarDuration));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'Food edited successfully.'
+              : (isConnected
+                    ? 'Error editing food.'
+                    : 'No connection. Please try again when online.'),
+          style: GoogleFonts.manrope(color: Colors.white),
+        ),
+        duration: snackBarDuration,
+      ),
+    );
   }
 
   String _formatLoggedAt(String loggedAt) {
