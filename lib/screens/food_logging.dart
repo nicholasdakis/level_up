@@ -1618,9 +1618,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       icon: HugeIcons.strokeRoundedDelete02,
     );
     if (confirmed != true || !mounted) return;
-    for (final food in List<FoodLog>.from(foods)) {
-      await ref.read(foodLogsProvider.notifier).deleteFoodLog(food);
-    }
+    await ref.read(foodLogsProvider.notifier).bulkDeleteFoodLogs(foods);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

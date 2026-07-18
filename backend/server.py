@@ -47,6 +47,7 @@ from backend.schemas import (
     MoveFoodLogRequest,
     EditFoodLogRequest,
     BulkAddFoodLogsRequest,
+    BulkDeleteFoodLogsRequest,
     SimpleSuccessResponse,
     GetLeaderboardResponse,
     LeaderboardUserEntry,
@@ -831,6 +832,14 @@ def bulk_add_food_logs():
     enriched = food_service.enrich_items_with_micros([item.model_dump() for item in body.items])
     results = progression_service.bulk_add_food_logs(uid, enriched)
     return jsonify({"success": True, "items": results}), 200
+
+@app.route("/bulk_delete_food_logs", methods=["POST"])
+def bulk_delete_food_logs():
+    uid, body, err = _parse_and_auth(BulkDeleteFoodLogsRequest)
+    if err:
+        return err
+    progression_service.bulk_delete_food_logs(uid, body.ids)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 @app.route("/leaderboard", methods=["GET"])
 def get_leaderboard():

@@ -197,6 +197,37 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
     }
   }
 
+  // deletes multiple food log rows in a single request
+  Future<bool> bulkDeleteFoodLogs(List<FoodLog> logs) async {
+    if (logs.isEmpty) return true;
+    final ids = logs.map((f) => f.id).whereType<String>().toList();
+    if (ids.isEmpty) return true;
+    final current = List<FoodLog>.from(state.value ?? []);
+    final idSet = ids.toSet();
+    state = AsyncData(current.where((f) => !idSet.contains(f.id)).toList());
+    try {
+      final response = await authenticatedPost(
+        'bulk_delete_food_logs',
+        body: {'ids': ids},
+        timeout: const Duration(seconds: 10),
+      );
+      if (response.statusCode != 200) {
+        state = AsyncData(current);
+        return false;
+      }
+      if (logs.isNotEmpty) {
+        final date = logs.first.date;
+        _cache[date] = (state.value ?? [])
+            .where((f) => f.date == date)
+            .toList();
+      }
+      return true;
+    } catch (_) {
+      state = AsyncData(current);
+      return false;
+    }
+  }
+
   // clears the cache and all state on sign out
   void clear() {
     _cache.clear();

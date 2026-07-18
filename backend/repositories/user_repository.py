@@ -363,6 +363,10 @@ class UserRepository:
         }).execute()
         return result.data or []
 
+    def bulk_delete_food_logs(self, uid: str, ids: list) -> None:
+        # single DELETE WHERE id IN (...) statement, atomic by nature of being one SQL statement
+        self._supabase.table("food_logs_v2").delete().eq("uid", uid).in_("id", ids).execute()
+
     def get_water_logs(self, uid: str, cutoff: str | None = None):
         query = self._supabase.table("water_logs").select("*").eq("uid", uid)
         if cutoff:

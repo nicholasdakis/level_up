@@ -106,6 +106,9 @@ class BulkAddFoodLogItem(BaseModel):
 class BulkAddFoodLogsRequest(BaseModel):
     items: list[BulkAddFoodLogItem] = Field(..., min_length=1)
 
+class BulkDeleteFoodLogsRequest(BaseModel):
+    ids: list[str] = Field(..., min_length=1)
+
 class SetReminderRequest(BaseModel):
     message: str = Field(..., min_length=1)
     scheduled_at: str = Field(..., min_length=1)
