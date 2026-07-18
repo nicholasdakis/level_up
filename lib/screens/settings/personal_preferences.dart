@@ -286,12 +286,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
       Guest.block(context);
       return;
     }
-    final isPremium = ref.read(userDataProvider).value?.isPremium ?? false;
-    if (!isPremium) {
-      _showPresetColorDialog();
-      return;
-    }
-    _showFullColorPickerDialog();
+    _showPresetColorDialog();
   }
 
   static const _presetColors = [
@@ -410,70 +405,83 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                             ],
                           ),
                         ),
-                      // locked custom picker swatch
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(ctx).pop();
-                          showProFeatureDialog(
-                            context,
-                            feature: 'Custom Theme Colors',
-                            appColor: appColor,
-                            onLearnMore: () {
-                              logAnalyticsEvent(
-                                'premium_sheet_opened_from_learn_more',
-                              );
-                              showPremiumSheet(context, ref);
+                      // custom picker, unlocked for premium, locked otherwise
+                      Builder(
+                        builder: (context) {
+                          final isPremium =
+                              ref.read(userDataProvider).value?.isPremium ??
+                              false;
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.of(ctx).pop();
+                              if (isPremium) {
+                                _showFullColorPickerDialog();
+                              } else {
+                                showProFeatureDialog(
+                                  context,
+                                  feature: 'Custom Theme Colors',
+                                  appColor: appColor,
+                                  onLearnMore: () {
+                                    logAnalyticsEvent(
+                                      'premium_sheet_opened_from_learn_more',
+                                    );
+                                    showPremiumSheet(context, ref);
+                                  },
+                                );
+                              }
                             },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: Responsive.scale(context, 44),
+                                  height: Responsive.scale(context, 44),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: const SweepGradient(
+                                      colors: [
+                                        Color(0xFFE84B4B),
+                                        Color(0xFFE8864B),
+                                        Color(0xFFE8C44B),
+                                        Color(0xFF2EBF91),
+                                        Color(0xFF4F8EF7),
+                                        Color(0xFF7C5CBF),
+                                        Color(0xFFE84B4B),
+                                      ],
+                                    ),
+                                    border: Border.all(
+                                      color: cardColors(appColor).border,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: isPremium
+                                      ? null
+                                      : Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withAlpha(100),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.lock_rounded,
+                                            color: Colors.white.withAlpha(200),
+                                            size: Responsive.scale(context, 18),
+                                          ),
+                                        ),
+                                ),
+                                SizedBox(height: Responsive.height(context, 4)),
+                                Text(
+                                  'Custom',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 9),
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
                           );
                         },
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: Responsive.scale(context, 44),
-                              height: Responsive.scale(context, 44),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: const SweepGradient(
-                                  colors: [
-                                    Color(0xFFE84B4B),
-                                    Color(0xFFE8864B),
-                                    Color(0xFFE8C44B),
-                                    Color(0xFF2EBF91),
-                                    Color(0xFF4F8EF7),
-                                    Color(0xFF7C5CBF),
-                                    Color(0xFFE84B4B),
-                                  ],
-                                ),
-                                border: Border.all(
-                                  color: cardColors(appColor).border,
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withAlpha(100),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.lock_rounded,
-                                  color: Colors.white.withAlpha(200),
-                                  size: Responsive.scale(context, 18),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: Responsive.height(context, 4)),
-                            Text(
-                              'Custom',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 9),
-                                color: onTheme(appColor),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
                     ],
                   ),
@@ -533,7 +541,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       textAlign: TextAlign.center,
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 15),
-                        color: onTheme(appColor),
+                        color: Colors.white,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

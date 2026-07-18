@@ -161,11 +161,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
               ),
             ),
           ),
-          Divider(
-            color: onTheme(appColor).withAlpha(120),
-            height: 1,
-            thickness: 1.5,
-          ),
+          Divider(color: Colors.white.withAlpha(40), height: 1, thickness: 1.5),
           GestureDetector(
             onTap: () async {
               Navigator.of(context, rootNavigator: true).pop();
@@ -1268,11 +1264,9 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                             separatorBuilder: (_, idx) =>
                                 idx < _results.length - 1 || _results.isEmpty
                                 ? Divider(
-                                    color: cardColors(
-                                      appColor,
-                                    ).border.withAlpha(40),
+                                    color: onTheme(appColor).withAlpha(120),
                                     height: 1,
-                                    thickness: 1,
+                                    thickness: 1.5,
                                   )
                                 : const SizedBox.shrink(),
                             itemBuilder: (context, i) {
@@ -1434,18 +1428,14 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                                 Responsive.scale(context, 4),
                               ),
                               border: Border.all(
-                                color: cardColors(
-                                  appColor,
-                                ).border.withAlpha(60),
+                                color: cardColors(appColor).border,
                                 width: 1,
                               ),
                             ),
                             child: Text(
                               'Custom',
                               style: GoogleFonts.manrope(
-                                color: cardColors(
-                                  appColor,
-                                ).onCard.withAlpha(100),
+                                color: cardColors(appColor).onCard,
                                 fontSize: Responsive.font(context, 10),
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1465,7 +1455,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                   padding: EdgeInsets.only(left: Responsive.width(context, 8)),
                   child: Icon(
                     Icons.more_vert,
-                    color: cardColors(appColor).onCard.withAlpha(100),
+                    color: onTheme(appColor),
                     size: Responsive.scale(context, 20),
                   ),
                 ),
@@ -1565,7 +1555,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 Divider(
                   color: onTheme(appColor).withAlpha(120),
                   height: 1,
-                  thickness: 1,
+                  thickness: 1.5,
                 ),
               _buildExerciseRow(
                 context,
@@ -1594,7 +1584,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 Divider(
                   color: onTheme(appColor).withAlpha(120),
                   height: 1,
-                  thickness: 1,
+                  thickness: 1.5,
                 ),
               _buildExerciseRow(
                 context,
@@ -1604,7 +1594,12 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                             '')
                         .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
                         .trim(),
-                subtitle: '',
+                subtitle: [
+                  (skeletonRecents ?? _recentExercises)[i]['primary_muscle']
+                      as String?,
+                  (skeletonRecents ?? _recentExercises)[i]['equipment']
+                      as String?,
+                ].where((s) => s != null && s.isNotEmpty).join(' · '),
                 onTap: () {
                   if (skeletonRecents == null) {
                     widget.onExerciseSelected(_recentExercises[i]);
@@ -1613,7 +1608,6 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 },
               ),
             ],
-            SizedBox(height: Responsive.height(context, 20)),
           ],
           Divider(
             color: onTheme(appColor).withAlpha(120),

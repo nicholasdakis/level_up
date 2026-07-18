@@ -1838,7 +1838,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                   "Not a substitute for medical advice",
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 10),
-                    color: c.onCard.withAlpha(80),
+                    color: c.onCard.withAlpha(160),
                   ),
                 ),
               ),
@@ -2056,7 +2056,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                       },
                     ),
                     if (i < _recentMatches.length - 1)
-                      Container(height: 1, color: c.onCard.withAlpha(40)),
+                      Container(height: 1, color: c.onCard.withAlpha(120)),
                   ],
                   _buildEndOfResults(),
                 ],
@@ -2086,7 +2086,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                       },
                     ),
                     if (i < foodList.length - 1)
-                      Container(height: 1, color: c.onCard.withAlpha(40)),
+                      Container(height: 1, color: c.onCard.withAlpha(120)),
                   ],
                   _buildEndOfResults(),
                 ],
@@ -2118,7 +2118,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
               },
             ),
             if (i < foodList.length - 1)
-              Container(height: 1, color: c.onCard.withAlpha(40)),
+              Container(height: 1, color: c.onCard.withAlpha(120)),
           ],
           _buildEndOfResults(),
           SizedBox(height: Responsive.height(context, 12)),
@@ -2256,7 +2256,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                                   _suggestedFoods.length - 1)
                                                 Container(
                                                   height: 1,
-                                                  color: c.onCard.withAlpha(40),
+                                                  color: c.onCard.withAlpha(
+                                                    120,
+                                                  ),
                                                 ),
                                             ],
                                           );
@@ -2299,7 +2301,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                             if (i < _recentFoods.length - 1)
                                               Container(
                                                 height: 1,
-                                                color: c.onCard.withAlpha(40),
+                                                color: c.onCard.withAlpha(120),
                                               ),
                                           ],
                                         );

@@ -2855,6 +2855,12 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - All back button icon boxes are now unified to use cardColors(appColor).iconBox, .iconBorder, and .onCard across all screens
 - Integrated Facebook App Events SDK to track sign-up conversions via CompleteRegistration events for both Google and email sign-up methods
 - Added fb_mobile_activate_app event on every app launch for Facebook campaign attribution
+- Fixed text colors in the theme color picker dialogs to always be white
+- Fixed divider thickness in the exercise picker
+- Premium users now see preset colors and can tap Custom to open the full color picker
+- Dividers in the exercise picker are now 1.5px thick for better visibility
+- Three-dot menu icon in the exercise picker now uses full onTheme color instead of a dimmed version
+- Recent exercises in the exercise picker now show primary muscle and equipment via an updated get_recent_exercises Postgres function
 - Made near-invisible text look more visible on light themes
 - Added borders to the macro pill text in food analytics
 - Fixed more colors to make them more responsive to lighter themes

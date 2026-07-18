@@ -323,7 +323,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
     final h = s.inHours;
     final m = s.inMinutes % 60;
     final sec = s.inSeconds % 60;
-    if (h > 0) return '${h}h ${m.toString().padLeft(2, '0')}m';
+    if (h > 0) return '${h}h${m.toString().padLeft(2, '0')}m';
     return '${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
   }
 
@@ -717,23 +717,11 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
             ),
           ),
           SizedBox(height: Responsive.height(context, 12)),
-          Divider(
-            color: onTheme(appColor).withAlpha(120),
-            thickness: 1.5,
-            height: 1,
-          ),
+          Divider(color: Colors.white.withAlpha(40), thickness: 1.5, height: 1),
           menuItem(Icons.swap_horiz_rounded, 'Replace', 'replace'),
-          Divider(
-            color: onTheme(appColor).withAlpha(120),
-            thickness: 1.5,
-            height: 1,
-          ),
+          Divider(color: Colors.white.withAlpha(40), thickness: 1.5, height: 1),
           menuItem(Icons.swap_vert_rounded, 'Reorder', 'reorder'),
-          Divider(
-            color: onTheme(appColor).withAlpha(120),
-            thickness: 1.5,
-            height: 1,
-          ),
+          Divider(color: Colors.white.withAlpha(40), thickness: 1.5, height: 1),
           menuItem(
             Icons.delete_outline_rounded,
             'Remove',

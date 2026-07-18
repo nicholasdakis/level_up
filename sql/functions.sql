@@ -1091,13 +1091,18 @@ LANGUAGE SQL STABLE AS $$
     LIMIT 100;
 $$;
 
--- get_recent_exercises: most recently used unique exercises for a user, sorted by recency
+-- get_recent_exercises: most recently used unique exercises for a user, sorted by recency.
+-- includes primary muscle and equipment so the picker can show them without extra fetches.
 CREATE OR REPLACE FUNCTION get_recent_exercises(p_uid TEXT, p_limit INT DEFAULT 25)
-RETURNS TABLE(exercise_id INT, exercise_name TEXT)
+RETURNS TABLE(exercise_id INT, exercise_name TEXT, primary_muscle TEXT, equipment TEXT)
 LANGUAGE SQL
 SECURITY DEFINER
 AS $$
-    SELECT exercise_id, exercise_name
+    SELECT
+        sub.exercise_id,
+        sub.exercise_name,
+        mg.name AS primary_muscle,
+        e.equipment
     FROM (
         SELECT DISTINCT ON (we.exercise_name)  -- one row per exercise, keeping the newest session
             we.exercise_id,
@@ -1109,7 +1114,10 @@ AS $$
           AND w.completed = true
         ORDER BY we.exercise_name, w.created_at DESC, we.exercise_order ASC  -- DESC so DISTINCT ON picks the latest
     ) sub
-    ORDER BY sub.created_at DESC  -- re-sort after dedup since DISTINCT ON does not preserve recency order
+    LEFT JOIN exercises e ON e.id = sub.exercise_id
+    LEFT JOIN exercise_muscles em ON em.exercise_id = sub.exercise_id AND em.muscle_type = 'primary'
+    LEFT JOIN muscle_groups mg ON mg.id = em.muscle_id
+    ORDER BY sub.created_at DESC
     LIMIT p_limit;
 $$;
 

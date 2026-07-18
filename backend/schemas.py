@@ -456,6 +456,8 @@ class GetWorkoutHeatmapResponse(BaseModel):
 class RecentExerciseItem(BaseModel):
     exercise_id: int | None = None
     exercise_name: str
+    primary_muscle: Optional[str] = None
+    equipment: Optional[str] = None
 
 class GetRecentExercisesResponse(BaseModel):
     exercises: list[RecentExerciseItem]
