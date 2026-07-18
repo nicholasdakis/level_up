@@ -518,14 +518,28 @@
     // Pipes visualViewport height into Flutter so dialogs shift up immediately
     // when the iOS PWA keyboard opens, before any typing happens.
     // Flutter registers window.onViewportHeightChanged as a callback.
+    // On first keyboard open the callback may not be registered yet, so the
+    // height is queued and retried every 16ms until Flutter is ready.
     (function () {
-      function notifyFlutter() {
-        if (window.visualViewport && typeof window.onViewportHeightChanged === 'function') {
-          window.onViewportHeightChanged(window.visualViewport.height);
+      var pendingHeight = null;
+
+      function notifyFlutter(height) {
+        if (typeof window.onViewportHeightChanged === 'function') {
+          window.onViewportHeightChanged(height);
+          pendingHeight = null;
+        } else {
+          // Flutter not ready yet, store the height and retry on next frame
+          pendingHeight = height;
+          setTimeout(function () {
+            if (pendingHeight !== null) notifyFlutter(pendingHeight);
+          }, 16);
         }
       }
+
       if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', notifyFlutter);
+        window.visualViewport.addEventListener('resize', function () {
+          notifyFlutter(window.visualViewport.height);
+        });
       }
     })();
   </script>
