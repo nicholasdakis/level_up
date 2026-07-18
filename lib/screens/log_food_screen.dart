@@ -208,6 +208,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
         TextPosition(offset: searchController.text.length),
       );
       _filterRecents(text);
+      trackTrivialAchievement('food_voice');
     });
   }
 

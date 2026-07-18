@@ -1640,6 +1640,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     );
     if (confirmed != true || !mounted) return;
     await ref.read(foodLogsProvider.notifier).bulkDeleteFoodLogs(foods);
+    trackTrivialAchievement('food_clear_meal');
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

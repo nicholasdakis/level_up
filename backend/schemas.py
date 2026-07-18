@@ -270,6 +270,7 @@ class AchievementDefItem(BaseModel):
     tiers: list[int]
     unit: str
     section: str
+    section_display_name: str
 
 class DailyRewardResponse(BaseModel):
     # What is returned when the user tries to claim a daily reward
@@ -385,6 +386,7 @@ class LogWorkoutRequest(BaseModel):
     duration_seconds: int = Field(..., ge=0)
     exercises: list[LoggedExerciseRequest] = Field(..., min_length=1)  # must have at least one exercise
     workout_id: str | None = None                       # client-generated UUID for idempotency
+    pr_count: int = 0                                   # number of PRs hit this session, for achievement tracking
 
 class LogWorkoutResponse(BaseModel):
     workout_id: str

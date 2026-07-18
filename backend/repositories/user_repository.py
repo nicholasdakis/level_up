@@ -373,6 +373,12 @@ class UserRepository:
             query = query.gte("date", cutoff)
         return paginate_query(query.order("date", desc=False))
 
+    def get_water_log_for_date(self, uid: str, date: str) -> list:
+        result = self._supabase.table("water_logs").select("entries_ml").eq("uid", uid).eq("date", date).limit(1).execute()
+        if result.data:
+            return result.data[0].get("entries_ml") or []
+        return []
+
     def upsert_water_log(self, uid: str, date: str, entries_ml: list):
         self._supabase.table("water_logs").upsert({
             "uid": uid,

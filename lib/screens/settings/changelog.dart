@@ -74,6 +74,7 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
                   'Manual food entry fields, the serving size dialog, and goal inputs are now visually consistent with the rest of the app',
                   'Exercise picker redesigned with smarter search ranking, cleaner filter chips, and an upgraded empty state',
                   'Two new free theme colors added',
+                  '50+ new achievements added',
                   'Performance improvements, security enhancements, and UI polish across the app',
                 ],
               ),

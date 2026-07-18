@@ -121,6 +121,10 @@ class ProgressionService: # Service class to handle all progression-related busi
         except Exception as e:
             logger.error(f"[achievements] Failed to track {achievement_id} for {uid}: {e}")
 
+    def track_achievement(self, uid: str, achievement_id: str):
+        # Public wrapper for cross-service achievement tracking
+        self._track_achievement(uid, achievement_id)
+
     def update_username(self, uid: str, username: str):
         if profanity.contains_profanity(username):
             return {"success": False, "error": "Inappropriate username"}
@@ -410,7 +414,13 @@ class ProgressionService: # Service class to handle all progression-related busi
         return self._repo.get_weight_logs(uid, cutoff=self._analytics_cutoff(uid))
 
     def upsert_water_log(self, uid: str, date: str, entries_ml: list):
+        existing = self._repo.get_water_log_for_date(uid, date)
+        prev_count = len(existing) if existing else 0
         self._repo.upsert_water_log(uid, date, entries_ml)
+        # only increment for net new entries to avoid counting edits/deletions
+        added = max(0, len(entries_ml) - prev_count)
+        for _ in range(added):
+            self._track_achievement(uid, "water_logs")
 
     def upsert_weight_log(self, uid: str, date: str, weight_kg: float):
         self._repo.upsert_weight_log(uid, date, weight_kg)
@@ -557,24 +567,34 @@ class ProgressionService: # Service class to handle all progression-related busi
         data = {"calories_goal": calories_goal, "protein_goal": protein_goal, "carbs_goal": carbs_goal, "fat_goal": fat_goal, "fiber_goal": fiber_goal, "sugar_goal": sugar_goal, "sodium_goal": sodium_goal, "last_updated": datetime.now(timezone.utc).isoformat()}
         data = {k: v for k, v in data.items() if v is not None}
         self._repo.upsert_goals(uid, data)
+        if calories_goal is not None: self._track_achievement(uid, "goal_calories")
+        if protein_goal is not None: self._track_achievement(uid, "goal_protein")
+        if carbs_goal is not None: self._track_achievement(uid, "goal_carbs")
+        if fat_goal is not None: self._track_achievement(uid, "goal_fat")
+        if fiber_goal is not None: self._track_achievement(uid, "goal_fiber")
+        if sugar_goal is not None: self._track_achievement(uid, "goal_sugar")
+        if sodium_goal is not None: self._track_achievement(uid, "goal_sodium")
         return {"success": True}
 
     def update_weight_goal(self, uid: str, weight_goal_type: str | None, weight_kg_goal: float | None):
         data = {"weight_goal_type": weight_goal_type, "weight_kg_goal": weight_kg_goal, "last_updated": datetime.now(timezone.utc).isoformat()}
         data = {k: v for k, v in data.items() if v is not None}
         self._repo.upsert_goals(uid, data)
+        if weight_kg_goal is not None: self._track_achievement(uid, "goal_weight")
         return {"success": True}
 
     def update_water_goal(self, uid: str, water_ml_goal: int | None):
         data = {"water_ml_goal": water_ml_goal, "last_updated": datetime.now(timezone.utc).isoformat()}
         data = {k: v for k, v in data.items() if v is not None}
         self._repo.upsert_goals(uid, data)
+        if water_ml_goal is not None: self._track_achievement(uid, "goal_water")
         return {"success": True}
 
     def update_weekly_workouts_goal(self, uid: str, weekly_workouts_goal: int | None):
         data = {"weekly_workouts_goal": weekly_workouts_goal, "last_updated": datetime.now(timezone.utc).isoformat()}
         data = {k: v for k, v in data.items() if v is not None}
         self._repo.upsert_goals(uid, data)
+        if weekly_workouts_goal is not None: self._track_achievement(uid, "goal_workouts")
         return {"success": True}
 
     def update_goals(
@@ -608,4 +628,12 @@ class ProgressionService: # Service class to handle all progression-related busi
 
         # Call the repository to update the goals
         self._repo.upsert_goals(uid, data)
+        if calories_goal is not None: self._track_achievement(uid, "goal_calories")
+        if protein_goal is not None: self._track_achievement(uid, "goal_protein")
+        if carbs_goal is not None: self._track_achievement(uid, "goal_carbs")
+        if fat_goal is not None: self._track_achievement(uid, "goal_fat")
+        if fiber_goal is not None: self._track_achievement(uid, "goal_fiber")
+        if sugar_goal is not None: self._track_achievement(uid, "goal_sugar")
+        if sodium_goal is not None: self._track_achievement(uid, "goal_sodium")
+        if weekly_workouts_goal is not None: self._track_achievement(uid, "goal_workouts")
         return {"success": True}

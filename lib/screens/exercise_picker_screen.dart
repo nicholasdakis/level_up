@@ -483,6 +483,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 });
                 return;
               }
+              trackTrivialAchievement('create_exercise');
               final newEx = {
                 'id': result['exercise_id'],
                 'name': name,

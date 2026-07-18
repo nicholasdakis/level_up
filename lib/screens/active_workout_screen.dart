@@ -538,6 +538,12 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
           'duration_seconds': durationSeconds,
           'exercises': exercises,
           'workout_id': _s.sessionId,
+          'pr_count': _prDetails.values.fold<int>(0, (sum, pr) {
+            int count = 0;
+            if (pr['weightPR'] == true) count++;
+            if (pr['repsPR'] == true) count++;
+            return sum + count;
+          }),
         },
         timeout: const Duration(seconds: 10),
       );

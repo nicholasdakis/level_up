@@ -999,10 +999,27 @@ def get_achievements():
     return jsonify(response.model_dump()), 200
 
 
+_SECTION_DISPLAY_NAMES = {
+    "PROGRESSION":    "Progression",
+    "EXPLORE":        "Explore",
+    "FOOD":           "Food",
+    "WORKOUT":        "Workout",
+    "REMINDERS":      "Reminders",
+    "PERSONALIZATION": "Personal",
+    "GOALS":          "Goals",
+    "SOCIAL":         "Social",
+    "META":           "Other",
+    "TABS":           "General",
+}
+
 @app.route("/achievement_defs", methods=["GET"])
 def get_achievement_defs():
     # Public endpoint, no auth needed since definitions are the same for all users
-    defs = [AchievementDefItem(**{k: v for k, v in d.items() if k != "server_tracked"}) for d in ACHIEVEMENT_DEFINITIONS]
+    defs = []
+    for d in ACHIEVEMENT_DEFINITIONS:
+        fields = {k: v for k, v in d.items() if k != "server_tracked"}
+        fields["section_display_name"] = _SECTION_DISPLAY_NAMES.get(fields["section"], fields["section"])
+        defs.append(AchievementDefItem(**fields))
     return jsonify([d.model_dump() for d in defs]), 200
 
 
@@ -1348,6 +1365,7 @@ def like_routine():
     if err:
         return err
     workout_service.like_routine(uid=uid, template_id=body.template_id)
+    progression_service.track_achievement(uid, "like_routine")
     return jsonify({"success": True}), 200
 
 
@@ -1387,6 +1405,7 @@ def create_routine():
         exercises=[e.model_dump() for e in body.exercises],
         estimated_duration_minutes=body.estimated_duration_minutes,
     )
+    progression_service.track_achievement(uid, "create_routine")
     return jsonify(CreateRoutineResponse(template_id=template_id).model_dump()), 200
 
 
@@ -1398,6 +1417,7 @@ def copy_routine():
         return err
     try:
         template_id = workout_service.copy_routine(uid=uid, template_id=body.template_id)
+        progression_service.track_achievement(uid, "save_routine")
         return jsonify(CreateRoutineResponse(template_id=template_id).model_dump()), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
@@ -1431,6 +1451,8 @@ def log_workout():
             exercises=[ex.model_dump() for ex in body.exercises],
             workout_id=body.workout_id,
         )
+        for _ in range(body.pr_count):
+            progression_service.track_achievement(uid, "personal_records")
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     return jsonify(LogWorkoutResponse(**result).model_dump()), 200
