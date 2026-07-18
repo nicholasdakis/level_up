@@ -308,6 +308,8 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
     (Color(0xFF1A3A2A), 'Forest'),
     (Color(0xFF2A1A3A), 'Midnight'),
     (Color(0xFF3A1A1A), 'Crimson'),
+    (Color(0xFFB8D4F0), 'Ice'),
+    (Color(0xFFCFB8E8), 'Lilac'),
   ];
 
   void _showPresetColorDialog() {

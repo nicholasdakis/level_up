@@ -793,7 +793,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
       (
         'Unlimited Themes',
         'Make the app truly yours',
-        '13 presets',
+        '15 presets',
         'Unlimited',
       ),
     ];

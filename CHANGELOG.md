@@ -2886,3 +2886,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed upsertForDate from the Flutter provider now that all food log mutations use surgical endpoints
 - Removed _saveFoodData from food_logging.dart as move and edit now call their own endpoints directly
 - Marked upsert_food_log_v2 backend endpoint for deletion once MIN_APP_VERSION forces all clients onto the new endpoints
+- Added 2 new colors to the preset color picker as a way to highlight the new light theme responsiveness

@@ -42,6 +42,8 @@ FREE_PRESET_COLORS = {
     0xFF1A3A2A,  # Forest
     0xFF2A1A3A,  # Midnight
     0xFF3A1A1A,  # Crimson
+    0xFFB8D4F0,  # Ice
+    0xFFCFB8E8,  # Lilac
 }
 
 def paginate_query(query, page_size: int = 1000) -> list:
