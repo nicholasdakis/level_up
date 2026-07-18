@@ -871,11 +871,23 @@ Future<ServingDialogResult?> showServingAmountDialog({
                   color: dim,
                   onSet: () => setDialogState(() {}),
                 ),
-                enabledBorder: UnderlineInputBorder(
+                filled: true,
+                fillColor: Colors.white.withAlpha(12),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(ctx, 16),
+                  vertical: Responsive.height(ctx, 14),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(ctx, 12),
+                  ),
                   borderSide: BorderSide(color: dim.withAlpha(80)),
                 ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: accent),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(ctx, 12),
+                  ),
+                  borderSide: BorderSide(color: accent, width: 1.5),
                 ),
               ),
             ),

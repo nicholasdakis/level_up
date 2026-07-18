@@ -2873,3 +2873,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added "Log More" button to the food serving dialog and manual entry sheet, keeping the screen open to log another food without popping back
 - Manual entry input fields updated to use OutlineInputBorder consistent with the rest of the app
 - Fixed a bug where the "Please wait before logging again" snackbar could appear indefinitely if logging threw an error
+- Added meal-level actions menu to the food logging tab: delete all foods in a meal or copy a meal from another date
+- Copy from date flow includes Today/Yesterday/Calendar shortcuts, a meal picker, and a nutrition preview before confirming
+- Deleting all foods in a meal requires holding a button to confirm, preventing accidental deletions

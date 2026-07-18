@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -502,4 +503,174 @@ Future<T?> showFrostedAlertDialog<T>({
       ],
     ),
   );
+}
+
+// Shows a frosted dialog that requires the user to hold a button to confirm a destructive action.
+// Returns true only when the hold completes, false or null if cancelled.
+Future<bool> showHoldToConfirmDialog({
+  required BuildContext context,
+  required Color appColor,
+  required String title,
+  required String subtitle,
+  IconData icon = Icons.delete_outline,
+  Duration holdDuration = const Duration(milliseconds: 1500),
+}) async {
+  final result = await showFrostedDialog<bool>(
+    context: context,
+    appColor: appColor,
+    child: _HoldToConfirmDialogContent(
+      title: title,
+      subtitle: subtitle,
+      icon: icon,
+      appColor: appColor,
+      holdDuration: holdDuration,
+    ),
+  );
+  return result == true;
+}
+
+class _HoldToConfirmDialogContent extends StatefulWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color appColor;
+  final Duration holdDuration;
+
+  const _HoldToConfirmDialogContent({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.appColor,
+    required this.holdDuration,
+  });
+
+  @override
+  State<_HoldToConfirmDialogContent> createState() =>
+      _HoldToConfirmDialogContentState();
+}
+
+class _HoldToConfirmDialogContentState
+    extends State<_HoldToConfirmDialogContent> {
+  double _progress = 0.0;
+  Timer? _timer;
+  // fires at ~60fps to drive the progress ring
+  static const _tickInterval = Duration(milliseconds: 16);
+
+  // starts filling the ring, pops true when full
+  void _startHold() {
+    _timer = Timer.periodic(_tickInterval, (_) {
+      setState(() {
+        _progress +=
+            _tickInterval.inMilliseconds / widget.holdDuration.inMilliseconds;
+        if (_progress >= 1.0) {
+          _progress = 1.0;
+          _timer?.cancel();
+          Navigator.of(context, rootNavigator: true).pop(true);
+        }
+      });
+    });
+  }
+
+  // resets progress if the user lifts or cancels before completing
+  void _cancelHold() {
+    _timer?.cancel();
+    setState(() => _progress = 0.0);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = onTheme(widget.appColor);
+    final c = cardColors(widget.appColor);
+    final size = Responsive.scale(context, 64.0);
+    final done = _progress >= 1.0;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          widget.title,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 18),
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 8)),
+        Text(
+          widget.subtitle,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 13),
+            color: Colors.white70,
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 28)),
+        Center(
+          child: GestureDetector(
+            onLongPressStart: (_) => _startHold(),
+            onLongPressEnd: (_) => _cancelHold(),
+            onLongPressCancel: _cancelHold,
+            child: SizedBox(
+              width: size,
+              height: size,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: size,
+                    height: size,
+                    child: CircularProgressIndicator(
+                      value: _progress == 0 ? 1.0 : _progress,
+                      strokeWidth: 2,
+                      backgroundColor: c.iconBorder.withAlpha(80),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        _progress == 0 ? Colors.transparent : accent,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: size - Responsive.scale(context, 6),
+                    height: size - Responsive.scale(context, 6),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withAlpha(20),
+                    ),
+                    child: Icon(
+                      done ? Icons.check : widget.icon,
+                      color: accent,
+                      size: Responsive.scale(context, 18),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 10)),
+        Center(
+          child: Text(
+            _progress > 0 ? 'Keep holding...' : 'Hold to confirm',
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 12),
+              color: Colors.white54,
+            ),
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 16)),
+        Center(
+          child: TextButton(
+            onPressed: () =>
+                Navigator.of(context, rootNavigator: true).pop(false),
+            child: Text('Cancel', style: dialogButtonStyle()),
+          ),
+        ),
+      ],
+    );
+  }
 }

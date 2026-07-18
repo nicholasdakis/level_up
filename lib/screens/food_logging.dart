@@ -1497,6 +1497,626 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     );
   }
 
+  // Shows the meal-level action sheet for the wand button in the meal header
+  Future<void> _showMealActionsSheet(
+    String mealKey,
+    String title,
+    List<FoodLog> foods,
+  ) async {
+    final action = await showFrostedDialog<String>(
+      context: context,
+      appColor: appColor,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Text(
+              title,
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 18),
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 20)),
+          GestureDetector(
+            onTap: () => Navigator.of(context, rootNavigator: true).pop('copy'),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 12),
+              ),
+              child: Row(
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedCopy01,
+                    color: Colors.white,
+                    size: Responsive.scale(context, 22),
+                  ),
+                  SizedBox(width: Responsive.width(context, 14)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Copy from another day',
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 15),
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Import a meal from any date into $title',
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 12),
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Divider(color: Colors.white.withAlpha(40), thickness: 1),
+          GestureDetector(
+            onTap: () =>
+                Navigator.of(context, rootNavigator: true).pop('delete'),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 12),
+              ),
+              child: Row(
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedDelete02,
+                    color: Colors.white,
+                    size: Responsive.scale(context, 22),
+                  ),
+                  SizedBox(width: Responsive.width(context, 14)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Delete all foods',
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 15),
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Remove all ${foods.length} food${foods.length == 1 ? '' : 's'} from $title',
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 12),
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 8)),
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+              child: Text('Cancel', style: dialogButtonStyle()),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (action == 'delete') {
+      await _deleteAllFoodsInMeal(mealKey, title, foods);
+    } else if (action == 'copy') {
+      await _copyMealFromDate(mealKey, title);
+    }
+  }
+
+  // Requires a hold-to-confirm gesture before deleting every food in the meal
+  Future<void> _deleteAllFoodsInMeal(
+    String mealKey,
+    String title,
+    List<FoodLog> foods,
+  ) async {
+    if (foods.isEmpty) return;
+    final confirmed = await showHoldToConfirmDialog(
+      context: context,
+      appColor: appColor,
+      title: 'Delete all foods?',
+      subtitle:
+          'This will remove all ${foods.length} food${foods.length == 1 ? '' : 's'} from $title.',
+      icon: HugeIcons.strokeRoundedDelete02,
+    );
+    if (confirmed != true || !mounted) return;
+    for (final food in List<FoodLog>.from(foods)) {
+      await ref.read(foodLogsProvider.notifier).deleteFoodLog(food);
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Deleted all foods from $title.',
+            style: GoogleFonts.manrope(color: Colors.white),
+          ),
+          duration: snackBarDuration,
+        ),
+      );
+    }
+  }
+
+  // Lets the user copy all foods from a meal on any past date into the current meal.
+  // Flows: pick date, pick meal, fetch if needed, preview nutrition, confirm, upsert.
+  Future<void> _copyMealFromDate(String targetMeal, String title) async {
+    // Step 1: pick date with Today / Yesterday / Calendar shortcuts
+    final today = DateTime.now();
+    final yesterday = today.subtract(const Duration(days: 1));
+    DateTime? pickedDate = await showFrostedDialog<DateTime>(
+      context: context,
+      appColor: appColor,
+      child: StatefulBuilder(
+        builder: (ctx, setS) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Pick a date',
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 18),
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: Responsive.height(ctx, 16)),
+              Row(
+                children: [
+                  for (final entry in [
+                    ('Today', today),
+                    ('Yesterday', yesterday),
+                  ]) ...[
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(
+                          ctx,
+                          rootNavigator: true,
+                        ).pop(entry.$2),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            vertical: Responsive.height(ctx, 12),
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(18),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(ctx, 10),
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withAlpha(40),
+                            ),
+                          ),
+                          child: Text(
+                            entry.$1,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(ctx, 14),
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: Responsive.width(ctx, 10)),
+                  ],
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () async {
+                        final picked = await showThemedDatePicker(
+                          context: ctx,
+                          initialDate: today,
+                          firstDate: DateTime(2025),
+                          lastDate: today,
+                          appColor: appColor,
+                          initialEntryMode: DatePickerEntryMode.calendarOnly,
+                        );
+                        if (picked != null && ctx.mounted) {
+                          Navigator.of(ctx, rootNavigator: true).pop(picked);
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          vertical: Responsive.height(ctx, 12),
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(18),
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(ctx, 10),
+                          ),
+                          border: Border.all(color: Colors.white.withAlpha(40)),
+                        ),
+                        child: Text(
+                          'Calendar',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(ctx, 14),
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: Responsive.height(ctx, 8)),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
+                  child: Text('Cancel', style: dialogButtonStyle()),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (pickedDate == null || !mounted) return;
+
+    // Step 2: pick source meal
+    final String? pickedMeal = await showFrostedDialog<String>(
+      context: context,
+      appColor: appColor,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Which meal?',
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 18),
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 16)),
+          for (final meal in ['breakfast', 'lunch', 'dinner', 'snacks']) ...[
+            GestureDetector(
+              onTap: () => Navigator.of(context, rootNavigator: true).pop(meal),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: Responsive.height(context, 12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        meal[0].toUpperCase() + meal.substring(1),
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 15),
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: Colors.white54,
+                      size: Responsive.scale(context, 18),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (meal != 'snacks')
+              Divider(
+                color: Colors.white.withAlpha(40),
+                thickness: 1,
+                height: 1,
+              ),
+          ],
+          SizedBox(height: Responsive.height(context, 8)),
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+              child: Text('Cancel', style: dialogButtonStyle()),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (pickedMeal == null || !mounted) return;
+
+    // Step 3: fetch source date if not already loaded (current date is always in state)
+    final sourceDateKey = FoodLoggingHelper.formatDateKey(pickedDate);
+    final currentDateKey = FoodLoggingHelper.formatDateKey(currentDate);
+    if (sourceDateKey != currentDateKey) {
+      await ref.read(foodLogsProvider.notifier).refresh(sourceDateKey);
+    }
+    if (!mounted) return;
+
+    // filter state client-side since the whole day is loaded per request
+    final sourceFoods = (ref.read(foodLogsProvider).value ?? [])
+        .where((f) => f.date == sourceDateKey && f.meal == pickedMeal)
+        .toList();
+
+    if (sourceFoods.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No foods found in that meal.',
+            style: GoogleFonts.manrope(color: Colors.white),
+          ),
+          duration: snackBarDuration,
+        ),
+      );
+      return;
+    }
+
+    // Step 4: preview + confirm
+    int totalCal = 0;
+    double totalProtein = 0, totalCarbs = 0, totalFat = 0;
+    double totalFiber = 0, totalSugar = 0, totalSodium = 0;
+    for (final food in sourceFoods) {
+      totalCal +=
+          food.calories ??
+          FoodLoggingHelper.extractCalories(food.foodDescription ?? '');
+      final m = FoodLoggingHelper.extractMacrosFromFood(food);
+      totalProtein += m['protein'] ?? 0;
+      totalCarbs += m['carbs'] ?? 0;
+      totalFat += m['fat'] ?? 0;
+      totalFiber += food.fiber ?? 0;
+      totalSugar += food.sugar ?? 0;
+      totalSodium += food.sodium ?? 0;
+    }
+    final hasMicros = totalFiber > 0 || totalSugar > 0 || totalSodium > 0;
+    final sourceLabel =
+        '${pickedMeal[0].toUpperCase()}${pickedMeal.substring(1)} · $sourceDateKey';
+
+    final confirmed = await showFrostedDialog<bool>(
+      context: context,
+      appColor: appColor,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Copy to $title?',
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 18),
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 2)),
+          Text(
+            sourceLabel,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 12),
+              color: Colors.white60,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 16)),
+          // Nutrition summary card
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.width(context, 16),
+              vertical: Responsive.height(context, 12),
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(15),
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 12),
+              ),
+              border: Border.all(color: Colors.white.withAlpha(40)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '$totalCal',
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 28),
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    height: 1,
+                  ),
+                ),
+                Text(
+                  'calories',
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 11),
+                    color: Colors.white60,
+                  ),
+                ),
+                SizedBox(height: Responsive.height(context, 8)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    for (final entry in [
+                      ('Protein', '${totalProtein.toStringAsFixed(1)}g'),
+                      ('Carbs', '${totalCarbs.toStringAsFixed(1)}g'),
+                      ('Fat', '${totalFat.toStringAsFixed(1)}g'),
+                    ])
+                      Column(
+                        children: [
+                          Text(
+                            entry.$2,
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 14),
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            entry.$1,
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 11),
+                              color: Colors.white60,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+                if (hasMicros) ...[
+                  SizedBox(height: Responsive.height(context, 6)),
+                  Text(
+                    [
+                      if (totalFiber > 0)
+                        'Fiber ${totalFiber.toStringAsFixed(1)}g',
+                      if (totalSugar > 0)
+                        'Sugar ${totalSugar.toStringAsFixed(1)}g',
+                      if (totalSodium > 0)
+                        'Na ${totalSodium.toStringAsFixed(0)}mg',
+                    ].join(' · '),
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 11),
+                      color: Colors.white54,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 12)),
+          // Food list
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.22,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                children: List.generate(sourceFoods.length, (i) {
+                  final food = sourceFoods[i];
+                  final cal =
+                      food.calories ??
+                      FoodLoggingHelper.extractCalories(
+                        food.foodDescription ?? '',
+                      );
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: Responsive.height(context, 8),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                food.foodName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 13),
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '$cal cal',
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 12),
+                                color: Colors.white60,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (i < sourceFoods.length - 1)
+                        Divider(
+                          color: Colors.white.withAlpha(25),
+                          thickness: 1,
+                          height: 1,
+                        ),
+                    ],
+                  );
+                }),
+              ),
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 16)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () =>
+                    Navigator.of(context, rootNavigator: true).pop(false),
+                child: Text('Cancel', style: dialogButtonStyle()),
+              ),
+              TextButton(
+                onPressed: () =>
+                    Navigator.of(context, rootNavigator: true).pop(true),
+                child: Text(
+                  'Copy ${sourceFoods.length} food${sourceFoods.length == 1 ? '' : 's'}',
+                  style: dialogButtonStyle(confirm: true),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+    // build the full day meal map so upsert does not wipe existing foods
+    final targetDateKey = FoodLoggingHelper.formatDateKey(currentDate);
+    final allLogs = ref.read(foodLogsProvider).value ?? [];
+    final mealMap = <String, List<FoodLog>>{
+      'breakfast': allLogs
+          .where((f) => f.date == targetDateKey && f.meal == 'breakfast')
+          .toList(),
+      'lunch': allLogs
+          .where((f) => f.date == targetDateKey && f.meal == 'lunch')
+          .toList(),
+      'dinner': allLogs
+          .where((f) => f.date == targetDateKey && f.meal == 'dinner')
+          .toList(),
+      'snacks': allLogs
+          .where((f) => f.date == targetDateKey && f.meal == 'snacks')
+          .toList(),
+    };
+    mealMap[targetMeal]!.addAll(
+      sourceFoods.map(
+        (food) => FoodLog(
+          date: targetDateKey,
+          meal: targetMeal,
+          foodName: food.foodName,
+          brandName: food.brandName,
+          foodDescription: food.foodDescription,
+          calories: food.calories,
+          protein: food.protein,
+          carbs: food.carbs,
+          fat: food.fat,
+          fiber: food.fiber,
+          sugar: food.sugar,
+          sodium: food.sodium,
+          servingSize: food.servingSize,
+        ),
+      ),
+    );
+    await ref
+        .read(foodLogsProvider.notifier)
+        .upsertForDate(targetDateKey, mealMap);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Copied ${sourceFoods.length} food${sourceFoods.length == 1 ? '' : 's'} to $title.',
+            style: GoogleFonts.manrope(color: Colors.white),
+          ),
+          duration: snackBarDuration,
+        ),
+      );
+    }
+  }
+
   Widget _buildMealSection(
     String mealKey,
     String title,
@@ -1613,6 +2233,21 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                   ),
                   SizedBox(width: Responsive.width(context, 8)),
                 ],
+                GestureDetector(
+                  onTap: () => _showMealActionsSheet(mealKey, title, foods),
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.width(context, 6),
+                      vertical: Responsive.height(context, 4),
+                    ),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedAiBeautify,
+                      color: onTheme(appColor),
+                      size: Responsive.scale(context, 18),
+                    ),
+                  ),
+                ),
                 AnimatedRotation(
                   turns: isCollapsed ? -0.5 : 0,
                   duration: const Duration(milliseconds: 200),
