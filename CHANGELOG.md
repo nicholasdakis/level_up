@@ -2893,3 +2893,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed _saveFoodData from food_logging.dart as move and edit now call their own endpoints directly
 - Marked upsert_food_log_v2 backend endpoint for deletion once MIN_APP_VERSION forces all clients onto the new endpoints
 - Added 2 new colors to the preset color picker as a way to highlight the new light theme responsiveness
+- Added 18 new achievements: personal_records, create_exercise, create_routine, save_routine, like_routine, food_voice, food_clear_meal, and a full Goals section (goal_calories, goal_protein, goal_carbs, goal_fat, goal_fiber, goal_sugar, goal_sodium, goal_water, goal_weight, goal_workouts)
+- Added the Goals section to tabSections and the section filter chips in the Badges tab
+- Added section_display_name field to AchievementDefItem schema and populated it server-side in the /achievement_defs endpoint, replacing the hardcoded _sectionDisplayNames map that was previously maintained on the client

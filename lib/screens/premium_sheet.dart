@@ -341,12 +341,16 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              name,
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 14),
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
+            Flexible(
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 14),
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
             ),
             SizedBox(width: Responsive.width(context, 5)),
@@ -357,6 +361,8 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
     } else {
       nameWidget = Text(
         name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: GoogleFonts.manrope(
           fontSize: Responsive.font(context, 14),
           color: cardColors(appColor).onCard,
@@ -446,6 +452,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                   ],
                 ),
               ),
+              SizedBox(width: Responsive.width(context, 8)),
               Text(
                 '$xp / $xpNeeded XP',
                 style: GoogleFonts.manrope(

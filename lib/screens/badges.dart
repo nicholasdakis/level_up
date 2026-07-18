@@ -24,6 +24,8 @@ class AchievementDef {
   final List<int> tiers; // milestone thresholds (e.g. [5, 10, 25])
   final String unit; // what is being counted (e.g. "levels", "visits")
   final String section; // which tab this belongs under
+  final String
+  sectionDisplayName; // human-readable section label from the backend
 
   const AchievementDef({
     required this.id,
@@ -33,6 +35,7 @@ class AchievementDef {
     required this.tiers,
     required this.unit,
     required this.section,
+    required this.sectionDisplayName,
   });
 }
 
@@ -49,21 +52,6 @@ const List<String> tabSections = [
   "META",
   "TABS",
 ];
-
-// Display labels for each backend section key
-// TODO: Change this on the backend side
-const Map<String, String> _sectionDisplayNames = {
-  "PROGRESSION": "Progression",
-  "EXPLORE": "Explore",
-  "FOOD": "Food",
-  "WORKOUT": "Workout",
-  "REMINDERS": "Reminders",
-  "PERSONALIZATION": "Personal",
-  "GOALS": "Goals",
-  "SOCIAL": "Social",
-  "META": "Other",
-  "TABS": "General",
-};
 
 // Icons stay client-side since IconData is Flutter-specific
 const Map<String, IconData> _achievementIcons = {
@@ -233,6 +221,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                 tiers: List<int>.from(d['tiers'] as List),
                 unit: d['unit'] as String,
                 section: d['section'] as String,
+                sectionDisplayName: d['section_display_name'] as String,
               ),
             )
             .toList();
@@ -622,13 +611,16 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
     return card;
   }
 
-  Widget _buildFilterChips(List<String> sections) {
+  Widget _buildFilterChips(
+    List<String> sections,
+    Map<String, String> displayNames,
+  ) {
     final accent = onTheme(appColor);
     final dim = onTheme(appColor);
     // "All" + each section (display name) + "Claimable"
     final labels = [
       'All',
-      ...sections.map((s) => _sectionDisplayNames[s] ?? s),
+      ...sections.map((s) => displayNames[s] ?? s),
       'Claimable',
     ];
     final sectionKeys = ['All', ...sections, 'Claimable'];
@@ -765,6 +757,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
               tiers: [1, 5, 10],
               unit: 'units',
               section: 'PROGRESSION',
+              sectionDisplayName: 'Progression',
             ),
           )
         : _achievementDefs.where((d) {
@@ -790,7 +783,9 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
             left: hPad,
             right: hPad,
           ),
-          child: _buildFilterChips(tabSections),
+          child: _buildFilterChips(tabSections, {
+            for (final d in _achievementDefs) d.section: d.sectionDisplayName,
+          }),
         ),
       ),
       for (int i = 0; i < displayDefs.length; i++)
