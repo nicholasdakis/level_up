@@ -1586,7 +1586,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.manrope(
                             color: onTheme(appColor),
-                            fontSize: Responsive.font(context, 26),
+                            fontSize: Responsive.font(context, 20),
                             fontWeight: FontWeight.w800,
                             height: 1.0,
                           ),

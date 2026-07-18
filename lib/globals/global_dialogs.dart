@@ -366,7 +366,8 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
                 maxHeight:
                     (screenHeight -
                             keyboardInset -
-                            Responsive.height(context, 64))
+                            Responsive.height(context, 40) -
+                            Responsive.height(context, 24))
                         .clamp(100.0, double.infinity),
               ),
               child: ClipRRect(
