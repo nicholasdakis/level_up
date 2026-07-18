@@ -117,13 +117,11 @@ Future<void> showContactDialog(BuildContext context, Color appColor) async {
                   vertical: Responsive.height(context, 13),
                 ),
                 decoration: BoxDecoration(
-                  color: lightenColor(appColor, 0.15).withAlpha(35),
+                  color: Colors.white.withAlpha(12),
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 12),
                   ),
-                  border: Border.all(
-                    color: lightenColor(appColor, 0.35).withAlpha(100),
-                  ),
+                  border: Border.all(color: Colors.white.withAlpha(40)),
                 ),
                 child: Row(
                   children: [
@@ -131,13 +129,11 @@ Future<void> showContactDialog(BuildContext context, Color appColor) async {
                       width: Responsive.scale(context, 34),
                       height: Responsive.scale(context, 34),
                       decoration: BoxDecoration(
-                        color: lightenColor(appColor, 0.25).withAlpha(60),
+                        color: Colors.white.withAlpha(20),
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 8),
                         ),
-                        border: Border.all(
-                          color: lightenColor(appColor, 0.35).withAlpha(80),
-                        ),
+                        border: Border.all(color: Colors.white.withAlpha(40)),
                       ),
                       child: Icon(
                         icon,

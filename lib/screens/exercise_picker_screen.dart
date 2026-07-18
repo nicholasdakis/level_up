@@ -541,23 +541,23 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                       controller: nameController,
                       autofocus: true,
                       style: GoogleFonts.manrope(
-                        color: cardColors(appColor).onCard,
+                        color: Colors.white,
                         fontSize: Responsive.font(context, 14),
                       ),
                       decoration: InputDecoration(
                         hintText: 'e.g. Bulgarian Split Squat',
                         hintStyle: GoogleFonts.manrope(
-                          color: cardColors(appColor).onCard.withAlpha(100),
+                          color: Colors.white.withAlpha(120),
                           fontSize: Responsive.font(context, 14),
                         ),
                         filled: true,
-                        fillColor: Colors.white.withAlpha(10),
+                        fillColor: Colors.white.withAlpha(12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
                             Responsive.scale(context, 12),
                           ),
                           borderSide: BorderSide(
-                            color: cardColors(appColor).border.withAlpha(60),
+                            color: Colors.white.withAlpha(60),
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
@@ -565,15 +565,15 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                             Responsive.scale(context, 12),
                           ),
                           borderSide: BorderSide(
-                            color: cardColors(appColor).border.withAlpha(60),
+                            color: Colors.white.withAlpha(60),
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
                             Responsive.scale(context, 12),
                           ),
-                          borderSide: BorderSide(
-                            color: onTheme(appColor),
+                          borderSide: const BorderSide(
+                            color: Colors.white,
                             width: 1.5,
                           ),
                         ),

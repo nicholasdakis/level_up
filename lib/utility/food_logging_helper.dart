@@ -590,11 +590,13 @@ Future<ServingDialogResult?> showServingAmountDialog({
                   color: dim,
                   fontSize: Responsive.font(ctx, 10),
                 ),
-                enabledBorder: UnderlineInputBorder(
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(Responsive.scale(ctx, 8)),
                   borderSide: BorderSide(color: dim.withAlpha(80)),
                 ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: accent),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(Responsive.scale(ctx, 8)),
+                  borderSide: BorderSide(color: accent, width: 1.5),
                 ),
               ),
             ),
@@ -700,11 +702,17 @@ Future<ServingDialogResult?> showServingAmountDialog({
                         color: dim,
                         fontSize: Responsive.font(ctx, 9),
                       ),
-                      enabledBorder: UnderlineInputBorder(
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(ctx, 8),
+                        ),
                         borderSide: BorderSide(color: dim.withAlpha(80)),
                       ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: dim),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(ctx, 8),
+                        ),
+                        borderSide: BorderSide(color: dim, width: 1.5),
                       ),
                     ),
                   ),

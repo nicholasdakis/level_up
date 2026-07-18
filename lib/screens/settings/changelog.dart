@@ -64,6 +64,22 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
               _buildChangelogCard(
                 context,
                 appColor,
+                date: 'July 18, 2026',
+                version: '1.2.5',
+                changes: [
+                  'Light theme colors now look significantly better across every screen, with improved text, borders, icons, and loading states throughout the app',
+                  'Copy any meal from any date into your current meal, with a full nutrition preview before confirming',
+                  'Clear an entire meal at once with a hold-to-confirm button to prevent accidents',
+                  'Recent exercises in the exercise picker now show muscle and equipment info',
+                  'Manual food entry fields, the serving size dialog, and goal inputs are now visually consistent with the rest of the app',
+                  'Exercise picker redesigned with smarter search ranking, cleaner filter chips, and an upgraded empty state',
+                  'Two new free theme colors added',
+                  'Performance improvements, security enhancements, and UI polish across the app',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
+                appColor,
                 date: 'July 16, 2026',
                 version: '1.2.42',
                 changes: [

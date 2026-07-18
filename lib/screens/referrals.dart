@@ -307,11 +307,28 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                             hintStyle: GoogleFonts.manrope(
                               color: Colors.white38,
                             ),
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white24),
+                            filled: true,
+                            fillColor: Colors.white.withAlpha(12),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: Responsive.width(context, 16),
+                              vertical: Responsive.height(context, 14),
                             ),
-                            focusedBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 12),
+                              ),
+                              borderSide: const BorderSide(
+                                color: Colors.white24,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 12),
+                              ),
+                              borderSide: const BorderSide(
+                                color: Colors.white,
+                                width: 1.5,
+                              ),
                             ),
                             suffixIcon: IconButton(
                               icon: HugeIcon(

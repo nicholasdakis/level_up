@@ -623,11 +623,23 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                 color: Colors.white,
                 fontSize: Responsive.font(context, 14),
               ),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white.withAlpha(120)),
+              filled: true,
+              fillColor: Colors.white.withAlpha(12),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 16),
+                vertical: Responsive.height(context, 14),
               ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 12),
+                ),
+                borderSide: BorderSide(color: Colors.white.withAlpha(80)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 12),
+                ),
+                borderSide: const BorderSide(color: Colors.white, width: 1.5),
               ),
             ),
           ),
@@ -1227,42 +1239,51 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       text: _goalSodium > 0 ? _goalSodium.toInt().toString() : '',
     );
 
-    Widget field(TextEditingController ctrl, String label, String unit) =>
-        Padding(
-          padding: EdgeInsets.symmetric(
-            vertical: Responsive.height(context, 6),
+    Widget field(
+      TextEditingController ctrl,
+      String label,
+      String unit,
+    ) => Padding(
+      padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 6)),
+      child: TextField(
+        controller: ctrl,
+        keyboardType: TextInputType.number,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(5),
+        ],
+        style: GoogleFonts.manrope(
+          color: Colors.white,
+          fontSize: Responsive.font(context, 20),
+          fontWeight: FontWeight.w700,
+        ),
+        textAlign: TextAlign.center,
+        decoration: InputDecoration(
+          labelText: '$label ($unit)',
+          labelStyle: const TextStyle(color: Colors.white),
+          floatingLabelStyle: const TextStyle(color: Colors.white),
+          suffixText: unit,
+          suffixStyle: GoogleFonts.manrope(
+            color: Colors.white,
+            fontSize: Responsive.font(context, 14),
           ),
-          child: TextField(
-            controller: ctrl,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(5),
-            ],
-            style: GoogleFonts.manrope(
-              color: Colors.white,
-              fontSize: Responsive.font(context, 20),
-              fontWeight: FontWeight.w700,
-            ),
-            textAlign: TextAlign.center,
-            decoration: InputDecoration(
-              labelText: '$label ($unit)',
-              labelStyle: const TextStyle(color: Colors.white),
-              floatingLabelStyle: const TextStyle(color: Colors.white),
-              suffixText: unit,
-              suffixStyle: GoogleFonts.manrope(
-                color: Colors.white,
-                fontSize: Responsive.font(context, 14),
-              ),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white.withAlpha(120)),
-              ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white),
-              ),
-            ),
+          filled: true,
+          fillColor: Colors.white.withAlpha(12),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 16),
+            vertical: Responsive.height(context, 14),
           ),
-        );
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+            borderSide: BorderSide(color: Colors.white.withAlpha(80)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+            borderSide: const BorderSide(color: Colors.white, width: 1.5),
+          ),
+        ),
+      ),
+    );
 
     // capture values before pop so controllers are not read after dispose
     int? savedFiber, savedSugar, savedSodium;

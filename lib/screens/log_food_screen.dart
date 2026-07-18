@@ -543,12 +543,12 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
           inputFormatters: inputFormatters,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(ctx, 15),
-            color: onTheme(appColor),
+            color: Colors.white,
           ),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.manrope(
-              color: onTheme(appColor).withAlpha(100),
+              color: Colors.white.withAlpha(120),
               fontSize: Responsive.font(ctx, 14),
             ),
             filled: true,
@@ -559,11 +559,11 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(Responsive.scale(ctx, 12)),
-              borderSide: BorderSide(color: cardColors(appColor).border),
+              borderSide: BorderSide(color: Colors.white.withAlpha(60)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(Responsive.scale(ctx, 12)),
-              borderSide: BorderSide(color: onTheme(appColor), width: 1.5),
+              borderSide: const BorderSide(color: Colors.white, width: 1.5),
             ),
           ),
         ),
@@ -766,17 +766,35 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                           hintStyle: GoogleFonts.manrope(
                                             color: Colors.white,
                                           ),
-                                          enabledBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
+                                          filled: true,
+                                          fillColor: Colors.white.withAlpha(12),
+                                          contentPadding: EdgeInsets.symmetric(
+                                            horizontal: Responsive.width(
+                                              context,
+                                              12,
+                                            ),
+                                            vertical: Responsive.height(
+                                              context,
+                                              10,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              Responsive.scale(context, 10),
+                                            ),
+                                            borderSide: const BorderSide(
                                               color: Colors.white,
                                             ),
                                           ),
-                                          focusedBorder:
-                                              const UnderlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              Responsive.scale(context, 10),
+                                            ),
+                                            borderSide: const BorderSide(
+                                              color: Colors.white,
+                                              width: 1.5,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                       actions: [
@@ -836,7 +854,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                       Responsive.scale(ctx, 12),
                                     ),
                                     border: Border.all(
-                                      color: cardColors(appColor).border,
+                                      color: Colors.white.withAlpha(60),
                                     ),
                                   ),
                                   child: Row(
@@ -846,13 +864,13 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                           manualSelectedUnit,
                                           style: GoogleFonts.manrope(
                                             fontSize: Responsive.font(ctx, 14),
-                                            color: onTheme(appColor),
+                                            color: Colors.white,
                                           ),
                                         ),
                                       ),
                                       Icon(
                                         Icons.chevron_right,
-                                        color: onTheme(appColor),
+                                        color: Colors.white,
                                         size: Responsive.scale(ctx, 16),
                                       ),
                                     ],
