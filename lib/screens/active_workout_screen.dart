@@ -1459,41 +1459,45 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
             ),
           ),
           SizedBox(height: Responsive.height(context, 16)),
-          TextField(
-            controller: ctrl,
-            autofocus: true,
-            maxLength: 40,
-            style: GoogleFonts.manrope(
-              color: Colors.white,
-              fontSize: Responsive.font(context, 15),
-            ),
-            decoration: InputDecoration(
-              hintText: 'e.g. Push Day',
-              hintStyle: GoogleFonts.manrope(color: Colors.white60),
-              counterStyle: GoogleFonts.manrope(
-                color: Colors.white60,
-                fontSize: Responsive.font(context, 10),
+          AutofillGroup(
+            onDisposeAction: AutofillContextAction.cancel,
+            child: TextField(
+              controller: ctrl,
+              autofocus: true,
+              maxLength: 40,
+              autofillHints: const [],
+              style: GoogleFonts.manrope(
+                color: Colors.white,
+                fontSize: Responsive.font(context, 15),
               ),
-              filled: true,
-              fillColor: Colors.white.withAlpha(12),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 12),
+              decoration: InputDecoration(
+                hintText: 'e.g. Push Day',
+                hintStyle: GoogleFonts.manrope(color: Colors.white60),
+                counterStyle: GoogleFonts.manrope(
+                  color: Colors.white60,
+                  fontSize: Responsive.font(context, 10),
                 ),
-                borderSide: BorderSide(color: Colors.white.withAlpha(60)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 12),
+                filled: true,
+                fillColor: Colors.white.withAlpha(12),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 12),
+                  ),
+                  borderSide: BorderSide(color: Colors.white.withAlpha(60)),
                 ),
-                borderSide: const BorderSide(color: Colors.white, width: 1.5),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 12),
+                  ),
+                  borderSide: const BorderSide(color: Colors.white, width: 1.5),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 16),
+                  vertical: Responsive.height(context, 14),
+                ),
               ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 16),
-                vertical: Responsive.height(context, 14),
-              ),
+              cursorColor: Colors.white,
             ),
-            cursorColor: Colors.white,
           ),
           SizedBox(height: Responsive.height(context, 8)),
           Row(
