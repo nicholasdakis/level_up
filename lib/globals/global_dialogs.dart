@@ -361,31 +361,40 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
           color: Colors.transparent,
           child: SizedBox(
             width: Responsive.dialogWidth(context, maxWidth: widget.maxWidth),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(
-                Responsive.scale(context, widget.baseRadius),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight:
+                    (screenHeight -
+                            keyboardInset -
+                            Responsive.height(context, 64))
+                        .clamp(100.0, double.infinity),
               ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                child: frostedGlassCard(
-                  context,
-                  color: widget.appColor,
-                  baseRadius: widget.baseRadius,
-                  backgroundColor:
-                      widget.backgroundColor ?? Colors.white.withAlpha(10),
-                  border: Border.all(
-                    color: widget.borderColor ?? Colors.white.withAlpha(22),
-                    width: Responsive.width(context, 1),
-                  ),
-                  padding:
-                      widget.padding ??
-                      EdgeInsets.symmetric(
-                        horizontal: Responsive.width(context, 28),
-                        vertical: Responsive.height(context, 32),
-                      ),
-                  child: ScrollConfiguration(
-                    behavior: NoGlowScrollBehavior(),
-                    child: SingleChildScrollView(child: widget.child),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, widget.baseRadius),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                  child: frostedGlassCard(
+                    context,
+                    color: widget.appColor,
+                    baseRadius: widget.baseRadius,
+                    backgroundColor:
+                        widget.backgroundColor ?? Colors.white.withAlpha(10),
+                    border: Border.all(
+                      color: widget.borderColor ?? Colors.white.withAlpha(22),
+                      width: Responsive.width(context, 1),
+                    ),
+                    padding:
+                        widget.padding ??
+                        EdgeInsets.symmetric(
+                          horizontal: Responsive.width(context, 28),
+                          vertical: Responsive.height(context, 32),
+                        ),
+                    child: ScrollConfiguration(
+                      behavior: NoGlowScrollBehavior(),
+                      child: SingleChildScrollView(child: widget.child),
+                    ),
                   ),
                 ),
               ),
