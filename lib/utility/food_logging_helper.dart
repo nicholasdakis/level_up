@@ -508,6 +508,7 @@ Future<String?> showCalcDialog(
 typedef ServingDialogResult = ({
   String amt,
   Map<String, double>? macroOverrides,
+  bool keepLogging,
 });
 
 // Shared serving-size dialog used by both the log-food and edit-serving flows.
@@ -517,6 +518,7 @@ Future<ServingDialogResult?> showServingAmountDialog({
   required TextEditingController controller,
   required String confirmLabel,
   Color? appColor,
+  bool showLogMore = false,
 }) {
   final serving = FoodLoggingHelper.parseServingFromLog(food);
   final baseAmt = serving['amount'] as double;
@@ -878,25 +880,54 @@ Future<ServingDialogResult?> showServingAmountDialog({
               ),
             ),
             SizedBox(height: Responsive.height(ctx, 20)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Column(
               children: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
-                  child: Text("Cancel", style: dialogButtonStyle()),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (showLogMore)
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.of(ctx, rootNavigator: true).pop((
+                              amt: controller.text.trim(),
+                              macroOverrides: overrides.isEmpty
+                                  ? null
+                                  : Map<String, double>.from(overrides),
+                              keepLogging: true,
+                            )),
+                        child: Text(
+                          "Log More",
+                          style: dialogButtonStyle(confirm: true),
+                        ),
+                      )
+                    else
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.of(ctx, rootNavigator: true).pop(),
+                        child: Text("Cancel", style: dialogButtonStyle()),
+                      ),
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.of(ctx, rootNavigator: true).pop((
+                            amt: controller.text.trim(),
+                            macroOverrides: overrides.isEmpty
+                                ? null
+                                : Map<String, double>.from(overrides),
+                            keepLogging: false,
+                          )),
+                      child: Text(
+                        confirmLabel,
+                        style: dialogButtonStyle(confirm: true),
+                      ),
+                    ),
+                  ],
                 ),
-                TextButton(
-                  onPressed: () => Navigator.of(ctx, rootNavigator: true).pop((
-                    amt: controller.text.trim(),
-                    macroOverrides: overrides.isEmpty
-                        ? null
-                        : Map<String, double>.from(overrides),
-                  )),
-                  child: Text(
-                    confirmLabel,
-                    style: dialogButtonStyle(confirm: true),
+                if (showLogMore)
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.of(ctx, rootNavigator: true).pop(),
+                    child: Text("Cancel", style: dialogButtonStyle()),
                   ),
-                ),
               ],
             ),
           ],

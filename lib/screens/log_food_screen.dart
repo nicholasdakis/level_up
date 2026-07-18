@@ -433,80 +433,84 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     }
   }
 
-  // Logs the food to the correct meal then notifies the parent and pops back
-  Future<void> logFood(FoodLog foodObject) async {
+  // Logs the food to the correct meal then notifies the parent. Returns true on success.
+  Future<bool> logFood(FoodLog foodObject) async {
     if (isLogging) {
       _showSnackbar("Please wait before logging again.");
-      return;
+      return false;
     }
 
     setState(() => isLogging = true);
 
-    final dateKey = FoodLoggingHelper.formatDateKey(widget.currentDate);
+    try {
+      final dateKey = FoodLoggingHelper.formatDateKey(widget.currentDate);
 
-    final newFood = FoodLog(
-      date: dateKey,
-      meal: widget.meal,
-      foodName: foodObject.foodName,
-      brandName: foodObject.brandName,
-      foodDescription: foodObject.foodDescription,
-      calories:
-          foodObject.calories ??
-          FoodLoggingHelper.extractCalories(foodObject.foodDescription ?? ''),
-      protein: foodObject.protein,
-      carbs: foodObject.carbs,
-      fat: foodObject.fat,
-      fiber: foodObject.fiber,
-      sugar: foodObject.sugar,
-      sodium: foodObject.sodium,
-      servingSize: foodObject.servingSize,
-    );
-
-    final result = await ref
-        .read(foodLogsProvider.notifier)
-        .addFoodLog(dateKey, newFood);
-    final success = result != null;
-    if (!success && kDebugMode) debugPrint("Error saving food data");
-
-    _loadRecentFoods();
-
-    // Track which input method the user used to log this food
-    if (widget.achievementId != null) {
-      trackTrivialAchievement(widget.achievementId!);
-    }
-
-    // Award the full course meal badge if all four meals now have at least one food
-    final updatedLogs = ref.read(foodLogsProvider).value ?? [];
-    final todayLogs = updatedLogs.where((f) => f.date == dateKey).toList();
-    final allMealsFilled = [
-      'breakfast',
-      'lunch',
-      'dinner',
-      'snacks',
-    ].every((m) => todayLogs.any((f) => f.meal == m));
-    if (allMealsFilled) trackTrivialAchievement("food_full_day");
-
-    // time-based achievements based on the hour the food was logged
-    final hour = DateTime.now().hour;
-    if (hour >= 23) trackTrivialAchievement("night_owl"); // after 11pm
-    if (hour < 8) trackTrivialAchievement("early_bird"); // before 8am
-
-    widget.onFoodLogged();
-    ref.read(userDataProvider.notifier).updateFoodLogStreak();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success
-                ? "Food logged successfully."
-                : (isConnected
-                      ? "Error saving food."
-                      : "No connection. Please try again when online."),
-          ),
-          duration: snackBarDuration,
-        ),
+      final newFood = FoodLog(
+        date: dateKey,
+        meal: widget.meal,
+        foodName: foodObject.foodName,
+        brandName: foodObject.brandName,
+        foodDescription: foodObject.foodDescription,
+        calories:
+            foodObject.calories ??
+            FoodLoggingHelper.extractCalories(foodObject.foodDescription ?? ''),
+        protein: foodObject.protein,
+        carbs: foodObject.carbs,
+        fat: foodObject.fat,
+        fiber: foodObject.fiber,
+        sugar: foodObject.sugar,
+        sodium: foodObject.sodium,
+        servingSize: foodObject.servingSize,
       );
-      context.pop();
+
+      final result = await ref
+          .read(foodLogsProvider.notifier)
+          .addFoodLog(dateKey, newFood);
+      final success = result != null;
+      if (!success && kDebugMode) debugPrint("Error saving food data");
+
+      _loadRecentFoods();
+
+      // Track which input method the user used to log this food
+      if (widget.achievementId != null) {
+        trackTrivialAchievement(widget.achievementId!);
+      }
+
+      // Award the full course meal badge if all four meals now have at least one food
+      final updatedLogs = ref.read(foodLogsProvider).value ?? [];
+      final todayLogs = updatedLogs.where((f) => f.date == dateKey).toList();
+      final allMealsFilled = [
+        'breakfast',
+        'lunch',
+        'dinner',
+        'snacks',
+      ].every((m) => todayLogs.any((f) => f.meal == m));
+      if (allMealsFilled) trackTrivialAchievement("food_full_day");
+
+      // time-based achievements based on the hour the food was logged
+      final hour = DateTime.now().hour;
+      if (hour >= 23) trackTrivialAchievement("night_owl"); // after 11pm
+      if (hour < 8) trackTrivialAchievement("early_bird"); // before 8am
+
+      widget.onFoodLogged();
+      ref.read(userDataProvider.notifier).updateFoodLogStreak();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              success
+                  ? "Food logged successfully."
+                  : (isConnected
+                        ? "Error saving food."
+                        : "No connection. Please try again when online."),
+            ),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+      return success;
+    } finally {
+      if (mounted) setState(() => isLogging = false);
     }
   }
 
@@ -539,24 +543,27 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
           inputFormatters: inputFormatters,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(ctx, 15),
-            color: Colors.white,
+            color: onTheme(appColor),
           ),
-          cursorColor: Colors.white,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.manrope(
-              color: Colors.white,
+              color: onTheme(appColor).withAlpha(100),
               fontSize: Responsive.font(ctx, 14),
             ),
-            contentPadding: EdgeInsets.only(
-              top: Responsive.height(ctx, 13),
-              left: Responsive.width(ctx, 6),
+            filled: true,
+            fillColor: Colors.white.withAlpha(12),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: Responsive.width(ctx, 16),
+              vertical: Responsive.height(ctx, 14),
             ),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white.withAlpha(120)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(Responsive.scale(ctx, 12)),
+              borderSide: BorderSide(color: cardColors(appColor).border),
             ),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(Responsive.scale(ctx, 12)),
+              borderSide: BorderSide(color: onTheme(appColor), width: 1.5),
             ),
           ),
         ),
@@ -819,14 +826,17 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                   }
                                 },
                                 child: Container(
-                                  padding: EdgeInsets.only(
-                                    bottom: Responsive.height(ctx, 6),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: Responsive.width(ctx, 16),
+                                    vertical: Responsive.height(ctx, 14),
                                   ),
                                   decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: Colors.white.withAlpha(120),
-                                      ),
+                                    color: Colors.white.withAlpha(12),
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(ctx, 12),
+                                    ),
+                                    border: Border.all(
+                                      color: cardColors(appColor).border,
                                     ),
                                   ),
                                   child: Row(
@@ -836,13 +846,13 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                           manualSelectedUnit,
                                           style: GoogleFonts.manrope(
                                             fontSize: Responsive.font(ctx, 14),
-                                            color: Colors.white,
+                                            color: onTheme(appColor),
                                           ),
                                         ),
                                       ),
                                       Icon(
                                         Icons.chevron_right,
-                                        color: Colors.white,
+                                        color: onTheme(appColor),
                                         size: Responsive.scale(ctx, 16),
                                       ),
                                     ],
@@ -953,99 +963,111 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                 ),
               ),
               SizedBox(height: Responsive.height(context, 24)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      for (final keep in [true, false])
+                        TextButton(
+                          onPressed: () async {
+                            final name = manualNameController.text.trim();
+                            if (name.isEmpty ||
+                                manualCaloriesController.text.trim().isEmpty ||
+                                manualServingAmountController.text
+                                    .trim()
+                                    .isEmpty) {
+                              setDialogState(
+                                () => dialogError =
+                                    "Name, calories, and serving size are required.",
+                              );
+                              return;
+                            }
+                            final calories =
+                                int.tryParse(
+                                  manualCaloriesController.text.trim(),
+                                ) ??
+                                0;
+                            final fat = manualFatController.text.trim();
+                            final carbs = manualCarbsController.text.trim();
+                            final protein = manualProteinController.text.trim();
+                            if (fat.isEmpty &&
+                                carbs.isEmpty &&
+                                protein.isEmpty) {
+                              showFrostedAlertDialog(
+                                context: context,
+                                appColor: appColor,
+                                title: "No macronutrients entered!",
+                                content: Text(
+                                  "You haven't entered any fat, carbs, or protein. Log anyway?",
+                                  style: GoogleFonts.manrope(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                actions: [
+                                  // Dismiss alert only, manual entry dialog stays open
+                                  TextButton(
+                                    onPressed: () => Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).pop(),
+                                    child: Text(
+                                      "Go Back",
+                                      style: dialogButtonStyle(),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      // Pop alert then manual entry dialog, then submit
+                                      Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).pop();
+                                      Navigator.pop(ctx);
+                                      await _submitManualEntry(
+                                        name,
+                                        calories,
+                                        fat,
+                                        carbs,
+                                        protein,
+                                        manualFiberController.text.trim(),
+                                        manualSugarController.text.trim(),
+                                        manualSodiumController.text.trim(),
+                                        keepLogging: keep,
+                                      );
+                                    },
+                                    child: Text(
+                                      "Log Anyway",
+                                      style: dialogButtonStyle(confirm: true),
+                                    ),
+                                  ),
+                                ],
+                              );
+                              return;
+                            }
+                            Navigator.pop(ctx);
+                            await _submitManualEntry(
+                              name,
+                              calories,
+                              fat,
+                              carbs,
+                              protein,
+                              manualFiberController.text.trim(),
+                              manualSugarController.text.trim(),
+                              manualSodiumController.text.trim(),
+                              keepLogging: keep,
+                            );
+                          },
+                          child: Text(
+                            keep ? "Log More" : "Log",
+                            style: dialogButtonStyle(confirm: true),
+                          ),
+                        ),
+                    ],
+                  ),
                   TextButton(
                     onPressed: () => Navigator.pop(ctx),
                     child: Text("Cancel", style: dialogButtonStyle()),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final name = manualNameController.text.trim();
-                      if (name.isEmpty ||
-                          manualCaloriesController.text.trim().isEmpty ||
-                          manualServingAmountController.text.trim().isEmpty) {
-                        setDialogState(
-                          () => dialogError =
-                              "Name, calories, and serving size are required.",
-                        );
-                        return;
-                      }
-                      final calories =
-                          int.tryParse(manualCaloriesController.text.trim()) ??
-                          0;
-                      final fat = manualFatController.text.trim();
-                      final carbs = manualCarbsController.text.trim();
-                      final protein = manualProteinController.text.trim();
-                      if (fat.isEmpty && carbs.isEmpty && protein.isEmpty) {
-                        showFrostedAlertDialog(
-                          context: context,
-                          appColor: appColor,
-                          title: "No macronutrients entered!",
-                          content: Text(
-                            "You haven't entered any fat, carbs, or protein. Log anyway?",
-                            style: GoogleFonts.manrope(color: Colors.white),
-                          ),
-                          actions: [
-                            // Dismiss alert only, manual entry dialog stays open
-                            TextButton(
-                              onPressed: () => Navigator.of(
-                                context,
-                                rootNavigator: true,
-                              ).pop(),
-                              child: Text(
-                                "Go Back",
-                                style: dialogButtonStyle(),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                // Pop alert then manual entry dialog, then submit
-                                Navigator.of(
-                                  context,
-                                  rootNavigator: true,
-                                ).pop();
-                                Navigator.pop(ctx);
-                                await _submitManualEntry(
-                                  name,
-                                  calories,
-                                  fat,
-                                  carbs,
-                                  protein,
-                                  manualFiberController.text.trim(),
-                                  manualSugarController.text.trim(),
-                                  manualSodiumController.text.trim(),
-                                );
-                              },
-                              child: Text(
-                                "Log Anyway",
-                                style: dialogButtonStyle(confirm: true),
-                              ),
-                            ),
-                          ],
-                        );
-                        return;
-                      }
-                      Navigator.pop(ctx);
-                      await _submitManualEntry(
-                        name,
-                        calories,
-                        fat,
-                        carbs,
-                        protein,
-                        manualFiberController.text.trim(),
-                        manualSugarController.text.trim(),
-                        manualSodiumController.text.trim(),
-                      );
-                    },
-                    child: Text(
-                      "Log",
-                      style: GoogleFonts.manrope(
-                        color: onTheme(appColor),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
                   ),
                 ],
               ),
@@ -1065,8 +1087,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     String protein,
     String fiber,
     String sugar,
-    String sodium,
-  ) async {
+    String sodium, {
+    bool keepLogging = false,
+  }) async {
     final servingAmt = manualServingAmountController.text.trim();
     final servingLabel = servingAmt.isNotEmpty
         ? '$servingAmt $manualSelectedUnit'
@@ -1096,6 +1119,12 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
         servingSize: servingLabel,
       ),
     );
+    if (!mounted) return;
+    if (keepLogging) {
+      _showManualEntrySheet();
+    } else {
+      context.pop();
+    }
   }
 
   // Clears the selected food and resets back to the empty search state
@@ -1168,6 +1197,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
       controller: _recentServingController,
       confirmLabel: 'Log',
       appColor: appColor,
+      showLogMore: true,
     );
 
     if (result == null || result.amt.isEmpty) return;
@@ -1228,6 +1258,20 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
 
     if (achievementId != null) trackTrivialAchievement(achievementId);
     await logFood(loggedFood);
+
+    if (!mounted) return;
+    if (result.keepLogging) {
+      // Clear search and stay on screen so user can log another food
+      setState(() {
+        searchController.clear();
+        foodList = [];
+        _recentMatches = [];
+        _isSearching = false;
+        _showingRecentMatches = false;
+      });
+    } else {
+      context.pop();
+    }
   }
 
   Widget _buildSourceTab(

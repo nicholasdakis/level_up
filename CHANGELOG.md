@@ -2870,3 +2870,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Add entry input fields in water and weight analytics now use OutlineInputBorder consistent with other inputs
 - Notification toggle switch colors now adapt to theme
 - Color preview swatch border now uses cardColors iconBorder for better contrast
+- Added "Log More" button to the food serving dialog and manual entry sheet, keeping the screen open to log another food without popping back
+- Manual entry input fields updated to use OutlineInputBorder consistent with the rest of the app
+- Fixed a bug where the "Please wait before logging again" snackbar could appear indefinitely if logging threw an error
