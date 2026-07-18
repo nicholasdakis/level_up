@@ -2,4 +2,7 @@
 <resources>
     <!-- Required by the google_sign_in package to identify the OAuth client for native Google Sign-In on Android -->
     <string name="default_web_client_id">722650087969-i2mfquopcmthdc35erut9t9hes62oepv.apps.googleusercontent.com</string>
+    <string name="facebook_app_id">1636683677793828</string>
+    <!-- Replace with value from Meta Business Suite > App Settings > Advanced > Client Token -->
+    <string name="facebook_client_token">43b50bbeda766619fcb378b50027ff1b</string>
 </resources>

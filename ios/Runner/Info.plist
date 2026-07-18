@@ -72,6 +72,24 @@
     <string>remote-notification</string>
     </array>
 
+    <!-- Facebook SDK -->
+    <key>FacebookAppID</key>
+    <string>1636683677793828</string>
+    <key>FacebookClientToken</key>
+    <string>43b50bbeda766619fcb378b50027ff1b</string>
+    <key>FacebookDisplayName</key>
+    <string>Level Up!</string>
+
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>fb1636683677793828</string>
+            </array>
+        </dict>
+    </array>
+
     <key>LSApplicationQueriesSchemes</key>
     <array>
     <string>https</string>
@@ -81,6 +99,9 @@
     <string>osmandmaps</string>
     <string>citymapper</string>
     <string>here-location</string>
+    <string>fbapi</string>
+    <string>fbauth2</string>
+    <string>fb-messenger-share-api</string>
     </array>
 
 </dict>

@@ -105,6 +105,7 @@ dependencies:
   firebase_auth: ^6.0.2
   cloud_firestore: ^6.0.1
   firebase_analytics: ^12.0.1
+  facebook_app_events: ^0.30.3
 
   # svg rendering of assets
   flutter_svg: ^2.2.1

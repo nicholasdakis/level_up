@@ -2,9 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:facebook_app_events/facebook_app_events.dart';
 import '../services/user_data_manager.dart';
 import '../providers/app_ready_provider.dart';
 import '../services/leaderboard_service.dart';
+
+final _facebookAppEvents = FacebookAppEvents();
 
 // Global leaderboard_service object
 final leaderboardService = LeaderboardService();
@@ -57,4 +60,23 @@ void logAnalyticsEvent(String name, {Map<String, Object>? parameters}) {
     return;
   }
   FirebaseAnalytics.instance.logEvent(name: name, parameters: parameters);
+}
+
+// Logs a named Facebook event, skipped for guests and the developer account
+void logFacebookEvent(String name, {Map<String, Object?>? parameters}) {
+  if (isGuest) return;
+  if (kDebugMode) return;
+  if (FirebaseAuth.instance.currentUser?.email == 'n1ch0lasd4k1s@gmail.com') {
+    return;
+  }
+  _facebookAppEvents.logEvent(name: name, parameters: parameters);
+}
+
+// Logs the Facebook CompleteRegistration standard event
+void logFacebookSignUp(String method) {
+  if (kDebugMode) return;
+  if (FirebaseAuth.instance.currentUser?.email == 'n1ch0lasd4k1s@gmail.com') {
+    return;
+  }
+  _facebookAppEvents.logCompletedRegistration(registrationMethod: method);
 }

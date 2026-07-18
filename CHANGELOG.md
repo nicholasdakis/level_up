@@ -2853,4 +2853,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - All progress bar tracks in food logging and workout now use onTheme(appColor).withAlpha(30) instead of white
 - The leaderboard self-highlight now uses a white overlay so it reads as a lighter card on any theme color
 - All back button icon boxes are now unified to use cardColors(appColor).iconBox, .iconBorder, and .onCard across all screens
+- Integrated Facebook App Events SDK to track sign-up conversions via CompleteRegistration events for both Google and email sign-up methods
 - Made near-invisible text look more visible on light themes
