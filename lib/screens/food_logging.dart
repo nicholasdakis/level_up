@@ -298,26 +298,23 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     );
     if (toMeal == null || !mounted) return;
 
-    final mealList = _mealList(fromMeal);
-    final toList = _mealList(toMeal);
-    setState(() {
-      mealList.remove(food);
-      toList.add(food.copyWith(meal: toMeal));
-    });
-    await _saveFoodData('move');
-  }
-
-  List<FoodLog> _mealList(String meal) {
-    switch (meal) {
-      case 'breakfast':
-        return breakfastFoods;
-      case 'lunch':
-        return lunchFoods;
-      case 'dinner':
-        return dinnerFoods;
-      default:
-        return snacksFoods;
-    }
+    final success = await ref
+        .read(foodLogsProvider.notifier)
+        .moveFoodLog(food, toMeal);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'Food moved successfully.'
+              : (isConnected
+                    ? 'Error moving food.'
+                    : 'No connection. Please try again when online.'),
+          style: GoogleFonts.manrope(color: Colors.white),
+        ),
+        duration: snackBarDuration,
+      ),
+    );
   }
 
   void _showFoodMenu(

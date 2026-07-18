@@ -44,6 +44,7 @@ from backend.schemas import (
     UpsertWeightLogRequest,
     DeleteWeightLogRequest,
     DeleteFoodLogRequest,
+    MoveFoodLogRequest,
     SimpleSuccessResponse,
     GetLeaderboardResponse,
     LeaderboardUserEntry,
@@ -751,6 +752,7 @@ def remove_fcm_token():
     progression_service.remove_fcm_token(uid, body.token)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
+# TODO: delete once MIN_APP_VERSION forces all clients onto surgical update/move/bulk-insert endpoints
 @app.route("/upsert_food_log_v2", methods=["POST"])
 def upsert_food_log_v2():
     uid, body, err = _parse_and_auth(UpsertFoodLogV2Request)
@@ -800,6 +802,14 @@ def delete_food_log():
     if err:
         return err
     progression_service.delete_food_log(uid, body.id)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/move_food_log", methods=["POST"])
+def move_food_log():
+    uid, body, err = _parse_and_auth(MoveFoodLogRequest)
+    if err:
+        return err
+    progression_service.move_food_log(uid, body.id, body.meal)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 @app.route("/leaderboard", methods=["GET"])

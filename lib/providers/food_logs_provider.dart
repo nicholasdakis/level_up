@@ -145,6 +145,34 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
     }
   }
 
+  // moves a single food log to a different meal by updating the meal field in place
+  Future<bool> moveFoodLog(FoodLog log, String newMeal) async {
+    final current = List<FoodLog>.from(state.value ?? []);
+    final updated = current
+        .map((f) => f.id == log.id ? f.copyWith(meal: newMeal) : f)
+        .toList();
+    state = AsyncData(updated);
+    if (log.id == null) return true;
+    try {
+      final response = await authenticatedPost(
+        'move_food_log',
+        body: {'id': log.id, 'meal': newMeal},
+        timeout: const Duration(seconds: 10),
+      );
+      if (response.statusCode != 200) {
+        state = AsyncData(current);
+        return false;
+      }
+      _cache[log.date] = (state.value ?? [])
+          .where((f) => f.date == log.date)
+          .toList();
+      return true;
+    } catch (_) {
+      state = AsyncData(current);
+      return false;
+    }
+  }
+
   // clears the cache and all state on sign out
   void clear() {
     _cache.clear();

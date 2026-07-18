@@ -70,6 +70,10 @@ class DeleteWeightLogRequest(BaseModel):
 class DeleteFoodLogRequest(BaseModel):
     id: str = Field(..., min_length=1)
 
+class MoveFoodLogRequest(BaseModel):
+    id: str = Field(..., min_length=1)
+    meal: str = Field(..., min_length=1)
+
 class SetReminderRequest(BaseModel):
     message: str = Field(..., min_length=1)
     scheduled_at: str = Field(..., min_length=1)
