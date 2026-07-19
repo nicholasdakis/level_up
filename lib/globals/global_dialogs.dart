@@ -343,17 +343,22 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
     // Cap at 60% so the dialog is never pushed off the top of the screen
     final keyboardInset = effectiveInset.clamp(0.0, screenHeight * 0.6);
     final isKeyboardOpen = keyboardInset > 0;
+    // On web (iOS PWA) the keyboard inset comes from jsInset rather than a viewport resize,
+    // so the dialog is already painted before the inset is known. Pin it to the bottom when
+    // the keyboard is open so it sits just above the keyboard instead of jumping to the top.
+    // On native Android rawInset is accurate from the first frame so centering works fine.
+    final useBottomAlign = isKeyboardOpen && kIsWeb;
     return AnimatedPadding(
       duration: const Duration(milliseconds: 150),
       curve: Curves.easeOut,
       padding: EdgeInsets.only(
         left: Responsive.width(context, 24),
         right: Responsive.width(context, 24),
-        top: isKeyboardOpen ? 0 : Responsive.height(context, 40),
+        top: useBottomAlign ? 0 : Responsive.height(context, 40),
         bottom: Responsive.height(context, 24) + keyboardInset,
       ),
       child: Align(
-        alignment: isKeyboardOpen ? Alignment.bottomCenter : Alignment.center,
+        alignment: useBottomAlign ? Alignment.bottomCenter : Alignment.center,
         child: Material(
           color: Colors.transparent,
           child: SizedBox(

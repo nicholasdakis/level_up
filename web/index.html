@@ -535,20 +535,29 @@
     // On first keyboard open the callback may not be registered yet, so the
     // height is queued and retried every 16ms until Flutter is ready.
     (function () {
-      var pendingHeight = null;
+      var lastHeight = window.visualViewport ? window.visualViewport.height : 0;
 
       function notifyFlutter(height) {
+        lastHeight = height;
         if (typeof window.onViewportHeightChanged === 'function') {
           window.onViewportHeightChanged(height);
-          pendingHeight = null;
-        } else {
-          // Flutter not ready yet, store the height and retry on next frame
-          pendingHeight = height;
-          setTimeout(function () {
-            if (pendingHeight !== null) notifyFlutter(pendingHeight);
-          }, 16);
         }
       }
+
+      // When Flutter registers the callback, immediately push the current viewport
+      // height so any keyboard that is already open is reflected without waiting
+      // for a resize event. This fixes the first-open jump on iOS PWA.
+      Object.defineProperty(window, 'onViewportHeightChanged', {
+        configurable: true,
+        set: function (fn) {
+          Object.defineProperty(window, 'onViewportHeightChanged', {
+            configurable: true,
+            writable: true,
+            value: fn,
+          });
+          if (typeof fn === 'function') fn(lastHeight);
+        },
+      });
 
       if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', function () {
