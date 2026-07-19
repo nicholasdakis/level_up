@@ -1443,84 +1443,99 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
 
   Future<String?> _showNameWorkoutDialog({String? initial}) async {
     final ctrl = TextEditingController(text: initial ?? '');
+    final focusNode = FocusNode();
     final result = await showFrostedDialog<String>(
       context: context,
       appColor: appColor,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Name this workout',
-            style: GoogleFonts.manrope(
-              color: Colors.white,
-              fontSize: Responsive.font(context, 16),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          SizedBox(height: Responsive.height(context, 16)),
-          AutofillGroup(
-            onDisposeAction: AutofillContextAction.cancel,
-            child: TextField(
-              controller: ctrl,
-              autofocus: true,
-              maxLength: 40,
-              keyboardType: TextInputType.visiblePassword,
-              autofillHints: const [],
-              style: GoogleFonts.manrope(
-                color: Colors.white,
-                fontSize: Responsive.font(context, 15),
-              ),
-              decoration: InputDecoration(
-                hintText: 'e.g. Push Day',
-                hintStyle: GoogleFonts.manrope(color: Colors.white60),
-                counterStyle: GoogleFonts.manrope(
-                  color: Colors.white60,
-                  fontSize: Responsive.font(context, 10),
-                ),
-                filled: true,
-                fillColor: Colors.white.withAlpha(12),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 12),
-                  ),
-                  borderSide: BorderSide(color: Colors.white.withAlpha(60)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 12),
-                  ),
-                  borderSide: const BorderSide(color: Colors.white, width: 1.5),
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 16),
-                  vertical: Responsive.height(context, 14),
-                ),
-              ),
-              cursorColor: Colors.white,
-            ),
-          ),
-          SizedBox(height: Responsive.height(context, 8)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: StatefulBuilder(
+        builder: (ctx, _) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (focusNode.canRequestFocus) focusNode.requestFocus();
+          });
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextButton(
-                onPressed: () =>
-                    Navigator.of(context, rootNavigator: true).pop(null),
-                child: Text('Cancel', style: dialogButtonStyle()),
+              Text(
+                'Name this workout',
+                style: GoogleFonts.manrope(
+                  color: Colors.white,
+                  fontSize: Responsive.font(context, 16),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              TextButton(
-                onPressed: () => Navigator.of(
-                  context,
-                  rootNavigator: true,
-                ).pop(ctrl.text.trim()),
-                child: Text('Save', style: dialogButtonStyle(confirm: true)),
+              SizedBox(height: Responsive.height(context, 16)),
+              AutofillGroup(
+                onDisposeAction: AutofillContextAction.cancel,
+                child: TextField(
+                  controller: ctrl,
+                  focusNode: focusNode,
+                  maxLength: 40,
+                  keyboardType: TextInputType.visiblePassword,
+                  autofillHints: const [],
+                  style: GoogleFonts.manrope(
+                    color: Colors.white,
+                    fontSize: Responsive.font(context, 15),
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Push Day',
+                    hintStyle: GoogleFonts.manrope(color: Colors.white60),
+                    counterStyle: GoogleFonts.manrope(
+                      color: Colors.white60,
+                      fontSize: Responsive.font(context, 10),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withAlpha(12),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 12),
+                      ),
+                      borderSide: BorderSide(color: Colors.white.withAlpha(60)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 12),
+                      ),
+                      borderSide: const BorderSide(
+                        color: Colors.white,
+                        width: 1.5,
+                      ),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: Responsive.width(context, 16),
+                      vertical: Responsive.height(context, 14),
+                    ),
+                  ),
+                  cursorColor: Colors.white,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 8)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.of(context, rootNavigator: true).pop(null),
+                    child: Text('Cancel', style: dialogButtonStyle()),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop(ctrl.text.trim()),
+                    child: Text(
+                      'Save',
+                      style: dialogButtonStyle(confirm: true),
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
+    focusNode.dispose();
     WidgetsBinding.instance.addPostFrameCallback((_) => ctrl.dispose());
     return result;
   }

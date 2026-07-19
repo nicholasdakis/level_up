@@ -342,6 +342,7 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
     final effectiveInset = rawInset > 0 ? rawInset : jsInset;
     // Cap at 60% so the dialog is never pushed off the top of the screen
     final keyboardInset = effectiveInset.clamp(0.0, screenHeight * 0.6);
+    final isKeyboardOpen = keyboardInset > 0;
     return AnimatedPadding(
       duration: const Duration(milliseconds: 150),
       curve: Curves.easeOut,
@@ -352,7 +353,7 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
         bottom: Responsive.height(context, 24) + keyboardInset,
       ),
       child: Align(
-        alignment: Alignment.center,
+        alignment: isKeyboardOpen ? Alignment.bottomCenter : Alignment.center,
         child: Material(
           color: Colors.transparent,
           child: SizedBox(
