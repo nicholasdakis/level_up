@@ -2920,3 +2920,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Capped all freeform text inputs with length limiters to prevent unbounded input
 - Reminder message field now shows a character counter capped at 200 characters
 - Search bars capped at 100 characters to prevent UI issues from pasted text
+- Workout sets now use stable UUIDs instead of positional index keys, fixing state corruption when deleting or reordering exercises mid-session

@@ -34,9 +34,9 @@ class WorkoutSession {
   }) : checked = checked ?? {},
        weights = weights ?? {},
        reps = reps ?? {},
-       sessionId = sessionId ?? _generateId();
+       sessionId = sessionId ?? generateId();
 
-  static String _generateId() {
+  static String generateId() {
     final r = Random.secure();
     final bytes = List<int>.generate(16, (_) => r.nextInt(256));
     // format as xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx (UUID v4)
@@ -66,10 +66,17 @@ class WorkoutSession {
   };
 
   factory WorkoutSession.fromJson(Map<String, dynamic> json) {
+    final exercises = (json['exercises'] as List).map((e) {
+      final ex = Map<String, dynamic>.from(e as Map);
+      ex['sets'] = (ex['sets'] as List).map((s) {
+        final set = Map<String, dynamic>.from(s as Map);
+        set['uuid'] ??= generateId();
+        return set;
+      }).toList();
+      return ex;
+    }).toList();
     return WorkoutSession(
-      exercises: (json['exercises'] as List)
-          .map((e) => Map<String, dynamic>.from(e as Map))
-          .toList(),
+      exercises: exercises,
       startedAtMs: json['startedAtMs'] as int,
       workoutName: json['workoutName'] as String?,
       checked: (json['checked'] as Map? ?? {}).map(

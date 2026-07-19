@@ -77,30 +77,30 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
   int get _restDuration => _s.restDuration;
   bool get _restEnabled => _s.restEnabled;
 
-  TextEditingController _ctrl(int ex, int set, String field) {
-    final key = '${ex}_${set}_$field';
+  TextEditingController _ctrl(Map set, String field) {
+    final uuid = set['uuid'] as String;
+    final key = '${uuid}_$field';
     if (!_controllers.containsKey(key)) {
       // prefer restored session value, fall back to set map default
       final sessionVal = field == 'reps' ? _s.reps[key] : _s.weights[key];
       String initial = sessionVal ?? '';
       if (initial.isEmpty) {
-        final setMap = (_exercises[ex]['sets'] as List)[set] as Map;
         initial = field == 'reps'
-            ? (setMap['reps']?.toString() ?? '')
-            : (setMap['weight_kg']?.toString() ?? '');
+            ? (set['reps']?.toString() ?? '')
+            : (set['weight_kg']?.toString() ?? '');
       }
       _controllers[key] = TextEditingController(text: initial);
     }
     return _controllers[key]!;
   }
 
-  bool _isChecked(int ex, int set) => _checked['${ex}_$set'] ?? false;
+  bool _isChecked(Map set) => _checked[set['uuid'] as String] ?? false;
 
   int _checkedCount(int exIndex) {
-    final total = (_exercises[exIndex]['sets'] as List).length;
+    final sets = (_exercises[exIndex]['sets'] as List);
     int n = 0;
-    for (int s = 0; s < total; s++) {
-      if (_isChecked(exIndex, s)) n++;
+    for (final s in sets) {
+      if (_isChecked(s as Map)) n++;
     }
     return n;
   }
@@ -164,6 +164,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
             'sets': List.generate(
               defaultSets,
               (_) => <String, dynamic>{
+                'uuid': WorkoutSession.generateId(),
                 'reps': ex['default_reps'],
                 'weight_kg': ex['default_weight_kg'],
               },
@@ -301,18 +302,12 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
   }
 
   void _removeExercise(int exIndex) {
-    final toRemove = _controllers.keys
-        .where((k) => k.startsWith('${exIndex}_'))
-        .toList();
-    for (final k in toRemove) {
-      _controllers[k]!.dispose();
-      _controllers.remove(k);
-    }
-    final checkedKeys = _checked.keys
-        .where((k) => k.startsWith('${exIndex}_'))
-        .toList();
-    for (final k in checkedKeys) {
-      _checked.remove(k);
+    for (final s in (_exercises[exIndex]['sets'] as List)) {
+      final uuid = (s as Map)['uuid'] as String;
+      _checked.remove(uuid);
+      for (final field in ['weight', 'reps']) {
+        _controllers.remove('${uuid}_$field')?.dispose();
+      }
     }
     setState(() => _exercises.removeAt(exIndex));
     _persist();
@@ -476,14 +471,14 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       final checkedSets = <Map<String, dynamic>>[];
       final sets = ex['sets'] as List;
       for (int s = 0; s < sets.length; s++) {
-        if (!_isChecked(i, s)) continue;
+        final setMap = sets[s] as Map;
+        if (!_isChecked(setMap)) continue;
         // read from controllers in case onChanged never fired (e.g. user typed then tapped check)
         final reps =
-            int.tryParse(_ctrl(i, s, 'reps').text) ??
-            (sets[s] as Map)['reps'] as int?;
+            int.tryParse(_ctrl(setMap, 'reps').text) ?? setMap['reps'] as int?;
         final weight =
-            double.tryParse(_ctrl(i, s, 'weight').text) ??
-            ((sets[s] as Map)['weight_kg'] as num?)?.toDouble();
+            double.tryParse(_ctrl(setMap, 'weight').text) ??
+            (setMap['weight_kg'] as num?)?.toDouble();
         // skip sets with no meaningful data
         if ((reps == null || reps == 0) && (weight == null || weight == 0)) {
           continue;
@@ -1095,7 +1090,11 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                     ...ex,
                     'name': ex['name'] ?? ex['exercise_name'] ?? '',
                     'sets': [
-                      <String, dynamic>{'reps': null, 'weight_kg': null},
+                      <String, dynamic>{
+                        'uuid': WorkoutSession.generateId(),
+                        'reps': null,
+                        'weight_kg': null,
+                      },
                     ],
                   });
                 });
@@ -1124,9 +1123,10 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
   void _reEvaluatePR(String exerciseName, int exIndex) {
     final sets = (_exercises[exIndex]['sets'] as List);
     Map<String, dynamic>? bestPR;
-    for (int s = 0; s < sets.length; s++) {
-      if (!(_checked['${exIndex}_$s'] ?? false)) continue;
-      final pr = _detectPR(exerciseName, exIndex, s);
+    for (final s in sets) {
+      final setMap = s as Map;
+      if (!_isChecked(setMap)) continue;
+      final pr = _detectPR(exerciseName, setMap);
       if (pr != null) bestPR = pr;
     }
     setState(() {
@@ -1140,14 +1140,10 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
 
   // compares current weight/reps in the controllers against stored lifetime PRs.
   // returns a detail map if either is a new PR, null if not.
-  Map<String, dynamic>? _detectPR(
-    String exerciseName,
-    int exIndex,
-    int setIndex,
-  ) {
+  Map<String, dynamic>? _detectPR(String exerciseName, Map setMap) {
     final stats = _exerciseStats[exerciseName];
 
-    final wRaw = double.tryParse(_ctrl(exIndex, setIndex, 'weight').text);
+    final wRaw = double.tryParse(_ctrl(setMap, 'weight').text);
     // controller value is in display units; convert to kg for comparison against stored pr_weight_kg
     // rounded to 2dp to avoid float drift when converting lbs -> kg
     final w = wRaw == null
@@ -1157,7 +1153,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
               2,
             ),
           );
-    final r = int.tryParse(_ctrl(exIndex, setIndex, 'reps').text);
+    final r = int.tryParse(_ctrl(setMap, 'reps').text);
     var oldWeight = (stats?['pr_weight_kg'] as num?)?.toDouble();
     var oldReps = stats?['pr_reps'] as int?;
     // pr_weight_kg/pr_reps can be null for bodyweight exercises that were never stored with weight.
@@ -1326,66 +1322,10 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                                     ? (oldIndex, newIndex) {
                                         setState(() {
                                           if (newIndex > oldIndex) newIndex--;
-                                          final oldOrder = List.of(_exercises);
                                           final ex = _exercises.removeAt(
                                             oldIndex,
                                           );
                                           _exercises.insert(newIndex, ex);
-                                          final newControllers =
-                                              <String, TextEditingController>{};
-                                          final newChecked = <String, bool>{};
-                                          for (
-                                            int newI = 0;
-                                            newI < _exercises.length;
-                                            newI++
-                                          ) {
-                                            final oldI = oldOrder.indexOf(
-                                              _exercises[newI],
-                                            );
-                                            final sets =
-                                                (_exercises[newI]['sets']
-                                                        as List)
-                                                    .length;
-                                            for (int s = 0; s < sets; s++) {
-                                              for (final field in [
-                                                'reps',
-                                                'weight',
-                                              ]) {
-                                                final oldKey =
-                                                    '${oldI}_${s}_$field';
-                                                final newKey =
-                                                    '${newI}_${s}_$field';
-                                                if (_controllers.containsKey(
-                                                  oldKey,
-                                                )) {
-                                                  newControllers[newKey] =
-                                                      _controllers[oldKey]!;
-                                                }
-                                              }
-                                              final oldCheckedKey =
-                                                  '${oldI}_$s';
-                                              if (_checked.containsKey(
-                                                oldCheckedKey,
-                                              )) {
-                                                newChecked['${newI}_$s'] =
-                                                    _checked[oldCheckedKey]!;
-                                              }
-                                            }
-                                          }
-                                          // dispose controllers that didn't make it into the remapped set
-                                          for (final key in _controllers.keys) {
-                                            if (!newControllers.containsKey(
-                                              key,
-                                            )) {
-                                              _controllers[key]!.dispose();
-                                            }
-                                          }
-                                          _controllers
-                                            ..clear()
-                                            ..addAll(newControllers);
-                                          _checked
-                                            ..clear()
-                                            ..addAll(newChecked);
                                         });
                                         _persist();
                                       }
@@ -1939,6 +1879,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                       onTap: () {
                         setState(
                           () => sets.add(<String, dynamic>{
+                            'uuid': WorkoutSession.generateId(),
                             'reps': null,
                             'weight_kg': null,
                           }),
@@ -2045,7 +1986,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
     bool isImperial,
   ) {
     final set = (_exercises[exIndex]['sets'] as List)[setIndex] as Map;
-    final checked = _isChecked(exIndex, setIndex);
+    final checked = _isChecked(set);
     final c = cardColors(appColor);
     final onCard = c.onCard;
 
@@ -2120,7 +2061,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
           // weight field
           Expanded(
             child: TextField(
-              controller: _ctrl(exIndex, setIndex, 'weight'),
+              controller: _ctrl(set, 'weight'),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
@@ -2139,7 +2080,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
               decoration: _fieldDec('0'),
               onChanged: (v) {
                 set['weight_kg'] = double.tryParse(v);
-                _s.weights['${exIndex}_${setIndex}_weight'] = v;
+                _s.weights['${set['uuid']}_weight'] = v;
                 _persist();
                 // re-evaluate PR across all checked sets so editing one set down
                 // doesn't lose a PR that another checked set still holds
@@ -2156,7 +2097,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
           // reps field
           Expanded(
             child: TextField(
-              controller: _ctrl(exIndex, setIndex, 'reps'),
+              controller: _ctrl(set, 'reps'),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               textAlign: TextAlign.center,
@@ -2169,7 +2110,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
               decoration: _fieldDec('0'),
               onChanged: (v) {
                 set['reps'] = int.tryParse(v);
-                _s.reps['${exIndex}_${setIndex}_reps'] = v;
+                _s.reps['${set['uuid']}_reps'] = v;
                 _persist();
                 // re-evaluate PR across all checked sets so editing one set down
                 // doesn't lose a PR that another checked set still holds
@@ -2188,37 +2129,11 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
             GestureDetector(
               onTap: () {
                 setState(() {
+                  final uuid = set['uuid'] as String;
                   (_exercises[exIndex]['sets'] as List).removeAt(setIndex);
-                  _checked.remove('${exIndex}_$setIndex');
-                  // shift checked keys for sets after the deleted one
-                  for (
-                    int s = setIndex + 1;
-                    s <= (_exercises[exIndex]['sets'] as List).length;
-                    s++
-                  ) {
-                    final val = _checked.remove('${exIndex}_$s');
-                    if (val != null) _checked['${exIndex}_${s - 1}'] = val;
-                  }
-                  // dispose and remove controllers for deleted set
+                  _checked.remove(uuid);
                   for (final field in ['weight', 'reps']) {
-                    _controllers
-                        .remove('${exIndex}_${setIndex}_$field')
-                        ?.dispose();
-                  }
-                  // shift controller keys for sets after the deleted one
-                  for (
-                    int s = setIndex + 1;
-                    s <= (_exercises[exIndex]['sets'] as List).length;
-                    s++
-                  ) {
-                    for (final field in ['weight', 'reps']) {
-                      final ctrl = _controllers.remove(
-                        '${exIndex}_${s}_$field',
-                      );
-                      if (ctrl != null) {
-                        _controllers['${exIndex}_${s - 1}_$field'] = ctrl;
-                      }
-                    }
+                    _controllers.remove('${uuid}_$field')?.dispose();
                   }
                 });
                 _persist();
@@ -2241,11 +2156,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
               final nowChecked = !checked;
               // block checking a set with no weight and no reps entered
               if (nowChecked) {
-                final w =
-                    double.tryParse(_ctrl(exIndex, setIndex, 'weight').text) ??
-                    0.0;
-                final r =
-                    int.tryParse(_ctrl(exIndex, setIndex, 'reps').text) ?? 0;
+                final w = double.tryParse(_ctrl(set, 'weight').text) ?? 0.0;
+                final r = int.tryParse(_ctrl(set, 'reps').text) ?? 0;
                 if (w == 0 && r == 0) return;
               }
               HapticFeedback.lightImpact();
@@ -2253,20 +2165,20 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                 _exercises[exIndex]['name'] as String? ?? '',
               );
               if (nowChecked) {
-                final pr = _detectPR(exerciseName, exIndex, setIndex);
+                final pr = _detectPR(exerciseName, set);
                 if (pr != null) {
                   setState(() => _prDetails[exerciseName] = pr);
                   _showPRSnackbar(exerciseName, pr);
                 }
               } else {
-                // re-evaluate PR across all remaining checked sets for this exercise;
-                // if none still hold a PR, remove the badge
+                // re-evaluate PR across all remaining checked sets for this exercise
                 final sets = (_exercises[exIndex]['sets'] as List);
                 Map<String, dynamic>? bestPR;
-                for (int s = 0; s < sets.length; s++) {
-                  if (s == setIndex) continue; // this set is being unchecked
-                  if (!(_checked['${exIndex}_$s'] ?? false)) continue;
-                  final pr = _detectPR(exerciseName, exIndex, s);
+                for (final s in sets) {
+                  final sm = s as Map;
+                  if (sm['uuid'] == set['uuid']) continue;
+                  if (!_isChecked(sm)) continue;
+                  final pr = _detectPR(exerciseName, sm);
                   if (pr != null) bestPR = pr;
                 }
                 setState(() {
@@ -2277,7 +2189,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                   }
                 });
               }
-              setState(() => _checked['${exIndex}_$setIndex'] = nowChecked);
+              setState(() => _checked[set['uuid'] as String] = nowChecked);
               _persist();
               if (nowChecked && _restEnabled) _startRestTimer();
             },

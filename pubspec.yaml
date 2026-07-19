@@ -148,6 +148,9 @@ dependencies:
   # in-app purchases and subscriptions
   in_app_purchase: ^3.3.0
 
+  # uuid generation for stable set keys
+  uuid: ^4.6.0
+
   # Google Mobile Ads (AdMob)
   google_mobile_ads: ^9.0.0
 
