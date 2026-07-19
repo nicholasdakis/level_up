@@ -349,7 +349,7 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
       padding: EdgeInsets.only(
         left: Responsive.width(context, 24),
         right: Responsive.width(context, 24),
-        top: Responsive.height(context, 40),
+        top: isKeyboardOpen ? 0 : Responsive.height(context, 40),
         bottom: Responsive.height(context, 24) + keyboardInset,
       ),
       child: Align(
