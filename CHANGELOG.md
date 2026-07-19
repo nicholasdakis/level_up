@@ -2922,3 +2922,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Search bars capped at 100 characters to prevent UI issues from pasted text
 - Workout sets now use stable UUIDs instead of positional index keys, fixing state corruption when deleting or reordering exercises mid-session
 - Deleted custom exercises no longer appear in recently logged exercises
+- Finishing a workout now skips exercises with no valid ID rather than failing the entire save
+- Fixed barcode food scan double-crediting the food_barcode achievement
+- Fixed achievement progress and tier values being parsed as the wrong type, preventing potential runtime crashes

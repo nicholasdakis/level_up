@@ -395,7 +395,6 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
               ' | Fat: ${nutriments['fat_100g'] ?? 0}g'
               ' | Carbs: ${nutriments['carbohydrates_100g'] ?? 0}g'
               ' | Protein: ${nutriments['proteins_100g'] ?? 0}g';
-          trackTrivialAchievement('food_barcode');
           setState(() {
             barcodeLoading = false;
             scannerActive = false;

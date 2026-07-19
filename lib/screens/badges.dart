@@ -229,13 +229,15 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
 
         // Populate progress map from the progress list
         for (final entry in data['progress']) {
-          progress[entry['achievement_id']] = entry['progress'];
+          progress[entry['achievement_id'] as String] =
+              (entry['progress'] as num).toInt();
         }
 
         // Populate claimedTiers map from the claims list
         for (final claim in data['claims']) {
-          claimedTiers[claim['achievement_id']] ??= {};
-          claimedTiers[claim['achievement_id']]!.add(claim['tier']);
+          final aid = claim['achievement_id'] as String;
+          claimedTiers[aid] ??= {};
+          claimedTiers[aid]!.add((claim['tier'] as num).toInt());
         }
 
         // Populate highestStreaks map from the streaks list
