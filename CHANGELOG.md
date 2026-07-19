@@ -2908,3 +2908,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Renamed daily reward reminder source from 'system' to 'daily_reward'
 - FCM send errors are now caught per-reminder inside the loop so one failed send no longer aborts the rest of the batch
 - Notification titles now reflect reminder source: "Reminder" for user reminders, "Daily Reward Available" for daily reward reminders etc
+- Replaced the rounded square themedIconBox on each achievement card with a hexagon badge widget
+- Filled hex = active or in-progress, outline hex = all tiers claimed, matching the pattern where filled draws attention and outline signals completion

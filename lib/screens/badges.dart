@@ -14,6 +14,7 @@ import '/utility/confetti.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../services/user_data_manager.dart';
 import 'package:go_router/go_router.dart';
+import 'widgets/hex_badge.dart';
 
 // Achievement definition with tiers for the UI
 class AchievementDef {
@@ -91,7 +92,7 @@ const Map<String, IconData> _achievementIcons = {
   "food_voice": HugeIcons.strokeRoundedMic01,
   "food_clear_meal": HugeIcons.strokeRoundedDelete01,
   "workouts_logged": HugeIcons.strokeRoundedDumbbell01,
-  "personal_records": HugeIcons.strokeRoundedStar,
+  "personal_records": HugeIcons.strokeRoundedCircleArrowUpDouble,
   "create_exercise": HugeIcons.strokeRoundedAdd01,
   "create_routine": HugeIcons.strokeRoundedPlayList,
   "save_routine": HugeIcons.strokeRoundedBookmark01,
@@ -102,13 +103,13 @@ const Map<String, IconData> _achievementIcons = {
   "early_workout": HugeIcons.strokeRoundedSun03,
   "late_workout": HugeIcons.strokeRoundedMoon02,
   "goal_calories": HugeIcons.strokeRoundedFire,
-  "goal_protein": HugeIcons.strokeRoundedStar,
-  "goal_carbs": HugeIcons.strokeRoundedStar,
-  "goal_fat": HugeIcons.strokeRoundedStar,
+  "goal_protein": HugeIcons.strokeRoundedSteak,
+  "goal_carbs": HugeIcons.strokeRoundedBread01,
+  "goal_fat": HugeIcons.strokeRoundedAvocado,
   "goal_fiber": HugeIcons.strokeRoundedLeaf01,
-  "goal_sugar": HugeIcons.strokeRoundedStar,
-  "goal_sodium": HugeIcons.strokeRoundedStar,
-  "goal_water": HugeIcons.strokeRoundedStar,
+  "goal_sugar": HugeIcons.strokeRoundedCottonCandy,
+  "goal_sodium": HugeIcons.strokeRoundedFrenchFries02,
+  "goal_water": HugeIcons.strokeRoundedDroplet,
   "goal_weight": HugeIcons.strokeRoundedWeightScale,
   "goal_workouts": HugeIcons.strokeRoundedDumbbell01,
   "referrals": HugeIcons.strokeRoundedUserAdd01,
@@ -472,14 +473,11 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      themedIconBox(
-                        context,
+                      HexBadge(
                         icon: def.icon,
-                        color: appColor,
-                        iconSize: 22,
-                        padding: 9,
-                        radius: 10,
-                        hugeIcon: true,
+                        allClaimed: allClaimed,
+                        appColor: appColor,
+                        size: Responsive.scale(context, 52),
                       ),
                       SizedBox(width: Responsive.width(context, 12)),
                       Expanded(

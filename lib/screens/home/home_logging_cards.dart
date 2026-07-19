@@ -428,7 +428,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
               SizedBox(height: Responsive.height(context, 2)),
               row(
                 "Sodium",
-                HugeIcons.strokeRoundedDroplet,
+                HugeIcons.strokeRoundedFrenchFries02,
                 "${micros.sodium.toStringAsFixed(0)}mg",
                 userData?.sodiumGoal != null
                     ? "${userData!.sodiumGoal}mg"
@@ -466,7 +466,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
               SizedBox(height: Responsive.height(context, 2)),
               row(
                 "Fat",
-                HugeIcons.strokeRoundedDroplet,
+                HugeIcons.strokeRoundedAvocado,
                 "${macros.fat}g",
                 userData?.fatGoal != null ? "${userData!.fatGoal}g" : null,
               ),

@@ -2347,7 +2347,7 @@ Widget _macroSummaryCard(
         SizedBox(width: Responsive.width(context, 10)),
         macroChip('Carbs', agg.carbs, HugeIcons.strokeRoundedBread01),
         SizedBox(width: Responsive.width(context, 10)),
-        macroChip('Fat', agg.fat, HugeIcons.strokeRoundedDroplet),
+        macroChip('Fat', agg.fat, HugeIcons.strokeRoundedAvocado),
       ],
     ),
   );
