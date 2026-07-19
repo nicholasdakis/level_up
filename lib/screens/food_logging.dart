@@ -611,6 +611,10 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
             controller: ctrl,
             autofocus: true,
             keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(5),
+            ],
             textAlign: TextAlign.center,
             style: GoogleFonts.manrope(
               color: Colors.white,

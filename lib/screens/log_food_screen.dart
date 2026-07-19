@@ -758,6 +758,10 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                       content: TextField(
                                         controller: _customUnitController,
                                         autofocus: true,
+                                        maxLines: 1,
+                                        inputFormatters: [
+                                          LengthLimitingTextInputFormatter(30),
+                                        ],
                                         style: GoogleFonts.manrope(
                                           color: Colors.white,
                                         ),
@@ -1651,6 +1655,8 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                 readOnly: isGuest,
                 onTap: isGuest ? () => Guest.block(context) : null,
                 keyboardType: TextInputType.text,
+                maxLines: 1,
+                inputFormatters: [LengthLimitingTextInputFormatter(100)],
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 15),
                   color: accent,

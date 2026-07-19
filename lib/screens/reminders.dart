@@ -741,9 +741,8 @@ class _RemindersState extends ConsumerState<Reminders> {
                               // Text field
                               TextField(
                                 enabled: !_notifBlocked,
-                                minLines: 1,
-                                maxLines:
-                                    null, // allow the text field to expand vertically as the user types more lines
+                                maxLines: 1,
+                                maxLength: 200,
                                 controller: remindersController,
                                 keyboardType: TextInputType.text,
                                 style: GoogleFonts.manrope(
@@ -751,6 +750,10 @@ class _RemindersState extends ConsumerState<Reminders> {
                                   color: onTheme(appColor),
                                 ),
                                 decoration: InputDecoration(
+                                  counterStyle: GoogleFonts.manrope(
+                                    color: onTheme(appColor).withAlpha(120),
+                                    fontSize: Responsive.font(context, 11),
+                                  ),
                                   prefixIcon: Padding(
                                     padding: EdgeInsets.only(
                                       left: Responsive.width(context, 12),

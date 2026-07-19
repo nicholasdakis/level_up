@@ -2917,3 +2917,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed overflow errors
 - Create routine bottom bar pills and the add-exercise button switched to an outline border style
 - Made the recent exercise entries appear as cards to better match the rest of the exercise picker UI
+- Capped all freeform text inputs with length limiters to prevent unbounded input
+- Reminder message field now shows a character counter capped at 200 characters
+- Search bars capped at 100 characters to prevent UI issues from pasted text

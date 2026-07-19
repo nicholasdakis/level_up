@@ -2124,6 +2124,11 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(
+                  RegExp(r'^\d{0,4}(\.\d{0,2})?'),
+                ),
+              ],
               textAlign: TextAlign.center,
               cursorColor: onCard,
               style: GoogleFonts.manrope(

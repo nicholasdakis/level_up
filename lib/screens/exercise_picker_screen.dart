@@ -4,6 +4,7 @@ import '/providers/user_data_provider.dart';
 import '/providers/workout_provider.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -539,11 +540,15 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                     TextField(
                       controller: nameController,
                       autofocus: true,
+                      maxLength: 60,
+                      maxLines: 1,
+                      inputFormatters: [LengthLimitingTextInputFormatter(60)],
                       style: GoogleFonts.manrope(
                         color: Colors.white,
                         fontSize: Responsive.font(context, 14),
                       ),
                       decoration: InputDecoration(
+                        counterText: '',
                         hintText: 'e.g. Bulgarian Split Squat',
                         hintStyle: GoogleFonts.manrope(
                           color: Colors.white.withAlpha(120),
@@ -1034,6 +1039,8 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 TextField(
                   controller: _searchController,
                   keyboardType: TextInputType.text,
+                  maxLines: 1,
+                  inputFormatters: [LengthLimitingTextInputFormatter(100)],
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 14),
                     color: cardColors(appColor).onCard,
