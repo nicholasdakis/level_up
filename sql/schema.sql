@@ -108,6 +108,9 @@ CREATE TABLE reminders (
     source TEXT NOT NULL DEFAULT 'user' -- 'user' = shown in reminders list, 'system' = server-generated, hidden from list
 );
 
+-- Enforces one active row per user per system source so duplicate inserts from concurrent requests are rejected
+CREATE UNIQUE INDEX reminders_uid_system_source_unique ON reminders (uid, source) WHERE source != 'user';
+
 -- Tracks the last time a user visited each point of interest for the 24-hour cooldown
 CREATE TABLE poi_visits (
     uid TEXT REFERENCES users(uid) ON DELETE CASCADE,

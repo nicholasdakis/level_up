@@ -242,7 +242,7 @@ def send_due_reminders():
         now_dt = datetime.now(timezone.utc)
         logger.info(f'[reminders] Checking for due reminders at {now_dt.isoformat()}')
 
-        # Query the reminders table for all rows where the time is due (i.e. time <= now)
+        # Fetch all reminders whose scheduled time has passed
         due_reminders = reminder_repo.get_due_reminders(now_dt.isoformat())
 
         count = 0
@@ -250,55 +250,63 @@ def send_due_reminders():
             reminder_id = reminder["id"]
             uid = reminder["uid"]
 
-            # Atomically claim the reminder by deleting it, so skip if another instance already claimed it
+            # Claim by deleting first so concurrent instances never double-send
             if not reminder_repo.delete_reminder(reminder_id):
-                # Another instance already deleted/claimed this reminder, skip it
                 logger.info(f'[reminders] Reminder {reminder_id} already claimed by another instance, skipping')
                 continue
 
             count += 1
 
-            # Get the user's FCM tokens from the users table
+            # Skip if the user no longer exists
             fcm_tokens = user_repo.get_user_fcm_tokens(uid)
             if fcm_tokens is None:
-                # User no longer exists, reminder already deleted above so just move on
                 continue
 
-            # If empty, the user has no devices to notify
+            # Skip if the user has no registered devices
             if not fcm_tokens:
                 continue
 
-            # Send a notification + data payload so browsers show it even when minimized
-            message = messaging.MulticastMessage(
-                notification=messaging.Notification(
-                    title="Level Up! Reminder",
-                    body=reminder.get('message', 'You have a reminder!')
-                ),
-                data={
-                    'body': reminder.get('message', 'You have a reminder!'),
-                    'reminderId': reminder_id
-                },
-                tokens=fcm_tokens,
-            )
-            response = messaging.send_each_for_multicast(message)
-            logger.info(f'[reminders] Sent to {uid}: success={response.success_count}, failure={response.failure_count}')
+            # Build and send the FCM notification
+            try:
+                # Pick a title based on the reminder source
+                source = reminder.get('source')
+                if source == 'streak_warning_day_one':
+                    title = "Start Your Streak"
+                elif source == 'streak_warning':
+                    title = "Your Streak Is at Risk"
+                elif source in ('system', 'daily_reward'):  # TODO: remove 'system' once MIN_APP_VERSION forces all clients onto 'daily_reward'
+                    title = "Daily Reward Available"
+                elif source == 'user':
+                    title = "Reminder"
+                else:
+                    logger.warning(f'[reminders] Unknown reminder source "{source}" for {uid}, skipping')
+                    continue
+                body = reminder.get('message', 'You have a reminder!')  # fallback should never show in practice
+                message = messaging.MulticastMessage(
+                    notification=messaging.Notification(title=title, body=body),
+                    data={'body': body, 'reminderId': reminder_id},
+                    tokens=fcm_tokens,
+                )
+                response = messaging.send_each_for_multicast(message)
+                logger.info(f'[reminders] Sent to {uid}: success={response.success_count}, failure={response.failure_count}')
 
-            # Clean up tokens with unregistered / invalid error codes (e.g. user uninstalled the app or revoked permissions)
-            if response.failure_count > 0:
-                invalid_tokens = []
-                for i, res in enumerate(response.responses):
-                    if not res.success and res.exception:
-                        code = getattr(res.exception, 'code', None)
-                        logger.warning(f'[reminders] Token {i} failed: code={code} error={res.exception}')
-                        if code in (
-                            'NOT_FOUND',
-                            'registration-token-not-registered',
-                            'invalid-registration-token',
-                        ):
-                            invalid_tokens.append(fcm_tokens[i])
-                # Remove each invalid token atomically so no valid tokens are accidentally wiped
-                for token in invalid_tokens:
-                    user_repo.remove_fcm_token(uid, token)
+                # Remove any tokens that are no longer valid
+                if response.failure_count > 0:
+                    invalid_tokens = []
+                    for i, res in enumerate(response.responses):
+                        if not res.success and res.exception:
+                            code = getattr(res.exception, 'code', None)
+                            logger.warning(f'[reminders] Token {i} failed: code={code} error={res.exception}')
+                            if code in (
+                                'NOT_FOUND',
+                                'registration-token-not-registered',
+                                'invalid-registration-token',
+                            ):
+                                invalid_tokens.append(fcm_tokens[i])
+                    for token in invalid_tokens:
+                        user_repo.remove_fcm_token(uid, token)
+            except Exception as send_err:
+                logger.exception(f'[reminders] FCM send failed for {uid}, reminder already deleted: {send_err}')
 
         if count == 0:
             logger.info('[reminders] No due reminders found')

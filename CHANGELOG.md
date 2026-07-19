@@ -2899,3 +2899,12 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - PWA splash screen text now uses the onTheme color passed as a new --on-theme CSS variable, matching the app's own text color logic instead of hardcoded white
 - Added font-weight 700 and 800 to the Manrope Google Fonts request so the splash title renders correctly instead of falling back to the system serif
 - Expanded PWA loading tips from 33 to 48, covering Pro features, workout analytics, custom exercises, browse routines, moving and importing foods, streak boosts, and more
+
+## 2026-07-19
+- Added streak-at-risk push notifications: after every successful daily reward claim, a system reminder is scheduled 36 hours later (12 hours before the 48-hour streak break window closes) so users get a reminder if their streak is about to break
+- Day 1 streaks get a separate source (streak_warning_day_one) and distinct title / message
+- Added upsert_streak_warning which deletes both streak warning sources before inserting so re-claiming always reschedules from the new claim time with no duplicate rows
+- Added a partial unique index on reminders (uid, source) where source != 'user' to prevent duplicate system reminder rows from concurrent requests at the DB level
+- Renamed daily reward reminder source from 'system' to 'daily_reward'
+- FCM send errors are now caught per-reminder inside the loop so one failed send no longer aborts the rest of the batch
+- Notification titles now reflect reminder source: "Reminder" for user reminders, "Daily Reward Available" for daily reward reminders etc

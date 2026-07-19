@@ -40,3 +40,21 @@ class ReminderRepository:
             query = query.eq("uid", uid)
         result = query.execute()
         return bool(result.data)
+
+    def upsert_streak_warning(self, uid: str, scheduled_at: str, streak: int):
+        # Delete before insert so each claim reschedules the warning from the new claim time,
+        # and so a user who claims early doesn't end up with two pending warnings
+        if streak == 1:
+            source = "streak_warning_day_one"
+            message = "Come back and claim your daily reward to keep your streak going!"
+        else:
+            source = "streak_warning"
+            message = f"Your {streak} day streak is at risk! Claim your daily reward before it resets."
+        self._supabase.table("reminders").delete().eq("uid", uid).in_("source", ["streak_warning", "streak_warning_day_one"]).execute()
+        self._supabase.table("reminders").insert({
+            "uid": uid,
+            "message": message,
+            "scheduled_at": scheduled_at,
+            "notification_id": 0,
+            "source": source,
+        }).execute()

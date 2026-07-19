@@ -216,6 +216,13 @@ class ProgressionService: # Service class to handle all progression-related busi
 
         daily_streak = result.get("daily_streak", 0)
 
+        # Streaks break at 48 hours after the last claim. Fire the warning at 36 hours,
+        # giving the user a 12-hour window to claim before losing their streak.
+        STREAK_WARNING_HOURS = 36
+        if daily_streak >= 1:
+            warning_time = (datetime.now(timezone.utc) + timedelta(hours=STREAK_WARNING_HOURS)).isoformat()
+            self._reminder_repo.upsert_streak_warning(uid, warning_time, daily_streak)
+
         # Successful return with the new progression state
         return {
             "claimed": True,

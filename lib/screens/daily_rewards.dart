@@ -54,7 +54,7 @@ class DailyRewardDialog {
           'message': randomRewardReminderMessage(),
           'scheduled_at': scheduledTime.toUtc().toIso8601String(),
           'notification_id': id,
-          'source': 'system',
+          'source': 'daily_reward',
         },
       );
     } catch (e) {
