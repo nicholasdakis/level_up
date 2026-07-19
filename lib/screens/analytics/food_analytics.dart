@@ -8,13 +8,15 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import '../../globals.dart';
 import '../../utility/responsive.dart';
 import '../../models/food_log.dart';
 import '../../utility/food_logging_helper.dart';
 import 'analytics_components.dart';
 import '../premium_sheet.dart' show showPremiumSheet;
+import 'package:skeletonizer/skeletonizer.dart'
+    show Skeletonizer, ShimmerEffect;
 
 // initialDate opens the screen on the same date the user was viewing in Food Logging
 // onDateChanged is optional so Food Logging can stay in sync when dates are changed here
@@ -950,36 +952,44 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                 ),
               ),
               Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    // Daily tab
-                    _DailyTab(
-                      context: context,
-                      appColor: appColor,
-                      totalCal: totalCal,
-                      breakfastCal: breakfastCal,
-                      lunchCal: lunchCal,
-                      dinnerCal: dinnerCal,
-                      snacksCal: snacksCal,
-                      macros: macros,
-                      micros: _totalMicros(),
-                      breakfastMacros: breakfastMacros,
-                      lunchMacros: lunchMacros,
-                      dinnerMacros: dinnerMacros,
-                      snacksMacros: snacksMacros,
-                      totalMacroCal: totalMacroCal,
-                      currentDate: currentDate,
-                      onDateChanged: _changeDate,
-                      animationKey: _animationKey,
-                      mealBarChart: _mealBarChart,
-                      macroBarChart: _macroBarChart,
-                      microBarChart: _microBarChart,
-                      emptyState: _emptyState,
-                    ),
-                    // Range tab
-                    _buildRangeTab(context),
-                  ],
+                child: Skeletonizer(
+                  enabled: ref.watch(foodLogsAnalyticsProvider).isLoading,
+                  effect: ShimmerEffect(
+                    baseColor: cardColors(appColor).iconBox,
+                    highlightColor: cardColors(appColor).border,
+                    duration: const Duration(milliseconds: 1200),
+                  ),
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      // Daily tab
+                      _DailyTab(
+                        context: context,
+                        appColor: appColor,
+                        totalCal: totalCal,
+                        breakfastCal: breakfastCal,
+                        lunchCal: lunchCal,
+                        dinnerCal: dinnerCal,
+                        snacksCal: snacksCal,
+                        macros: macros,
+                        micros: _totalMicros(),
+                        breakfastMacros: breakfastMacros,
+                        lunchMacros: lunchMacros,
+                        dinnerMacros: dinnerMacros,
+                        snacksMacros: snacksMacros,
+                        totalMacroCal: totalMacroCal,
+                        currentDate: currentDate,
+                        onDateChanged: _changeDate,
+                        animationKey: _animationKey,
+                        mealBarChart: _mealBarChart,
+                        macroBarChart: _macroBarChart,
+                        microBarChart: _microBarChart,
+                        emptyState: _emptyState,
+                      ),
+                      // Range tab
+                      _buildRangeTab(context),
+                    ],
+                  ),
                 ),
               ),
             ],
