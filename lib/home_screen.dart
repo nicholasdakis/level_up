@@ -18,7 +18,6 @@ import 'screens/settings.dart';
 import 'screens/home/water_log_sheet.dart';
 import 'screens/home/weight_log_sheet.dart';
 import 'screens/home/home_logging_cards.dart';
-import 'screens/home/home_greeting.dart';
 import 'screens/daily_rewards.dart';
 import 'screens/premium_sheet.dart' show showPremiumSheet;
 import 'screens/referrals.dart';
@@ -36,6 +35,7 @@ import 'services/fcm/notification_service.dart';
 import 'services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) 'services/fcm/web_fcm_token_web.dart'
     as web_fcm;
+import 'utility/random_messages.dart';
 
 class _HomeAnimationState {
   static bool dashboardAnimated = false;
@@ -58,6 +58,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   bool _appReadyHandled = false;
+  final String _rewardReadyMessage = generateDailyRewardReadyMessage();
+  final String _rewardClaimedMessage = generateDailyRewardClaimedMessage();
   bool _adWatching = false;
   bool _shimmerPaused = false;
   bool _onboardingInProgress = false;
@@ -313,7 +315,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   // Picks a fresh greeting and updates the question flag together
   String _buildGreeting() {
-    final result = buildGreeting();
+    final result = generateHomeGreeting();
     _greetingIsQuestion = result.isQuestion;
     return result.greeting;
   }
@@ -830,8 +832,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       children: [
                         Text(
                           canClaim
-                              ? "Daily reward ready!"
-                              : "Daily reward claimed today!",
+                              ? _rewardReadyMessage
+                              : _rewardClaimedMessage,
                           style: GoogleFonts.manrope(
                             color: accent,
                             fontSize: Responsive.font(context, 14),

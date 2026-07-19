@@ -2926,3 +2926,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed barcode food scan double-crediting the food_barcode achievement
 - Fixed achievement progress and tier values being parsed as the wrong type, preventing potential runtime crashes
 - Replaced explore tab markers with HugeIcons
+- Removed About the Developer from settings
+- Home screen greeting, reminder placeholder, workout empty state, meal empty state, daily reward card, and reminder empty state now show varied text on each open

@@ -1,7 +1,6 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
-import 'dart:math';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,6 +16,7 @@ import '../utility/responsive.dart';
 import '../services/fcm/notification_service.dart';
 import '../services/user_data_manager.dart';
 import '../services/voice_search_service.dart';
+import '../utility/random_messages.dart';
 
 class Reminders extends ConsumerStatefulWidget {
   const Reminders({super.key});
@@ -41,6 +41,10 @@ class _RemindersState extends ConsumerState<Reminders> {
   final VoiceSearchService _voiceSearch = VoiceSearchService();
   bool snackbarActive = false;
   bool isLoading = false; // track the loading state for UI feedback
+  late final String _emptyHeadlineMessage =
+      generateRemindersEmptyHeadlineMessage();
+  late final String _emptySubtitleMessage =
+      generateRemindersEmptySubtitleMessage();
   bool _notifBlocked =
       false; // true if OS notifications are denied, used to disable the form
   bool _dateTimePicked = false;
@@ -58,7 +62,7 @@ class _RemindersState extends ConsumerState<Reminders> {
       screenName: '/reminders',
       screenClass: 'Reminders',
     );
-    placeholderMessage = getReminderMessage();
+    placeholderMessage = generateReminderPlaceholderMessage();
     _voiceSearch.init(() {
       if (mounted) setState(() {});
     });
@@ -137,103 +141,6 @@ class _RemindersState extends ConsumerState<Reminders> {
       setState(() => reminder = combined);
     });
     if (mounted) setState(() {}); // update mic icon state after listening stops
-  }
-
-  // Method to generate a few random reminder messages for the placeholder text using grammar rules to make them more natural and less repetitive
-  String getReminderMessage() {
-    final rand = Random();
-    final now = DateTime.now();
-
-    // Get the user's time for more personalized messages (e.g. "before 8 PM" instead of "soon")
-    final nextHour = (now.hour + 1) % 24;
-    final displayHour = nextHour > 12
-        ? nextHour - 12
-        : (nextHour == 0 ? 12 : nextHour);
-    final amPm = nextHour >= 12 ? "PM" : "AM";
-
-    final dynamicTime = "before $displayHour $amPm";
-
-    final tasks = [
-      "Go for a walk",
-      "Drink water",
-      "Log a snack",
-      "Stay hydrated",
-      "Go to the gym",
-      "Train chest",
-      "Train legs",
-      "Train back",
-      "Train shoulders",
-      "Hit the gym",
-      "Do some cardio",
-      "Go for a run",
-      "Start a workout",
-      "Log a workout",
-      "Stretch for 10 minutes",
-      "Study for my exam",
-      "Finish a task",
-      "Meditate for a few minutes",
-      "Go outside for some fresh air",
-      "Walk the dog",
-      "Share Level Up! with my friends",
-      "Use the Explore tab to get some steps in",
-      "Log my meals for the day",
-      "Hit my protein goal",
-      "Hit my calorie goal",
-      "Log my water intake",
-      "Weigh myself",
-      "Claim my daily reward",
-      "Check my progress on the leaderboards",
-      "Take a rest day and recover",
-      "Prep my meals for tomorrow",
-    ];
-
-    final timeOptions = [
-      dynamicTime,
-      "before midnight",
-      "today",
-      "soon",
-      "now",
-      "",
-    ];
-
-    final extras = [
-      "to stay on track",
-      "like a pro",
-      "before it gets too late",
-      "and keep the streak alive",
-      "to hit my goals",
-      "and log it in Level Up",
-      "",
-    ];
-
-    final punctuation = [
-      ".",
-      "!",
-      ". 🙂",
-      "! 💪",
-      "! ⚡️",
-      ". ✅",
-      "! 🚀",
-      ". ✨",
-      "! 💯",
-      ". 🎯",
-      "! 🔥",
-      " 🌊",
-      " 🙌",
-      "",
-    ];
-
-    // randomly construct the message
-    final task = tasks[rand.nextInt(tasks.length)];
-    final time = timeOptions[rand.nextInt(timeOptions.length)];
-    final extra = extras[rand.nextInt(extras.length)];
-    final punct = punctuation[rand.nextInt(punctuation.length)];
-
-    final parts = [task];
-    if (time.isNotEmpty) parts.add(time);
-    if (extra.isNotEmpty) parts.add(extra);
-
-    return parts.join(" ") + punct;
   }
 
   // Method that deletes a reminder from the Supabase Postgres db
@@ -796,8 +703,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                         )
                                       : null,
                                   suffixIconConstraints: const BoxConstraints(),
-                                  hintText:
-                                      "Enter a reminder message (E.g. $placeholderMessage)",
+                                  hintText: placeholderMessage,
                                   hintStyle: GoogleFonts.manrope(
                                     fontSize: Responsive.font(context, 14),
                                     color: onTheme(appColor),
@@ -1012,7 +918,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                             ),
                                           ),
                                           Text(
-                                            "No upcoming reminders",
+                                            _emptyHeadlineMessage,
                                             style: GoogleFonts.manrope(
                                               fontSize: Responsive.font(
                                                 context,
@@ -1031,7 +937,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                             ),
                                           ),
                                           Text(
-                                            "Type a message above and tap the time row to set one.",
+                                            _emptySubtitleMessage,
                                             textAlign: TextAlign.center,
                                             style: GoogleFonts.manrope(
                                               fontSize: Responsive.font(

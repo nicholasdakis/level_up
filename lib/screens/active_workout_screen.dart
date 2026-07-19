@@ -22,6 +22,7 @@ import 'exercise_picker_screen.dart';
 import 'level_up_overlay.dart';
 import '/services/workout_foreground_service.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import '/utility/random_messages.dart';
 
 class ActiveWorkoutScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>?
@@ -58,6 +59,10 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
 
   bool _reordering = false;
   bool _isSaving = false;
+  late final String _emptyHeadlineMessage =
+      generateWorkoutEmptyHeadlineMessage();
+  late final String _emptySubtitleMessage =
+      generateWorkoutEmptySubtitleMessage();
   WorkoutSession?
   _localSession; // holds the session before the provider updates
 
@@ -1662,11 +1667,20 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
         ),
         SizedBox(height: Responsive.height(context, 16)),
         Text(
-          'Add an Exercise',
+          _emptyHeadlineMessage,
           style: GoogleFonts.manrope(
             color: onTheme(appColor),
             fontSize: Responsive.font(context, 16),
             fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 6)),
+        Text(
+          _emptySubtitleMessage,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.manrope(
+            color: onTheme(appColor).withAlpha(140),
+            fontSize: Responsive.font(context, 13),
           ),
         ),
       ],

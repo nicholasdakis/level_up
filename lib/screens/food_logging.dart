@@ -18,6 +18,7 @@ import '../utility/responsive.dart';
 import '../utility/food_logging_helper.dart';
 import '../services/user_data_manager.dart';
 import '../utility/shared_preferences/shared_prefs_async.dart';
+import '../utility/random_messages.dart';
 
 List<Color> _mealColors(Color base) {
   return [onTheme(base), onTheme(base), onTheme(base), onTheme(base)];
@@ -37,6 +38,10 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
   DateTime currentDate = DateTime.now();
   bool _dateLoading = false;
+  final List<String> _mealEmptyTexts = List.generate(
+    4,
+    (_) => generateMealEmptyMessage(),
+  );
 
   List<FoodLog> breakfastFoods = const [];
   List<FoodLog> lunchFoods = const [];
@@ -2110,8 +2115,9 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     String mealKey,
     String title,
     List<FoodLog> foods,
-    Color accentColor,
-  ) {
+    Color accentColor, {
+    required String emptyMealMessage,
+  }) {
     final isCollapsed = _collapsed[mealKey] ?? false;
     final mealCal = _mealCalories(foods).round();
     double mealProtein = 0, mealCarbs = 0, mealFat = 0;
@@ -2267,7 +2273,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                     bottom: Responsive.height(context, 6),
                   ),
                   child: Text(
-                    "No foods logged",
+                    emptyMealMessage,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
                       color: onTheme(appColor),
@@ -2586,19 +2592,28 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                       "Breakfast",
                       breakfastFoods,
                       colors[0],
+                      emptyMealMessage: _mealEmptyTexts[0],
                     ),
-                    _buildMealSection("lunch", "Lunch", lunchFoods, colors[1]),
+                    _buildMealSection(
+                      "lunch",
+                      "Lunch",
+                      lunchFoods,
+                      colors[1],
+                      emptyMealMessage: _mealEmptyTexts[1],
+                    ),
                     _buildMealSection(
                       "dinner",
                       "Dinner",
                       dinnerFoods,
                       colors[2],
+                      emptyMealMessage: _mealEmptyTexts[2],
                     ),
                     _buildMealSection(
                       "snacks",
                       "Snacks",
                       snacksFoods,
                       colors[3],
+                      emptyMealMessage: _mealEmptyTexts[3],
                     ),
 
                     SizedBox(height: Responsive.height(context, 24)),

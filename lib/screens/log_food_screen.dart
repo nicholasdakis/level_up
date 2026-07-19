@@ -23,6 +23,7 @@ import '../utility/shared_preferences/shared_prefs_async.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
+import '../utility/random_messages.dart';
 
 class LogFoodScreen extends ConsumerStatefulWidget {
   final String meal;
@@ -63,6 +64,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   );
 
   bool snackbarActive = false;
+  late final String _recentEmptyMessage = generateRecentFoodsEmptyMessage();
+  late final String _suggestedEmptyMessage =
+      generateSuggestedFoodsEmptyMessage();
   bool isLogging = false;
   String latestQuery = "";
   Timer? checkTimer;
@@ -2250,7 +2254,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                 _buildRecentSkeleton(context, appColor)
                               else if (_suggestedFoods.isEmpty)
                                 Text(
-                                  "Nothing suggested, try logging more foods first",
+                                  _suggestedEmptyMessage,
                                   style: GoogleFonts.manrope(
                                     fontSize: Responsive.font(context, 13),
                                     color: c.onCard.withAlpha(100),
@@ -2295,7 +2299,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                               _buildRecentSkeleton(context, appColor)
                             else if (_recentFoods.isEmpty)
                               Text(
-                                "Nothing logged recently",
+                                _recentEmptyMessage,
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 13),
                                   color: c.onCard.withAlpha(100),
