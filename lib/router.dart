@@ -529,7 +529,8 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
         final dark = darkenColor(base, 0.015);
         final mid = lightenColor(base, 0.015);
         final notch = darkenColor(base, 0.07);
-        web_fcm.setAppColor('${toHex(dark)}|${toHex(mid)}|${toHex(notch)}');
+        final on = onTheme(base);
+        web_fcm.setAppColor('${toHex(dark)}|${toHex(mid)}|${toHex(notch)}|${toHex(on)}');
       } catch (e) {
         if (kDebugMode) debugPrint('setAppColor failed: $e');
       }

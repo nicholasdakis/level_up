@@ -2896,3 +2896,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added 18 new achievements: personal_records, create_exercise, create_routine, save_routine, like_routine, food_voice, food_clear_meal, and a full Goals section (goal_calories, goal_protein, goal_carbs, goal_fat, goal_fiber, goal_sugar, goal_sodium, goal_water, goal_weight, goal_workouts)
 - Added the Goals section to tabSections and the section filter chips in the Badges tab
 - Added section_display_name field to AchievementDefItem schema and populated it server-side in the /achievement_defs endpoint, replacing the hardcoded _sectionDisplayNames map that was previously maintained on the client
+- PWA splash screen text now uses the onTheme color passed as a new --on-theme CSS variable, matching the app's own text color logic instead of hardcoded white
+- Added font-weight 700 and 800 to the Manrope Google Fonts request so the splash title renders correctly instead of falling back to the system serif
+- Expanded PWA loading tips from 33 to 48, covering Pro features, workout analytics, custom exercises, browse routines, moving and importing foods, streak boosts, and more

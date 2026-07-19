@@ -25,7 +25,7 @@
   <!-- For the splash screen-->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 
   <!-- iOS / PWA meta tags & icons -->
@@ -101,7 +101,7 @@
       font-weight: 800;
       letter-spacing: 4px;
       margin-bottom: 14px;
-      color: rgba(255, 255, 255, 0.95);
+      color: var(--on-theme, rgba(255, 255, 255, 0.95));
       text-align: center;
       animation: fadeUp 0.6s ease 0.5s both;
     }
@@ -110,7 +110,7 @@
       font-family: 'Manrope', sans-serif;
       font-size: 15px;
       font-weight: 500;
-      color: rgba(255, 255, 255, 0.5);
+      color: var(--on-theme, rgba(255, 255, 255, 0.5));
       margin-bottom: 72px;
       line-height: 1.6;
       text-align: center;
@@ -137,7 +137,7 @@
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.7);
+      background: var(--on-theme, rgba(255, 255, 255, 0.7));
       animation: dotPulse 1.4s ease-in-out infinite;
     }
 
@@ -145,7 +145,8 @@
     .dot:nth-child(3) { animation-delay: 0.4s; }
 
     #loading-text {
-      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Manrope', sans-serif;
+      color: var(--on-theme, rgba(255, 255, 255, 0.35));
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 3px;
@@ -181,7 +182,7 @@
     function applyAppColor(value) {
 
       var parts = value.split('|');
-      var dark = parts[0], mid = parts[1], notch = parts[2] || dark;
+      var dark = parts[0], mid = parts[1], notch = parts[2] || dark, on = parts[3] || '#ffffff';
 
       /* main gradient background used by splash and body */
       var gradient = 'linear-gradient(to right, ' + dark + ' 0%, ' + dark + ' 10%, ' + mid + ' 50%, ' + dark + ' 90%, ' + dark + ' 100%)';
@@ -193,6 +194,8 @@
       document.documentElement.style.setProperty('--notch-color', notch);
       /* mid color exposed as accent so spinner and glow use a lighter version of the theme color */
       document.documentElement.style.setProperty('--accent-color', mid);
+      /* onTheme text color: lightenColor(base, 0.45) for dark themes, matches Flutter's onTheme() */
+      document.documentElement.style.setProperty('--on-theme', on);
 
       /* keep android status bar in sync with app theme */
       var meta = document.querySelector('meta[name="theme-color"]');
@@ -307,37 +310,48 @@
         var tips = [
           'Log your meals daily to keep your food streak alive',
           'Claim your daily reward every 23 hours to earn XP',
-          'A longer streak means a higher daily reward multiplier',
+          'Your daily reward multiplier increases at 3, 10, 30, and 50 day streaks',
+          'A broken streak does not lock badge tiers you have already earned',
           'Refer a friend and you both earn XP when they reach level 3',
           'Check in to nearby spots on the Explore tab to earn XP',
-          'Claim badge tiers in the Badges tab to earn XP',
-          'Log all four meals in a day to unlock a special achievement',
-          'Log food before 8am to unlock the Early Bird achievement',
-          'Log food after 11pm to unlock the Night Owl achievement',
           'Scan a barcode to instantly log packaged food',
-          'Your daily reward multiplier grows at 3, 10, 30 and 50 day streaks',
-          'A broken streak does not lock badges you have already earned',
-          'Set a calorie goal to see your progress bar fill up each day',
-          'Set protein, carbs and fat goals to track your macros',
-          'Set a water goal to track your daily intake on the home screen',
-          'Set reminders so you never forget to log your meals',
-          'Use the calorie calculator to find your ideal daily intake',
+          'Set a calorie goal to see your daily progress bar on the home screen',
+          'Set protein, carb, fat, fiber, sugar, and sodium goals to track your full nutrition',
+          'Set a water goal and log intake from the home screen with the quick-add button',
+          'Use the calorie calculator to find your ideal daily calorie intake',
           'Food analytics shows your calorie and macro trends over time',
-          'Track your weight over time in the weight analytics screen',
-          'Set a weight goal and see how far you are from it on the home screen',
+          'Track your body weight over time in the weight analytics screen',
           'Switch between metric and imperial units in Personal Preferences',
-          'Log water directly from the home screen with the quick-add button',
-          'The leaderboard ranks you against every user by XP',
-          'Visit the Progression tab to see your level and XP progress',
-          'Recent foods appear at the top of the search screen for quick logging',
+          'The leaderboards have weekly and monthly filters so everyone can compete',
+          'Recent foods appear at the top of the search screen for quick re-logging',
           'The macro card on the home screen updates live as you log food',
-          'Water analytics shows your daily intake trend over any date range',
-          'Set up reminders from the home screen to stay consistent',
-          'Your food streak resets if you miss a full day of logging',
-          'Upload a profile picture in Personal Preferences to stand out on the leaderboard',
-          'The Explore tab shows gyms and health spots near you',
+          'The calorie bar turns red when you exceed your daily goal',
+          'Change your app color in Personal Preferences to repaint the entire theme',
+          'The app theme adapts to your chosen color, including gradients, cards, and text',
+          'Upload a profile picture to stand out on the leaderboard',
+          'The Explore tab shows gyms, parks, and health spots near you',
           'Use the serving size editor to log accurate portions',
-          'The calorie progress bar on the home screen turns red when you go over your goal',
+          'Copy an entire meal from a previous day into today with one tap',
+          'Hold the clear meal button to remove all foods from a meal at once',
+          'Use voice search to log food without typing',
+          'Build a routine to make starting workouts faster',
+          'Complete a workout to earn XP and track your progress over time',
+          'Set reminders so you never forget to log your meals or workouts',
+          'Visit the Progression tab to see your full level and XP history',
+          'Pro members get a shimmering name and badge on the leaderboard',
+          'Pro unlocks advanced food analytics with full macro breakdowns',
+          'Pro gives you unlimited color choices for your app theme',
+          'Move a logged food to a different meal by long-pressing it',
+          'Import foods from a previous meal into today in just a few taps',
+          'Workout analytics shows your volume, PRs, and muscle group trends over time',
+          'The workout screen tracks rest time automatically between sets',
+          'Create a custom exercise if it is not in the built-in library',
+          'Browse community routines to find a program that fits your goals',
+          'Save a routine from the browse page to add it to your library',
+          'The exercise picker filters by muscle group and equipment',
+          'Water analytics shows how consistently you are hitting your hydration goal',
+          'Weight analytics lets you zoom into any date range to see your trend',
+          'A streak boost lets you protect your streak on a day you miss',
         ];
         var tip = tips[Math.floor(Math.random() * tips.length)];
         document.getElementById('splash-subtitle').textContent = tip;
