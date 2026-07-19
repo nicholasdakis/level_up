@@ -554,8 +554,8 @@ class _ExploreState extends ConsumerState<Explore> {
     return nearbyPOIs.map((poi) {
       return Marker(
         point: LatLng(poi.lat, poi.lng),
-        width: Responsive.width(context, 40),
-        height: Responsive.width(context, 40),
+        width: Responsive.width(context, 28),
+        height: Responsive.width(context, 28),
         child: GestureDetector(
           onTap: () {
             setState(() {
@@ -574,7 +574,7 @@ class _ExploreState extends ConsumerState<Explore> {
           child: Icon(
             POIIcons.fromCategory(poi.category),
             color: darkenColor(Colors.blueAccent, 0.2),
-            size: Responsive.width(context, 35),
+            size: Responsive.width(context, 22),
           ),
         ),
       );

@@ -2925,3 +2925,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Finishing a workout now skips exercises with no valid ID rather than failing the entire save
 - Fixed barcode food scan double-crediting the food_barcode achievement
 - Fixed achievement progress and tier values being parsed as the wrong type, preventing potential runtime crashes
+- Replaced explore tab markers with HugeIcons

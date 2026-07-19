@@ -205,14 +205,6 @@ Widget buildSettingsDrawer(
                     },
                   ),
                   buildActionTile(
-                    icon: HugeIcons.strokeRoundedPhoneDeveloperMode,
-                    label: "About The Developer",
-                    onTap: () async {
-                      Navigator.pop(context);
-                      await context.push('/settings/developer');
-                    },
-                  ),
-                  buildActionTile(
                     icon: HugeIcons.strokeRoundedComment01,
                     label: "Contact Us",
                     onTap: () async {
