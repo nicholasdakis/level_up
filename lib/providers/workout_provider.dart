@@ -544,6 +544,7 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
           (state.value ?? const WorkoutState()).copyWith(
             recentExercises: (data['exercises'] as List)
                 .map((e) => Map<String, dynamic>.from(e as Map))
+                .where((e) => (e['exercise_id'] ?? e['id']) != null)
                 .toList(),
           ),
         );

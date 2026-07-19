@@ -206,7 +206,14 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                   await ref
                       .read(workoutProvider.notifier)
                       .deleteCustomExercise(id);
-                  if (mounted) _search();
+                  if (mounted) {
+                    setState(
+                      () => _recentExercises.removeWhere(
+                        (r) => r['id'] == id || r['exercise_id'] == id,
+                      ),
+                    );
+                    _search();
+                  }
                 }
               }
             },
