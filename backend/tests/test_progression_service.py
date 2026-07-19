@@ -200,15 +200,16 @@ def test_track_achievement_swallows_exceptions(mocker):
 # claim_daily_reward tests -----------------
 
 def make_claim_service(mocker, user, streaks=None, transaction_result=None):
-    # Helper that wires up the three mocked repos claim_daily_reward needs
+    # Helper that wires up the mocked repos claim_daily_reward needs
     fake_repo = mocker.Mock()
+    fake_reminder_repo = mocker.Mock()
     fake_achievement_repo = mocker.Mock()
     fake_repo.get_user.return_value = user
     fake_repo.get_streaks.return_value = streaks or []
     fake_repo.claim_daily_reward_transaction.return_value = transaction_result or {
         "claimed": True, "daily_streak": 1
     }
-    return ProgressionService(fake_repo, None, fake_achievement_repo)
+    return ProgressionService(fake_repo, fake_reminder_repo, fake_achievement_repo)
 
 # When the transaction says the cooldown hasn't passed, claimed must be False and no XP awarded
 def test_claim_daily_reward_cooldown_not_met(mocker):
