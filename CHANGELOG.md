@@ -2912,3 +2912,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Filled hex = active or in-progress, outline hex = all tiers claimed, matching the pattern where filled draws attention and outline signals completion
 - Added skeletonizer to food analytics
 - Added Facebook Purchase event and Firebase Analytics purchase event
+- Active workout timer now shows in MM:SS / H:MM:SS
+- Workout header timer and chevron collapsed into a single Text widget
+- Fixed overflow errors
+- Create routine bottom bar pills and the add-exercise button switched to an outline border style
+- Made the recent exercise entries appear as cards to better match the rest of the exercise picker UI

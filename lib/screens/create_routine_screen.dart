@@ -778,18 +778,9 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
 
   Widget _buildBottomBar(BuildContext context, Color accent, Color dim) {
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
-    final gradDeco = BoxDecoration(
+    final outlineDeco = BoxDecoration(
       borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
-      gradient: LinearGradient(
-        colors: [
-          lightenColor(appColor, 0.40),
-          lightenColor(appColor, 0.25),
-          lightenColor(appColor, 0.08),
-        ],
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-      ),
-      border: Border.all(color: cardColors(appColor).iconBorder, width: 1.5),
+      border: Border.all(color: onTheme(appColor).withAlpha(160), width: 1.5),
     );
 
     Widget pill(Widget child, VoidCallback onTap) => Expanded(
@@ -799,7 +790,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
           padding: EdgeInsets.symmetric(
             vertical: Responsive.height(context, 15),
           ),
-          decoration: gradDeco,
+          decoration: outlineDeco,
           child: child,
         ),
       ),
@@ -902,10 +893,11 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
                 vertical: Responsive.height(context, 12),
               ),
               decoration: BoxDecoration(
-                color: cardColors(appColor).iconBox,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 14),
+                ),
                 border: Border.all(
-                  color: cardColors(appColor).border,
+                  color: onTheme(appColor).withAlpha(160),
                   width: 1.5,
                 ),
               ),

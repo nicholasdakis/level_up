@@ -275,7 +275,7 @@ def send_due_reminders():
                 elif source == 'streak_warning':
                     title = "Your Streak Is at Risk"
                 elif source in ('system', 'daily_reward'):  # TODO: remove 'system' once MIN_APP_VERSION forces all clients onto 'daily_reward'
-                    title = "Daily Reward Available"
+                    title = "Daily Reward"
                 elif source == 'user':
                     title = "Reminder"
                 else:

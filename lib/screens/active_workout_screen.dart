@@ -323,7 +323,9 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
     final h = s.inHours;
     final m = s.inMinutes % 60;
     final sec = s.inSeconds % 60;
-    if (h > 0) return '${h}h${m.toString().padLeft(2, '0')}m';
+    if (h > 0) {
+      return '$h:${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
+    }
     return '${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
   }
 
@@ -1602,29 +1604,16 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                 GestureDetector(
                   onTap: _openTimerEdit,
                   behavior: HitTestBehavior.opaque,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          _durationLabel,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.manrope(
-                            color: onTheme(appColor),
-                            fontSize: Responsive.font(context, 20),
-                            fontWeight: FontWeight.w800,
-                            height: 1.0,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: Responsive.width(context, 4)),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: onTheme(appColor),
-                        size: Responsive.scale(context, 18),
-                      ),
-                    ],
+                  child: Text(
+                    '$_durationLabel ›',
+                    maxLines: 1,
+                    overflow: TextOverflow.clip,
+                    style: GoogleFonts.manrope(
+                      color: onTheme(appColor),
+                      fontSize: Responsive.font(context, 20),
+                      fontWeight: FontWeight.w800,
+                      height: 1.0,
+                    ),
                   ),
                 ),
                 SizedBox(height: Responsive.height(context, 2)),
@@ -1632,7 +1621,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                   onTap: _renameWorkout,
                   behavior: HitTestBehavior.opaque,
                   child: Text(
-                    _workoutName ?? _s.routineName ?? 'Name this workout',
+                    _workoutName ?? _s.routineName ?? 'Untitled',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.manrope(
@@ -2321,12 +2310,42 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          gradientButton(
-            context,
-            label: 'Add Exercise',
-            color: appColor,
-            icon: Icons.add_rounded,
+          GestureDetector(
             onTap: _openExercisePicker,
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 14),
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 12),
+                ),
+                border: Border.all(
+                  color: onTheme(appColor).withAlpha(160),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_rounded,
+                    color: onTheme(appColor),
+                    size: Responsive.scale(context, 16),
+                  ),
+                  SizedBox(width: Responsive.width(context, 6)),
+                  Text(
+                    'Add Exercise',
+                    style: GoogleFonts.manrope(
+                      color: onTheme(appColor),
+                      fontSize: Responsive.font(context, 14),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           SizedBox(height: Responsive.height(context, 12)),
           IntrinsicHeight(
@@ -2355,12 +2374,11 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                         vertical: Responsive.height(context, 12),
                       ),
                       decoration: BoxDecoration(
-                        color: cardColors(
-                          appColor,
-                        ).gradient.first.withAlpha(60),
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 14),
+                        ),
                         border: Border.all(
-                          color: cardColors(appColor).border,
+                          color: onTheme(appColor).withAlpha(160),
                           width: 1.5,
                         ),
                       ),
@@ -2369,14 +2387,14 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                         children: [
                           Icon(
                             Icons.delete_outline_rounded,
-                            color: cardColors(appColor).onCard,
+                            color: onTheme(appColor),
                             size: Responsive.scale(context, 15),
                           ),
                           SizedBox(width: Responsive.width(context, 5)),
                           Text(
                             'Discard',
                             style: GoogleFonts.manrope(
-                              color: cardColors(appColor).onCard,
+                              color: onTheme(appColor),
                               fontSize: Responsive.font(context, 13),
                               fontWeight: FontWeight.w600,
                             ),
@@ -2396,12 +2414,11 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                         vertical: Responsive.height(context, 12),
                       ),
                       decoration: BoxDecoration(
-                        color: cardColors(
-                          appColor,
-                        ).gradient.first.withAlpha(60),
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 14),
+                        ),
                         border: Border.all(
-                          color: cardColors(appColor).border,
+                          color: onTheme(appColor).withAlpha(160),
                           width: 1.5,
                         ),
                       ),
@@ -2409,7 +2426,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                         'Settings',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.manrope(
-                          color: cardColors(appColor).onCard,
+                          color: onTheme(appColor),
                           fontSize: Responsive.font(context, 13),
                           fontWeight: FontWeight.w600,
                         ),

@@ -367,13 +367,19 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              label,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.manrope(
-                                color: cardColors(appColor).onCard,
-                                fontSize: Responsive.font(context, 11),
-                                fontWeight: FontWeight.w600,
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: Responsive.width(context, 160),
+                              ),
+                              child: Text(
+                                label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.manrope(
+                                  color: cardColors(appColor).onCard,
+                                  fontSize: Responsive.font(context, 11),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                             SizedBox(width: Responsive.width(context, 4)),
@@ -393,12 +399,14 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
 
           Widget stepLabel(String text) => Padding(
             padding: EdgeInsets.only(bottom: Responsive.height(context, 12)),
-            child: Text(
-              text,
-              style: GoogleFonts.manrope(
-                color: cardColors(appColor).onCard,
-                fontSize: Responsive.font(context, 15),
-                fontWeight: FontWeight.w700,
+            child: Center(
+              child: Text(
+                text,
+                style: GoogleFonts.manrope(
+                  color: cardColors(appColor).onCard,
+                  fontSize: Responsive.font(context, 15),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           );
@@ -408,27 +416,17 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             String? selected,
             void Function(String) onPick,
           ) {
-            return ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: Responsive.height(context, 240),
-              ),
-              child: ScrollConfiguration(
-                behavior: NoGlowScrollBehavior(),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      for (final opt in options)
-                        _dialogOptionRow(
-                          context,
-                          label: opt,
-                          selected: selected == opt,
-                          gradient: accentGradient,
-                          onTap: () => onPick(opt),
-                        ),
-                    ],
+            return Column(
+              children: [
+                for (final opt in options)
+                  _dialogOptionRow(
+                    context,
+                    label: opt,
+                    selected: selected == opt,
+                    gradient: accentGradient,
+                    onTap: () => onPick(opt),
                   ),
-                ),
-              ),
+              ],
             );
           }
 
@@ -615,7 +613,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 key: const ValueKey(1),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     summaryChips(),
                     stepLabel('Primary muscle?'),
@@ -632,39 +630,25 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 key: const ValueKey(2),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     summaryChips(),
                     stepLabel('Secondary muscle(s)?'),
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: Responsive.height(context, 200),
-                      ),
-                      child: ScrollConfiguration(
-                        behavior: NoGlowScrollBehavior(),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              for (final opt in _muscleOptions)
-                                if (opt != selectedMuscle)
-                                  _dialogOptionRow(
-                                    context,
-                                    label: opt,
-                                    selected: selectedSecondary.contains(opt),
-                                    gradient: accentGradient,
-                                    onTap: () => setDialogState(() {
-                                      if (selectedSecondary.contains(opt)) {
-                                        selectedSecondary.remove(opt);
-                                      } else {
-                                        selectedSecondary.add(opt);
-                                      }
-                                    }),
-                                  ),
-                            ],
-                          ),
+                    for (final opt in _muscleOptions)
+                      if (opt != selectedMuscle)
+                        _dialogOptionRow(
+                          context,
+                          label: opt,
+                          selected: selectedSecondary.contains(opt),
+                          gradient: accentGradient,
+                          onTap: () => setDialogState(() {
+                            if (selectedSecondary.contains(opt)) {
+                              selectedSecondary.remove(opt);
+                            } else {
+                              selectedSecondary.add(opt);
+                            }
+                          }),
                         ),
-                      ),
-                    ),
                     SizedBox(height: Responsive.height(context, 10)),
                     dialogGradientButton('Continue', advance),
                   ],
@@ -674,7 +658,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 key: const ValueKey(3),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     summaryChips(),
                     stepLabel('Equipment?'),
@@ -693,7 +677,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 key: const ValueKey(4),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     summaryChips(),
                     stepLabel('Difficulty?'),
@@ -1358,6 +1342,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
           ),
           child: Text(
             label,
+            textAlign: TextAlign.center,
             style: GoogleFonts.manrope(
               color: onTheme(appColor),
               fontSize: Responsive.font(context, 13),
@@ -1390,7 +1375,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 children: [
                   Text(
                     name,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.manrope(
                       color: cardColors(appColor).onCard,
@@ -1473,7 +1458,6 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
     const fakeRecents = [
       {'exercise_name': 'Barbell Bench Press'},
       {'exercise_name': 'Squat'},
-      {'exercise_name': 'Deadlift'},
     ];
     return Skeletonizer(
       enabled: true,
@@ -1575,40 +1559,100 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
           ],
           if (!emptyStateHeader &&
               (skeletonRecents ?? _recentExercises).isNotEmpty) ...[
+            Divider(
+              color: onTheme(appColor).withAlpha(120),
+              height: 8,
+              thickness: 1.5,
+            ),
             sectionHeader('RECENTLY LOGGED EXERCISES'),
             for (
               int i = 0;
               i < (skeletonRecents ?? _recentExercises).length;
               i++
             ) ...[
-              if (i > 0)
-                Divider(
-                  color: onTheme(appColor).withAlpha(120),
-                  height: 1,
-                  thickness: 1.5,
-                ),
-              _buildExerciseRow(
-                context,
-                name:
-                    ((skeletonRecents ?? _recentExercises)[i]['exercise_name']
-                                as String? ??
-                            '')
-                        .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
-                        .trim(),
-                subtitle: [
-                  (skeletonRecents ?? _recentExercises)[i]['primary_muscle']
-                      as String?,
-                  (skeletonRecents ?? _recentExercises)[i]['equipment']
-                      as String?,
-                ].where((s) => s != null && s.isNotEmpty).join(' · '),
+              if (i > 0) SizedBox(height: Responsive.height(context, 10)),
+              GestureDetector(
                 onTap: () {
                   if (skeletonRecents == null) {
                     widget.onExerciseSelected(_recentExercises[i]);
                     Navigator.of(context).pop();
                   }
                 },
+                child: frostedGlassCard(
+                  context,
+                  color: appColor,
+                  baseRadius: 12,
+                  shadow: false,
+                  border: Border.all(
+                    color: cardColors(appColor).border,
+                    width: 1.5,
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 14),
+                    vertical: Responsive.height(context, 12),
+                  ),
+                  child: Builder(
+                    builder: (context) {
+                      String cap(String s) => s.isNotEmpty
+                          ? s[0].toUpperCase() + s.substring(1)
+                          : s;
+                      final rec = (skeletonRecents ?? _recentExercises)[i];
+                      final name = (rec['exercise_name'] as String? ?? '')
+                          .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
+                          .trim();
+                      final muscle = cap(
+                        rec['primary_muscle'] as String? ?? '',
+                      );
+                      final equipment = cap(rec['equipment'] as String? ?? '');
+                      final subtitle = [
+                        if (muscle.isNotEmpty) muscle,
+                        if (equipment.isNotEmpty) equipment,
+                      ].join(' · ');
+                      return Row(
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedAdd01,
+                            color: cardColors(appColor).onCard,
+                            size: Responsive.scale(context, 22),
+                          ),
+                          SizedBox(width: Responsive.width(context, 12)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.manrope(
+                                    color: cardColors(appColor).onCard,
+                                    fontSize: Responsive.font(context, 14),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (subtitle.isNotEmpty)
+                                  Text(
+                                    subtitle,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.manrope(
+                                      color: cardColors(
+                                        appColor,
+                                      ).onCard.withAlpha(160),
+                                      fontSize: Responsive.font(context, 11),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
               ),
             ],
+            SizedBox(height: Responsive.height(context, 20)),
           ],
           Divider(
             color: onTheme(appColor).withAlpha(120),

@@ -105,7 +105,7 @@ buttonColors(Color base) {
     border: isDark
         ? _oklabShift(base, 0.35).withAlpha(180)
         : _oklabShift(base, -0.14).withAlpha(180),
-    label: isDark ? lightenColor(base, 0.45) : darkenColor(base, 0.50),
+    label: isDark ? lightenColor(base, 0.60) : darkenColor(base, 0.50),
   );
 }
 
