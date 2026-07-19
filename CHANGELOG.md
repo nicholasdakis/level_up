@@ -2911,3 +2911,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced the rounded square themedIconBox on each achievement card with a hexagon badge widget
 - Filled hex = active or in-progress, outline hex = all tiers claimed, matching the pattern where filled draws attention and outline signals completion
 - Added skeletonizer to food analytics
+- Added Facebook Purchase event and Firebase Analytics purchase event

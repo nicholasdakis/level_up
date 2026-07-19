@@ -6,6 +6,8 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/user_data_provider.dart';
 import 'user_data_manager.dart' show authenticatedPost;
+import '../globals/global_state.dart'
+    show logFacebookPurchase, logAnalyticsEvent;
 
 const String _subscriptionId = 'level_up_premium';
 // queryProductDetails takes the subscription ID, not the base plan IDs
@@ -113,6 +115,20 @@ class PremiumService {
                 shieldCount: 3,
               ),
             );
+        final product = _cachedProducts
+            .where((p) => p.id == productId)
+            .firstOrNull;
+        final rawPrice = product?.rawPrice ?? 0.0;
+        final currencyCode = product?.currencyCode ?? 'USD';
+        logFacebookPurchase(amount: rawPrice, currency: currencyCode);
+        logAnalyticsEvent(
+          'purchase',
+          parameters: {
+            'value': rawPrice,
+            'currency': currencyCode,
+            'product_id': productId,
+          },
+        );
       } else {
         if (kDebugMode) {
           debugPrint(

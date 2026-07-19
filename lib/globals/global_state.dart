@@ -72,6 +72,15 @@ void logFacebookEvent(String name, {Map<String, Object?>? parameters}) {
   _facebookAppEvents.logEvent(name: name, parameters: parameters);
 }
 
+// Logs the Facebook Purchase standard event
+void logFacebookPurchase({required double amount, required String currency}) {
+  if (kDebugMode) return;
+  if (FirebaseAuth.instance.currentUser?.email == 'n1ch0lasd4k1s@gmail.com') {
+    return;
+  }
+  _facebookAppEvents.logPurchase(amount: amount, currency: currency);
+}
+
 // Logs the Facebook CompleteRegistration standard event
 void logFacebookSignUp(String method) {
   if (kDebugMode) return;
