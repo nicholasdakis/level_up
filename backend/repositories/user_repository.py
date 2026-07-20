@@ -31,6 +31,10 @@ class UserRepository:
         result = self._supabase.table("users").select("*").eq("uid", uid).execute()
         return result.data[0] if result.data else None
 
+    def get_user_by_username(self, username: str):
+        result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64, is_premium").eq("username", username).execute()
+        return result.data[0] if result.data else None
+
     def get_user_fcm_tokens(self, uid: str):
         # Fetches only the fcm_tokens array for a given user
         result = self._supabase.table("users").select("fcm_tokens").eq("uid", uid).execute()

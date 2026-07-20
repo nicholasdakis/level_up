@@ -619,3 +619,11 @@ class FriendActionRequest(BaseModel):
 
 class UnfriendRequest(BaseModel):
     target_uid: str = Field(..., min_length=1)
+
+class SearchUserResponse(BaseModel):
+    uid: str
+    username: str
+    level: int
+    exp_points: int
+    pfp_base64: Optional[str] = None
+    is_premium: bool = False

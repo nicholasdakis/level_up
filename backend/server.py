@@ -124,6 +124,7 @@ from backend.schemas import (
     UserProfileCardResponse,
     FriendActionRequest,
     UnfriendRequest,
+    SearchUserResponse,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -719,6 +720,21 @@ def handle_friend_request():
         return jsonify({"error": "unknown action"}), 400
 
     return jsonify(result), 200
+
+@app.route("/search_user", methods=["GET"])
+def search_user():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    username = request.args.get("username", "").strip()
+    if not username:
+        return jsonify({"error": "username required"}), 400
+    user = user_repo.get_user_by_username(username)
+    if not user:
+        return jsonify({"error": "not_found"}), 404
+    if user["uid"] == uid:
+        return jsonify({"error": "self_search"}), 400
+    return jsonify(SearchUserResponse(**user).model_dump()), 200
 
 @app.route("/unfriend", methods=["POST"])
 def handle_unfriend():
