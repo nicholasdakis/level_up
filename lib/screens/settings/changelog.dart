@@ -64,6 +64,20 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
               _buildChangelogCard(
                 context,
                 appColor,
+                date: 'July 19, 2026',
+                version: '1.2.51',
+                changes: [
+                  'Reminders tab completely redesigned with a much better empty state',
+                  'Tap any reminder suggestion to instantly set it, edit the message, and choose a time without leaving the screen',
+                  'New quick time buttons let you schedule reminders faster than ever',
+                  'You\'ll now automatically get a push notification when your streak is at risk of resetting',
+                  'Achievement badges redesigned with a hexagon style',
+                  'Bug fixes, visual polish, and reliability improvements across the app',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
+                appColor,
                 date: 'July 18, 2026',
                 version: '1.2.5',
                 changes: [

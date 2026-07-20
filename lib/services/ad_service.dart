@@ -19,8 +19,11 @@ class AdService {
   bool get isReady => _admobAd != null || _unityReady;
 
   void initialize() {
+    if (kDebugMode) debugPrint('[AdService] initialize() called');
     // Delay 5 seconds so the GMS SDK callbacks don't flood the main looper during app startup
     Future.delayed(const Duration(seconds: 5), () {
+      if (kDebugMode) debugPrint('[AdService] delay complete, initing ads');
+
       unawaited(
         MobileAds.instance.initialize().then((_) {
           unawaited(_loadAdmobAd());
@@ -63,7 +66,10 @@ class AdService {
   void _loadUnityAd() {
     UnityAds.load(
       placementId: _unityPlacementId,
-      onComplete: (placementId) => _unityReady = true,
+      onComplete: (placementId) {
+        if (kDebugMode) debugPrint('[AdService] Unity ad loaded successfully');
+        _unityReady = true;
+      },
       onFailed: (placementId, error, message) {
         if (kDebugMode) debugPrint('Unity Ads load failed: $message');
         _unityReady = false;
@@ -72,7 +78,13 @@ class AdService {
   }
 
   Future<void> showRewardedAd({required VoidCallback onRewarded}) async {
-    // Try AdMob first
+    // Try Unity first since AdMob is pending approval
+    if (_unityReady) {
+      _showUnityAd(onRewarded: onRewarded);
+      return;
+    }
+
+    // Fall back to AdMob
     if (_admobAd != null) {
       _admobAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
@@ -91,12 +103,6 @@ class AdService {
       return;
     }
 
-    // Fall back to Unity Ads
-    if (_unityReady) {
-      _showUnityAd(onRewarded: onRewarded);
-      return;
-    }
-
     // Neither ready, reload in background; user will need to tap again
     unawaited(_loadAdmobAd());
   }
@@ -105,7 +111,6 @@ class AdService {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
     UnityAds.showVideoAd(
       placementId: _unityPlacementId,
-      // TODO: switch to /unity_ssv server-side verification once Unity sends the HMAC secret
       onComplete: (placementId) {
         onRewarded();
         _unityReady = false;

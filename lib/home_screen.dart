@@ -1111,9 +1111,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 await showFrostedAlertDialog(
                   context: context,
                   appColor: appColor,
-                  title: "Not available right now",
+                  title: "No ads available",
                   content: Text(
-                    "Rewarded ads are currently under review and will be available soon.",
+                    "No ads are available right now. Check back a little later.",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
                       color: Colors.white,

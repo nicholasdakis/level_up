@@ -2935,3 +2935,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added quick time buttons (eg tomorrow at noon) to the Reminders tab
 - Fixed streak warning reminders being inserted with notification_id 0
 - Fixed user reminder notification IDs using millisecondsSinceEpoch which overflows Android's 32-bit int; both client and server now use a random 32-bit int
+- Fixed unselected nav bar tab colors to use onTheme instead of hardcoded black/white, so they adapt correctly to both light and dark themes
+- Password reset success message is now green and mentions checking the spam folder
+
+## 2026-07-20
+- Reordered ads so AdMob is the fallback now
+- Changed the "ads not ready" dialog to an "ads not available" fallback dialog
