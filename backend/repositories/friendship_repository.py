@@ -27,3 +27,17 @@ class FriendshipRepository:
             "p_sender_uid": sender_uid,
             "p_recipient_uid": target_uid,
         }).execute().data
+
+    def get_status(self, uid: str, other_uid: str) -> str:
+        row = self._supabase.table("friendships") \
+            .select("sender_uid, status") \
+            .or_(f"and(sender_uid.eq.{uid},recipient_uid.eq.{other_uid}),and(sender_uid.eq.{other_uid},recipient_uid.eq.{uid})") \
+            .maybe_single() \
+            .execute()
+        if not row.data:
+            return "none"
+        if row.data["status"] == "accepted":
+            return "accepted"
+        if row.data["sender_uid"] == uid:
+            return "pending_sent"
+        return "pending_received"

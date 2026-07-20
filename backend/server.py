@@ -668,7 +668,7 @@ def get_progress():
 
 @app.route("/user_profile_card", methods=["GET"])
 def get_user_profile_card():
-    _, _, err = _parse_and_auth()
+    uid, _, err = _parse_and_auth()
     if err:
         return err
 
@@ -683,8 +683,7 @@ def get_user_profile_card():
     streaks = user_repo.get_streaks(target_uid)
     streak_map = {s["streak_type"]: s for s in streaks}
 
-    # TODO: query friends table for real status once it exists
-    friendship_status = "none"
+    friendship_status = friendship_repo.get_status(uid, target_uid)
 
     response = UserProfileCardResponse(
         uid=user["uid"],
