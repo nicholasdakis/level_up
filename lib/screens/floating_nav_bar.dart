@@ -135,12 +135,8 @@ class _NavItem extends StatelessWidget {
     final activeColor = isLight
         ? darkenColor(appColor, 0.35)
         : onTheme(appColor);
-    final inactiveColor = isLight
-        ? Colors.black.withAlpha(100)
-        : Colors.white38;
-    final inactiveLabelColor = isLight
-        ? Colors.black.withAlpha(80)
-        : Colors.white24;
+    final inactiveColor = onTheme(appColor).withAlpha(isLight ? 120 : 150);
+    final inactiveLabelColor = onTheme(appColor).withAlpha(isLight ? 100 : 120);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque, // makes the full padding area tappable
