@@ -1,4 +1,5 @@
 ﻿import 'dart:async';
+import 'dart:math';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
@@ -389,7 +390,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                             final msg = msgController.text.trim();
                             if (msg.isEmpty) return;
                             setDialogState(() => submitting = true);
-                            final id = DateTime.now().millisecondsSinceEpoch;
+                            final id = Random().nextInt(0x7fffffff);
                             final success = await ref
                                 .read(remindersProvider.notifier)
                                 .addReminder(
@@ -544,7 +545,7 @@ class _RemindersState extends ConsumerState<Reminders> {
     setState(() => isLoading = true);
 
     try {
-      final id = DateTime.now().millisecondsSinceEpoch;
+      final id = Random().nextInt(0x7fffffff);
       final message = remindersController.text;
 
       final success = await ref

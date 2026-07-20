@@ -2933,3 +2933,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - The reminder cards have a pencil which opens a "Quick Reminders" dialog where the reminder can be edited and set
 - Added a regenerate button to the placeholder reminder messages
 - Added quick time buttons (eg tomorrow at noon) to the Reminders tab
+- Fixed streak warning reminders being inserted with notification_id 0
+- Fixed user reminder notification IDs using millisecondsSinceEpoch which overflows Android's 32-bit int; both client and server now use a random 32-bit int

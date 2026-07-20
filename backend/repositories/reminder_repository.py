@@ -1,3 +1,4 @@
+import random
 from supabase import Client
 
 
@@ -50,11 +51,12 @@ class ReminderRepository:
         else:
             source = "streak_warning"
             message = f"Your {streak} day streak is at risk! Claim your daily reward before it resets."
+        notification_id = random.randint(1, 2**31 - 1)
         self._supabase.table("reminders").delete().eq("uid", uid).in_("source", ["streak_warning", "streak_warning_day_one"]).execute()
         self._supabase.table("reminders").insert({
             "uid": uid,
             "message": message,
             "scheduled_at": scheduled_at,
-            "notification_id": 0,
+            "notification_id": notification_id,
             "source": source,
         }).execute()
