@@ -1,4 +1,5 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -69,8 +70,7 @@ class _ExploreState extends ConsumerState<Explore> {
   double _currentZoom = 15;
 
   // Restricted to the Google Play reviewer account so real users cannot fake check-ins
-  static const _testUid = 'Inu2nmOe0lbwhj1zbjsk4oSf5R42';
-  bool get _isTestAccount => ref.watch(userDataProvider).value?.uid == _testUid;
+  bool get _isTestAccount => FirebaseAuth.instance.currentUser?.email == 'nicholasdakisdev@gmail.com';
 
   // Simulated NYC spawn point (Times Square). One POI is placed exactly here so it is immediately claimable
   // User spawns ~10m from Times Square so it looks natural but is still within the 30m check-in range

@@ -405,7 +405,7 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin>
       await authService.value.resetPassword(email: emailController.text.trim());
       setState(
         () => notifyingMessage =
-            "Success: Password reset email sent to ${emailController.text.trim()}.",
+            "Password reset email sent to ${emailController.text.trim()}. Check your spam folder if you don't see it.",
       );
     } catch (e) {
       setState(() => notifyingMessage = "Error: $e");
@@ -1038,7 +1038,9 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin>
             notifyingMessage!,
             textAlign: TextAlign.center,
             style: GoogleFonts.manrope(
-              color: Colors.redAccent.shade100,
+              color: notifyingMessage!.startsWith("Password reset email sent")
+                  ? Colors.greenAccent.shade100
+                  : Colors.redAccent.shade100,
               fontSize: Responsive.font(context, 13),
             ),
           ),
