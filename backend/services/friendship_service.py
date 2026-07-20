@@ -13,6 +13,9 @@ class FriendshipService:
         except APIError as e:
             msg = str(e).lower()
             if "unique" in msg:
+                status = self._repo.get_status(uid, target_uid)
+                if status == "accepted":
+                    return {"ok": False, "reason": "already_friends"}
                 return {"ok": False, "reason": "request_already_exists"}
             if "foreign key" in msg:
                 return {"ok": False, "reason": "user_not_found"}
