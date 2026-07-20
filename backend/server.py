@@ -16,8 +16,8 @@ from firebase_admin import credentials as firebase_credentials
 from supabase import create_client, Client
 from redis.exceptions import LockNotOwnedError, LockError
 from backend.token_manager import TokenManager
-from backend.repository import UserRepository, ReminderRepository, RateLimitRepository, AchievementRepository, WorkoutRepository, PremiumPerksRepository
-from backend.services import ProgressionService, FoodService, POIService, SnapshotService
+from backend.repository import UserRepository, ReminderRepository, RateLimitRepository, AchievementRepository, WorkoutRepository, PremiumPerksRepository, FriendshipRepository
+from backend.services import ProgressionService, FoodService, POIService, SnapshotService, FriendshipService
 from backend.services.workout_service import WorkoutService
 from backend.schemas import (
     DailyRewardResponse,
@@ -122,6 +122,7 @@ from backend.schemas import (
     PremiumPerksResponse,
     UseShieldResponse,
     UserProfileCardResponse,
+    FriendActionRequest,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -151,14 +152,16 @@ user_repo = UserRepository(supabase_client)
 reminder_repo = ReminderRepository(supabase_client)
 rate_limit_repo = RateLimitRepository(supabase_client)
 achievement_repo = AchievementRepository(supabase_client)
+premium_perks_repo = PremiumPerksRepository(supabase_client)
+friendship_repo = FriendshipRepository(supabase_client)
+workout_repo = WorkoutRepository(supabase_client)
 
+workout_service = WorkoutService(workout_repo)
 progression_service = ProgressionService(user_repo, reminder_repo, achievement_repo)
 food_service = FoodService(token_manager, rate_limit_repo, CLIENT_ID, CLIENT_SECRET, redis=redis)
 poi_service = POIService()
 snapshot_service = SnapshotService(user_repo)
-workout_repo = WorkoutRepository(supabase_client)
-workout_service = WorkoutService(workout_repo)
-premium_perks_repo = PremiumPerksRepository(supabase_client)
+friendship_service = FriendshipService(friendship_repo)
 
 # Initialize Firebase Admin SDK for FCM (for notifications)
 if not firebase_admin._apps:
@@ -697,6 +700,25 @@ def get_user_profile_card():
         friendship_status=friendship_status,
     )
     return jsonify(response.model_dump()), 200
+
+@app.route("/friend_request", methods=["POST"])
+def handle_friend_request():
+    uid, body, err = _parse_and_auth(FriendActionRequest)
+    if err:
+        return err
+
+    if body.action == "send":
+        result = friendship_service.send_friend_request(uid, body.target_uid)
+    elif body.action == "accept":
+        result = friendship_service.accept_friend_request(uid, body.target_uid)
+    elif body.action == "decline":
+        result = friendship_service.decline_friend_request(uid, body.target_uid)
+    elif body.action == "cancel":
+        result = friendship_service.cancel_friend_request(uid, body.target_uid)
+    else:
+        return jsonify({"error": "unknown action"}), 400
+
+    return jsonify(result), 200
 
 @app.route("/user_data", methods=["GET"])
 def get_user_data():

@@ -1255,6 +1255,54 @@ AS $$
     LIMIT p_limit;
 $$;
 
+-- send_friend_request: inserts a pending friendship row from sender to recipient
+CREATE OR REPLACE FUNCTION send_friend_request(p_sender_uid TEXT, p_recipient_uid TEXT)
+RETURNS JSONB LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO friendships (sender_uid, recipient_uid, status)
+    VALUES (p_sender_uid, p_recipient_uid, 'pending');
+
+    RETURN jsonb_build_object('ok', true);
+END;
+$$;
+
+-- accept_friend_request: transitions a pending row to accepted
+-- only the recipient of the original request can accept
+CREATE OR REPLACE FUNCTION accept_friend_request(p_target_uid TEXT, p_sender_uid TEXT)
+RETURNS JSONB LANGUAGE plpgsql AS $$
+BEGIN
+    UPDATE friendships
+    SET status = 'accepted', accepted_at = NOW()
+    WHERE sender_uid = p_sender_uid AND recipient_uid = p_target_uid AND status = 'pending';
+
+    RETURN jsonb_build_object('ok', true);
+END;
+$$;
+
+-- decline_friend_request: deletes the pending row so the pair slot is free if they want to reconnect later
+-- only the recipient can decline; no-ops if the row is missing or already accepted
+CREATE OR REPLACE FUNCTION decline_friend_request(p_target_uid TEXT, p_sender_uid TEXT)
+RETURNS JSONB LANGUAGE plpgsql AS $$
+BEGIN
+    DELETE FROM friendships
+    WHERE sender_uid = p_sender_uid AND recipient_uid = p_target_uid AND status = 'pending';
+
+    RETURN jsonb_build_object('ok', true);
+END;
+$$;
+
+-- cancel_friend_request: lets the sender pull back their own pending request before it is accepted
+-- only deletes if still pending so an accepted friendship cannot be accidentally wiped
+CREATE OR REPLACE FUNCTION cancel_friend_request(p_sender_uid TEXT, p_recipient_uid TEXT)
+RETURNS JSONB LANGUAGE plpgsql AS $$
+BEGIN
+    DELETE FROM friendships
+    WHERE sender_uid = p_sender_uid AND recipient_uid = p_recipient_uid AND status = 'pending';
+
+    RETURN jsonb_build_object('ok', true);
+END;
+$$;
+
 -- bulk_add_food_logs: inserts multiple food log rows atomically for a given user.
 -- all rows succeed or none do, so a network failure cannot leave a partial copy.
 CREATE OR REPLACE FUNCTION bulk_add_food_logs(p_uid TEXT, p_items JSONB)

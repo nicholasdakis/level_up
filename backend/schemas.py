@@ -613,3 +613,7 @@ class UserProfileCardResponse(BaseModel):
     best_workout_streak: int
     friendship_status: str = "none"
 
+class FriendActionRequest(BaseModel):
+    target_uid: str = Field(..., min_length=1)
+    action: str = Field(..., pattern="^(send|accept|decline|cancel)$")
+

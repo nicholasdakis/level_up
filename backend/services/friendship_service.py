@@ -1,0 +1,28 @@
+from postgrest.exceptions import APIError
+from backend.repositories.friendship_repository import FriendshipRepository
+
+class FriendshipService:
+    def __init__(self, repo: FriendshipRepository):
+        self._repo = repo
+
+    def send_friend_request(self, uid: str, target_uid: str) -> dict:
+        if uid == target_uid:
+            return {"ok": False, "reason": "self_request"}
+        try:
+            return self._repo.send_request(uid, target_uid) or {}
+        except APIError as e:
+            msg = str(e).lower()
+            if "unique" in msg:
+                return {"ok": False, "reason": "request_already_exists"}
+            if "foreign key" in msg:
+                return {"ok": False, "reason": "user_not_found"}
+            raise
+
+    def accept_friend_request(self, target_uid: str, sender_uid: str) -> dict:
+        return self._repo.accept_request(target_uid, sender_uid) or {}
+
+    def decline_friend_request(self, target_uid: str, sender_uid: str) -> dict:
+        return self._repo.decline_request(target_uid, sender_uid) or {}
+
+    def cancel_friend_request(self, sender_uid: str, target_uid: str) -> dict:
+        return self._repo.cancel_request(sender_uid, target_uid) or {}

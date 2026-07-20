@@ -5,6 +5,7 @@ from backend.repositories.achievement_repository import AchievementRepository
 from backend.repositories.reminder_repository import ReminderRepository
 from backend.repositories.rate_limit_repository import RateLimitRepository
 from backend.repositories.premium_perks_repository import PremiumPerksRepository
+from backend.repositories.friendship_repository import FriendshipRepository
 
 __all__ = [
     "UserRepository",
@@ -13,4 +14,5 @@ __all__ = [
     "ReminderRepository",
     "RateLimitRepository",
     "PremiumPerksRepository",
+    "FriendshipRepository"
 ]
