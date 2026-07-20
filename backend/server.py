@@ -121,6 +121,7 @@ from backend.schemas import (
     PremiumStatusResponse,
     PremiumPerksResponse,
     UseShieldResponse,
+    UserProfileCardResponse,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -660,6 +661,37 @@ def get_progress():
 
     # Step 3: Return validated response
     response = ProgressResponse(**result)
+    return jsonify(response.model_dump()), 200
+
+@app.route("/user_profile_card", methods=["GET"])
+def get_user_profile_card():
+    _, _, err = _parse_and_auth()
+    if err:
+        return err
+
+    target_uid = request.args.get("uid")
+    if not target_uid:
+        return jsonify({"error": "uid required"}), 400
+
+    user = user_repo.get_user(target_uid)
+    if not user:
+        return jsonify({"error": "user not found"}), 404
+
+    streaks = user_repo.get_streaks(target_uid)
+    streak_map = {s["streak_type"]: s for s in streaks}
+
+    response = UserProfileCardResponse(
+        uid=user["uid"],
+        username=user.get("username"),
+        level=user.get("level", 1),
+        exp_points=user.get("exp_points", 0),
+        pfp_base64=user.get("pfp_base64"),
+        is_premium=user.get("is_premium", False),
+        created_at=user.get("created_at"),
+        best_daily_streak=streak_map.get("daily_claim", {}).get("highest_streak", 0),
+        best_food_streak=streak_map.get("food_log", {}).get("highest_streak", 0),
+        best_workout_streak=streak_map.get("workout", {}).get("highest_streak", 0),
+    )
     return jsonify(response.model_dump()), 200
 
 @app.route("/user_data", methods=["GET"])

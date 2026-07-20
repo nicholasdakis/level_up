@@ -600,3 +600,15 @@ class UseShieldResponse(BaseModel):
     shield_count: int       # remaining shields after use
     restored_streak: int    # the daily streak value after restoration
 
+class UserProfileCardResponse(BaseModel):
+    uid: str
+    username: Optional[str] = None
+    level: int
+    exp_points: int
+    pfp_base64: Optional[str] = None
+    is_premium: bool
+    created_at: Optional[str] = None
+    best_daily_streak: int
+    best_food_streak: int
+    best_workout_streak: int
+
