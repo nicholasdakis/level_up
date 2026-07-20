@@ -2928,3 +2928,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced explore tab markers with HugeIcons
 - Removed About the Developer from settings
 - Home screen greeting, reminder placeholder, workout empty state, meal empty state, daily reward card, and reminder empty state now show varied text on each open
+- Reminders empty state section header now reads "NO UPCOMING REMINDERS" when the list is empty
+- Reminders empty state subtext now reads "Here are some reminder ideas to get you started" and show placeholder reminder cards
+- The reminder cards have a pencil which opens a "Quick Reminders" dialog where the reminder can be edited and set
+- Added a regenerate button to the placeholder reminder messages
+- Added quick time buttons (eg tomorrow at noon) to the Reminders tab

@@ -1,4 +1,5 @@
-﻿import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'dart:async';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -35,23 +36,26 @@ class _RemindersState extends ConsumerState<Reminders> {
   void dispose() {
     _voiceSearch.cancel();
     remindersController.dispose();
+    _messageFocus.dispose();
     super.dispose();
   }
 
   final VoiceSearchService _voiceSearch = VoiceSearchService();
+  final FocusNode _messageFocus = FocusNode();
   bool snackbarActive = false;
   bool isLoading = false; // track the loading state for UI feedback
-  late final String _emptyHeadlineMessage =
-      generateRemindersEmptyHeadlineMessage();
-  late final String _emptySubtitleMessage =
-      generateRemindersEmptySubtitleMessage();
+  late List<String> _ghostMessages = List.generate(
+    3,
+    (_) => generateReminderPlaceholderMessage(),
+  );
   bool _notifBlocked =
       false; // true if OS notifications are denied, used to disable the form
   bool _dateTimePicked = false;
+  bool _shakeMessage = false;
+  bool _shakeTime = false;
   final TextEditingController remindersController =
       TextEditingController(); // Input text for reminder message
   String reminder = "";
-  String placeholderMessage = "";
   DateTime dateTime =
       DateTime.now(); // Stores the selected date and time for reminder
 
@@ -62,7 +66,6 @@ class _RemindersState extends ConsumerState<Reminders> {
       screenName: '/reminders',
       screenClass: 'Reminders',
     );
-    placeholderMessage = generateReminderPlaceholderMessage();
     _voiceSearch.init(() {
       if (mounted) setState(() {});
     });
@@ -158,22 +161,11 @@ class _RemindersState extends ConsumerState<Reminders> {
       context: context,
       appColor: appColor,
       title: "Delete reminder?",
-      content: RichText(
-        text: TextSpan(
-          style: GoogleFonts.manrope(
-            color: Colors.white,
-            fontSize: Responsive.font(context, 13),
-          ),
-          children: [
-            TextSpan(
-              text: '"${reminder.message}"',
-              style: GoogleFonts.manrope(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: Responsive.font(context, 13),
-              ),
-            ),
-          ],
+      content: Text(
+        '"${reminder.message}"',
+        style: GoogleFonts.manrope(
+          color: Colors.white,
+          fontSize: Responsive.font(context, 13),
         ),
       ),
       actions: [
@@ -189,22 +181,246 @@ class _RemindersState extends ConsumerState<Reminders> {
       ],
     );
     if (confirmed != true) return;
-
     try {
       final success = await ref
           .read(remindersProvider.notifier)
           .deleteReminder(reminder);
       if (mounted) {
         if (success) {
-          _showSnackbar("Reminder deleted successfully!");
+          _showSnackbar("Reminder deleted.");
         } else {
-          _showSnackbar("Failed to delete reminder", isError: true);
+          _showSnackbar("Failed to delete reminder.", isError: true);
         }
       }
     } catch (e) {
       if (kDebugMode) debugPrint("Error deleting reminder: $e");
-      _showSnackbar("Failed to delete reminder", isError: true);
+      if (mounted) _showSnackbar("Failed to delete reminder.", isError: true);
     }
+  }
+
+  Widget _buildGhostCard(String message) {
+    return frostedGlassCard(
+      context,
+      color: appColor,
+      baseRadius: 16,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 16),
+        vertical: Responsive.height(context, 12),
+      ),
+      child: Row(
+        children: [
+          themedIconBox(
+            context,
+            icon: HugeIcons.strokeRoundedNotification01,
+            color: appColor,
+            iconSize: 16,
+            padding: 7,
+            circle: true,
+            hugeIcon: true,
+          ),
+          SizedBox(width: Responsive.width(context, 12)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  message,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 14),
+                    color: onTheme(appColor),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: Responsive.width(context, 8)),
+          GestureDetector(
+            onTap: () => _showQuickReminderDialog(message),
+            child: Container(
+              width: Responsive.scale(context, 34),
+              height: Responsive.scale(context, 34),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: cardColors(appColor).iconBox,
+                border: Border.all(
+                  color: cardColors(appColor).iconBorder,
+                  width: 1.5,
+                ),
+              ),
+              child: Icon(
+                Icons.edit_outlined,
+                color: onTheme(appColor),
+                size: Responsive.scale(context, 16),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showQuickReminderDialog(String prefillMessage) async {
+    if (isGuest) {
+      Guest.block(
+        context,
+        title: 'Sign up to set reminders',
+        description:
+            'Create a free account to set custom reminders and never miss a habit.',
+      );
+      return;
+    }
+    final msgController = TextEditingController(text: prefillMessage);
+    DateTime pickedTime = DateTime.now();
+    bool submitting = false;
+
+    await showFrostedDialog(
+      context: context,
+      appColor: appColor,
+      child: StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  'Quick Reminder',
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 16),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 12)),
+              TextField(
+                controller: msgController,
+                maxLength: 200,
+                maxLines: 3,
+                minLines: 1,
+                onChanged: (_) => setDialogState(() {}),
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 14),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+                decoration: InputDecoration(
+                  counterStyle: GoogleFonts.manrope(
+                    color: onTheme(appColor).withAlpha(100),
+                    fontSize: Responsive.font(context, 10),
+                  ),
+                  suffixIcon: msgController.text.isNotEmpty
+                      ? GestureDetector(
+                          onTap: () {
+                            msgController.clear();
+                            setDialogState(() {});
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              right: Responsive.width(context, 12),
+                            ),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedCancel01,
+                              color: onTheme(appColor).withAlpha(140),
+                              size: Responsive.scale(context, 18),
+                            ),
+                          ),
+                        )
+                      : null,
+                  suffixIconConstraints: const BoxConstraints(),
+                  hintText: 'Reminder message...',
+                  hintStyle: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 14),
+                    color: onTheme(appColor).withAlpha(100),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white.withAlpha(10),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 12),
+                    ),
+                    borderSide: BorderSide(color: cardColors(appColor).border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 12),
+                    ),
+                    borderSide: BorderSide(
+                      color: Colors.white.withAlpha(180),
+                      width: 1.5,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 14),
+                    vertical: Responsive.height(context, 12),
+                  ),
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 12)),
+              SizedBox(
+                height: Responsive.height(context, 180),
+                child: CupertinoDatePicker(
+                  initialDateTime: pickedTime,
+                  minimumDate: DateTime.now().subtract(
+                    const Duration(minutes: 1),
+                  ),
+                  mode: CupertinoDatePickerMode.dateAndTime,
+                  use24hFormat: false,
+                  onDateTimeChanged: (d) =>
+                      setDialogState(() => pickedTime = d),
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 8)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.of(context, rootNavigator: true).pop(),
+                    child: Text('Cancel', style: dialogButtonStyle()),
+                  ),
+                  TextButton(
+                    onPressed: submitting
+                        ? null
+                        : () async {
+                            final msg = msgController.text.trim();
+                            if (msg.isEmpty) return;
+                            setDialogState(() => submitting = true);
+                            final id = DateTime.now().millisecondsSinceEpoch;
+                            final success = await ref
+                                .read(remindersProvider.notifier)
+                                .addReminder(
+                                  message: msg,
+                                  scheduledAt: pickedTime,
+                                  notificationId: id,
+                                );
+                            if (!mounted) return;
+                            Navigator.of(context, rootNavigator: true).pop();
+                            if (success) {
+                              _showSnackbar('Reminder set!');
+                            } else {
+                              _showSnackbar(
+                                'Failed to set reminder.',
+                                isError: true,
+                              );
+                            }
+                          },
+                    child: Text(
+                      'Set Reminder',
+                      style: dialogButtonStyle(confirm: true),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    msgController.dispose();
   }
 
   Future<void> pickDateTime(
@@ -223,6 +439,9 @@ class _RemindersState extends ConsumerState<Reminders> {
             Expanded(
               child: CupertinoDatePicker(
                 initialDateTime: dateTime,
+                minimumDate: DateTime.now().subtract(
+                  const Duration(minutes: 1),
+                ),
                 mode: CupertinoDatePickerMode.dateAndTime,
                 use24hFormat: false,
                 onDateTimeChanged: (newDate) => onPicked(newDate),
@@ -292,13 +511,20 @@ class _RemindersState extends ConsumerState<Reminders> {
     } // For guest users
     if (isLoading) return;
 
-    if (remindersController.text.isEmpty) {
-      _showSnackbar("All fields must be filled.", isError: true);
+    if (remindersController.text.trim().isEmpty) {
+      setState(() => _shakeMessage = true);
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) setState(() => _shakeMessage = false);
+      });
+      _showSnackbar("Enter a reminder message first.", isError: true);
       return;
     }
 
     if (!_dateTimePicked) {
-      _showSnackbar("A reminder time must be chosen.", isError: true);
+      setState(() => _shakeTime = true);
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) setState(() => _shakeTime = false);
+      });
       return;
     }
 
@@ -380,81 +606,115 @@ class _RemindersState extends ConsumerState<Reminders> {
     return '$weekday, $month ${dt.day} · $hour:$minute $period';
   }
 
-  // Makes a single reminder card with message, time, and delete button
-  Widget _buildReminderCard(ReminderData reminder) {
+  // Makes a single reminder card with message, time, delete button, and countdown
+  Widget _buildReminderCard(
+    ReminderData reminder, {
+    bool showCountdown = false,
+    bool isSoonest = false,
+  }) {
+    final timeLeft = reminder.scheduledAt.difference(DateTime.now());
+    String? countdownLabel;
+    if (showCountdown && !timeLeft.isNegative) {
+      if (timeLeft.inMinutes < 1) {
+        countdownLabel = 'in ${timeLeft.inSeconds}s';
+      } else if (timeLeft.inMinutes < 60) {
+        countdownLabel = 'in ${timeLeft.inMinutes}m';
+      } else if (timeLeft.inHours < 24) {
+        countdownLabel = 'in ${timeLeft.inHours}h ${timeLeft.inMinutes % 60}m';
+      }
+    }
+
     return Padding(
       padding: EdgeInsets.only(bottom: Responsive.height(context, 10)),
-      child: Row(
-        children: [
-          // Left accent bar sitting outside the card so it's never clipped
-          Container(
-            width: Responsive.width(context, 4),
-            height: Responsive.height(context, 70),
-            decoration: BoxDecoration(
-              color: appColor,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(Responsive.scale(context, 4)),
-                bottomLeft: Radius.circular(Responsive.scale(context, 4)),
-              ),
-            ),
-          ),
-          Expanded(
-            child: frostedGlassCard(
+      child: frostedGlassCard(
+        context,
+        color: appColor,
+        baseRadius: 16,
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 16),
+          vertical: Responsive.height(context, 12),
+        ),
+        child: Row(
+          children: [
+            themedIconBox(
               context,
+              icon: HugeIcons.strokeRoundedNotification01,
               color: appColor,
-              baseRadius: 16,
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 16),
-                vertical: Responsive.height(context, 14),
-              ),
-              child: Row(
+              iconSize: 16,
+              padding: 7,
+              circle: false,
+              hugeIcon: true,
+            ),
+            SizedBox(width: Responsive.width(context, 12)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  themedIconBox(
-                    context,
-                    icon: HugeIcons.strokeRoundedNotification01,
-                    color: appColor,
-                    iconSize: 20,
-                    padding: 8,
-                    circle: true,
-                    hugeIcon: true,
+                  Text(
+                    reminder.message,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 14),
+                      color: onTheme(appColor),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  SizedBox(width: Responsive.width(context, 14)),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          reminder.message,
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 15),
-                            color: cardColors(appColor).onCard,
-                            fontWeight: FontWeight.w600,
-                          ),
+                  SizedBox(height: Responsive.height(context, 2)),
+                  Row(
+                    children: [
+                      Text(
+                        _formatDateTime(reminder.scheduledAt),
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 11),
+                          color: onTheme(appColor).withAlpha(140),
                         ),
-                        SizedBox(height: Responsive.height(context, 4)),
-                        Text(
-                          _formatDateTime(reminder.scheduledAt),
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 12),
-                            color: cardColors(appColor).onCard,
+                      ),
+                      if (countdownLabel != null) ...[
+                        SizedBox(width: Responsive.width(context, 6)),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 6),
+                            vertical: Responsive.height(context, 2),
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 8),
+                            ),
+                            border: Border.all(
+                              color: cardColors(appColor).border,
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            countdownLabel,
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 10),
+                              color: onTheme(appColor).withAlpha(140),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => _deleteReminder(reminder),
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedDelete02,
-                      color: onTheme(appColor),
-                      size: Responsive.scale(context, 20),
-                    ),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+            GestureDetector(
+              onTap: () => _deleteReminder(reminder),
+              child: Padding(
+                padding: EdgeInsets.only(left: Responsive.width(context, 8)),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete02,
+                  color: onTheme(appColor).withAlpha(140),
+                  size: Responsive.scale(context, 18),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -636,43 +896,40 @@ class _RemindersState extends ConsumerState<Reminders> {
                           context,
                           appColor: appColor,
                         ),
+                        // Unified composer card
                         frostedGlassCard(
                           context,
                           color: appColor,
+                          baseRadius: 20,
+                          border: Border.all(
+                            color: cardColors(appColor).border.withAlpha(180),
+                            width: 1.5,
+                          ),
                           padding: EdgeInsets.all(
-                            Responsive.scale(context, 20),
+                            Responsive.scale(context, 16),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // Text field
+                              // Message row
+                              // Message field
                               TextField(
                                 enabled: !_notifBlocked,
-                                maxLines: 1,
+                                maxLines: 2,
+                                minLines: 1,
                                 maxLength: 200,
                                 controller: remindersController,
+                                focusNode: _messageFocus,
                                 keyboardType: TextInputType.text,
                                 style: GoogleFonts.manrope(
-                                  fontSize: Responsive.font(context, 15),
+                                  fontSize: Responsive.font(context, 14),
                                   color: onTheme(appColor),
                                 ),
                                 decoration: InputDecoration(
                                   counterStyle: GoogleFonts.manrope(
-                                    color: onTheme(appColor).withAlpha(120),
-                                    fontSize: Responsive.font(context, 11),
+                                    color: onTheme(appColor).withAlpha(100),
+                                    fontSize: Responsive.font(context, 10),
                                   ),
-                                  prefixIcon: Padding(
-                                    padding: EdgeInsets.only(
-                                      left: Responsive.width(context, 12),
-                                      right: Responsive.width(context, 10),
-                                    ),
-                                    child: HugeIcon(
-                                      icon: HugeIcons.strokeRoundedMessage01,
-                                      color: onTheme(appColor),
-                                      size: Responsive.scale(context, 18),
-                                    ),
-                                  ),
-                                  prefixIconConstraints: const BoxConstraints(),
                                   suffixIcon:
                                       !isGuest && _voiceSearch.isAvailable
                                       ? GestureDetector(
@@ -703,29 +960,24 @@ class _RemindersState extends ConsumerState<Reminders> {
                                         )
                                       : null,
                                   suffixIconConstraints: const BoxConstraints(),
-                                  hintText: placeholderMessage,
+                                  hintText: 'Enter reminder message...',
                                   hintStyle: GoogleFonts.manrope(
                                     fontSize: Responsive.font(context, 14),
-                                    color: onTheme(appColor),
+                                    color: onTheme(appColor).withAlpha(100),
                                   ),
                                   filled: true,
-                                  fillColor: Colors.white.withAlpha(12),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      Responsive.scale(context, 12),
-                                    ),
-                                    borderSide: BorderSide(
-                                      color: cardColors(appColor).border,
-                                      width: Responsive.scale(context, 1),
-                                    ),
-                                  ),
+                                  fillColor: _shakeMessage
+                                      ? onTheme(appColor).withAlpha(15)
+                                      : Colors.white.withAlpha(10),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
                                       Responsive.scale(context, 12),
                                     ),
                                     borderSide: BorderSide(
-                                      color: cardColors(appColor).border,
-                                      width: Responsive.scale(context, 1),
+                                      color: _shakeMessage
+                                          ? onTheme(appColor).withAlpha(200)
+                                          : cardColors(appColor).border,
+                                      width: _shakeMessage ? 1.5 : 1,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
@@ -733,124 +985,302 @@ class _RemindersState extends ConsumerState<Reminders> {
                                       Responsive.scale(context, 12),
                                     ),
                                     borderSide: BorderSide(
-                                      color: onTheme(appColor),
-                                      width: Responsive.scale(context, 1.5),
+                                      color: onTheme(appColor).withAlpha(180),
+                                      width: 1.5,
                                     ),
                                   ),
                                   contentPadding: EdgeInsets.symmetric(
-                                    horizontal: Responsive.width(context, 16),
+                                    horizontal: Responsive.width(context, 14),
                                     vertical: Responsive.height(context, 12),
                                   ),
                                 ),
-                                onChanged: (value) => reminder = value,
+                                onChanged: (v) => setState(() => reminder = v),
                               ),
-                              SizedBox(height: Responsive.height(context, 14)),
-
-                              // Selected date/time display, validates message before opening picker
+                              SizedBox(height: Responsive.height(context, 10)),
+                              // Time picker button
                               GestureDetector(
                                 onTap: _notifBlocked
                                     ? null
-                                    : () {
-                                        if (remindersController.text
-                                            .trim()
-                                            .isEmpty) {
-                                          _showSnackbar(
-                                            "Enter a message first.",
-                                            isError: true,
-                                          );
-                                          return;
-                                        }
-                                        pickDateTime(
-                                          context,
-                                          dateTime,
-                                          (newDate) => setState(() {
-                                            dateTime = newDate;
-                                            _dateTimePicked = true;
-                                          }),
-                                        );
-                                      },
-                                child: Container(
+                                    : () => pickDateTime(
+                                        context,
+                                        dateTime,
+                                        (d) => setState(() {
+                                          dateTime = d;
+                                          _dateTimePicked = true;
+                                        }),
+                                      ),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  width: double.infinity,
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: Responsive.width(context, 16),
-                                    vertical: Responsive.height(context, 12),
+                                    vertical: Responsive.height(context, 13),
                                   ),
                                   decoration: BoxDecoration(
-                                    color: cardColors(appColor).iconBox,
+                                    gradient: _shakeTime
+                                        ? null
+                                        : LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: cardColors(
+                                              appColor,
+                                            ).gradient,
+                                          ),
+                                    color: _shakeTime
+                                        ? onTheme(appColor).withAlpha(15)
+                                        : null,
                                     borderRadius: BorderRadius.circular(
                                       Responsive.scale(context, 12),
                                     ),
                                     border: Border.all(
-                                      color: cardColors(appColor).border,
-                                      width: Responsive.scale(context, 1),
+                                      color: _shakeTime
+                                          ? onTheme(appColor).withAlpha(200)
+                                          : cardColors(appColor).border,
+                                      width: _shakeTime ? 1.5 : 2,
                                     ),
                                   ),
                                   child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       HugeIcon(
                                         icon: HugeIcons.strokeRoundedClock01,
                                         color: onTheme(appColor),
-                                        size: Responsive.scale(context, 18),
+                                        size: Responsive.scale(context, 16),
                                       ),
                                       SizedBox(
-                                        width: Responsive.width(context, 10),
+                                        width: Responsive.width(context, 8),
                                       ),
-                                      Expanded(
-                                        child: Text(
-                                          !_dateTimePicked
-                                              ? "Enter a reminder time"
-                                              : _formatDateTime(dateTime),
-                                          style: GoogleFonts.manrope(
-                                            fontSize: Responsive.font(
-                                              context,
-                                              15,
-                                            ),
-                                            color: onTheme(
-                                              appColor,
-                                            ).withAlpha(140),
+                                      Text(
+                                        _dateTimePicked
+                                            ? _formatDateTime(dateTime)
+                                            : 'Set a time',
+                                        style: GoogleFonts.manrope(
+                                          fontSize: Responsive.font(
+                                            context,
+                                            13,
                                           ),
+                                          color: onTheme(appColor),
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
-
-                                      HugeIcon(
-                                        icon:
-                                            HugeIcons.strokeRoundedArrowRight01,
-                                        color: onTheme(appColor),
-                                        size: Responsive.scale(context, 18),
-                                      ),
+                                      if (isLoading) ...[
+                                        SizedBox(
+                                          width: Responsive.width(context, 10),
+                                        ),
+                                        SizedBox(
+                                          width: Responsive.scale(context, 14),
+                                          height: Responsive.scale(context, 14),
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: onTheme(
+                                              appColor,
+                                            ).withAlpha(160),
+                                          ),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
                               ),
-                              if (isLoading)
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    top: Responsive.height(context, 16),
-                                  ),
-                                  child: Center(
-                                    child: SizedBox(
-                                      height: Responsive.scale(context, 24),
-                                      width: Responsive.scale(context, 24),
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: Responsive.scale(
-                                          context,
-                                          2,
-                                        ),
+                              // Quick-time chips: context-aware based on current time
+                              Builder(
+                                builder: (context) {
+                                  final now = DateTime.now();
+                                  // round up to the next clean hour
+                                  final nextHour = DateTime(
+                                    now.year,
+                                    now.month,
+                                    now.day,
+                                    now.hour + 1,
+                                  );
+                                  final in30m = now.add(
+                                    const Duration(minutes: 30),
+                                  );
+                                  final in1h = nextHour;
+                                  final in3h = DateTime(
+                                    now.year,
+                                    now.month,
+                                    now.day,
+                                    now.hour + 3,
+                                  );
+                                  // tonight = 9PM if before 9PM, else skip
+                                  final tonight9 = DateTime(
+                                    now.year,
+                                    now.month,
+                                    now.day,
+                                    21,
+                                  );
+                                  // tomorrow morning = 8AM
+                                  final tomorrowAM = DateTime(
+                                    now.year,
+                                    now.month,
+                                    now.day + 1,
+                                    8,
+                                  );
+                                  // tomorrow noon
+                                  final tomorrowNoon = DateTime(
+                                    now.year,
+                                    now.month,
+                                    now.day + 1,
+                                    12,
+                                  );
+
+                                  String fmtHour(DateTime dt) {
+                                    final h = dt.hour % 12 == 0
+                                        ? 12
+                                        : dt.hour % 12;
+                                    final m = dt.minute.toString().padLeft(
+                                      2,
+                                      '0',
+                                    );
+                                    final p = dt.hour < 12 ? 'AM' : 'PM';
+                                    return m == '00' ? '$h$p' : '$h:$m$p';
+                                  }
+
+                                  final chips = <(String, DateTime)>[
+                                    ('In 30m · ${fmtHour(in30m)}', in30m),
+                                    ('In 1h · ${fmtHour(in1h)}', in1h),
+                                    ('In 3h · ${fmtHour(in3h)}', in3h),
+                                    if (tonight9.isAfter(now))
+                                      ('Tonight · 9PM', tonight9),
+                                    ('Tomorrow · 8AM', tomorrowAM),
+                                    ('Tomorrow · 12PM', tomorrowNoon),
+                                  ];
+
+                                  // 3-column grid so chips fill the width evenly
+                                  final rows = <List<(String, DateTime)>>[];
+                                  for (int i = 0; i < chips.length; i += 3) {
+                                    rows.add(
+                                      chips.sublist(
+                                        i,
+                                        i + 3 > chips.length
+                                            ? chips.length
+                                            : i + 3,
                                       ),
+                                    );
+                                  }
+
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                      top: Responsive.height(context, 10),
                                     ),
-                                  ),
-                                ),
+                                    child: Column(
+                                      children: [
+                                        for (final row in rows) ...[
+                                          Row(
+                                            children: [
+                                              for (
+                                                int i = 0;
+                                                i < row.length;
+                                                i++
+                                              ) ...[
+                                                if (i > 0)
+                                                  SizedBox(
+                                                    width: Responsive.width(
+                                                      context,
+                                                      8,
+                                                    ),
+                                                  ),
+                                                Expanded(
+                                                  child: GestureDetector(
+                                                    onTap: () {
+                                                      setState(() {
+                                                        dateTime = row[i].$2;
+                                                        _dateTimePicked = true;
+                                                      });
+                                                      if (remindersController
+                                                          .text
+                                                          .trim()
+                                                          .isNotEmpty) {
+                                                        _setReminder();
+                                                      }
+                                                    },
+                                                    child: AnimatedContainer(
+                                                      duration: const Duration(
+                                                        milliseconds: 150,
+                                                      ),
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            vertical:
+                                                                Responsive.height(
+                                                                  context,
+                                                                  8,
+                                                                ),
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            _dateTimePicked &&
+                                                                dateTime ==
+                                                                    row[i].$2
+                                                            ? onTheme(
+                                                                appColor,
+                                                              ).withAlpha(180)
+                                                            : onTheme(
+                                                                appColor,
+                                                              ).withAlpha(15),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              Responsive.scale(
+                                                                context,
+                                                                10,
+                                                              ),
+                                                            ),
+                                                        border: Border.all(
+                                                          color: onTheme(
+                                                            appColor,
+                                                          ).withAlpha(40),
+                                                          width: 1,
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        row[i].$1,
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: GoogleFonts.manrope(
+                                                          fontSize:
+                                                              Responsive.font(
+                                                                context,
+                                                                11,
+                                                              ),
+                                                          color:
+                                                              _dateTimePicked &&
+                                                                  dateTime ==
+                                                                      row[i].$2
+                                                              ? cardColors(
+                                                                  appColor,
+                                                                ).iconBox
+                                                              : onTheme(
+                                                                  appColor,
+                                                                ).withAlpha(
+                                                                  160,
+                                                                ),
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                          if (row != rows.last)
+                                            SizedBox(
+                                              height: Responsive.height(
+                                                context,
+                                                8,
+                                              ),
+                                            ),
+                                        ],
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
                             ],
                           ),
                         ),
 
                         SizedBox(height: Responsive.height(context, 28)),
-
-                        // --- Section header ---
-                        sectionHeader(
-                          "UPCOMING REMINDERS",
-                          context,
-                          appColor: appColor,
-                        ),
 
                         // Reminder list or empty state
                         Builder(
@@ -859,106 +1289,121 @@ class _RemindersState extends ConsumerState<Reminders> {
                             final isLoading = remindersAsync.isLoading;
                             final reminders = remindersAsync.value ?? [];
 
+                            final headerLabel =
+                                reminders.isEmpty && !(isLoading && !isGuest)
+                                ? "SET YOUR FIRST REMINDER"
+                                : "UPCOMING REMINDERS";
+
                             if (!isGuest && isLoading) {
-                              return Skeletonizer(
-                                effect: ShimmerEffect(
-                                  baseColor: cardColors(appColor).iconBox,
-                                  highlightColor: cardColors(appColor).border,
-                                  duration: const Duration(milliseconds: 1200),
-                                ),
-                                child: Column(
-                                  children: List.generate(
-                                    3,
-                                    (_) => _buildReminderCard(
-                                      ReminderData(
-                                        id: 'placeholder',
-                                        message:
-                                            'Loading reminder message here',
-                                        scheduledAt: DateTime.now(),
-                                        notificationId: 0,
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  sectionHeader(
+                                    headerLabel,
+                                    context,
+                                    appColor: appColor,
+                                  ),
+                                  Skeletonizer(
+                                    effect: ShimmerEffect(
+                                      baseColor: cardColors(appColor).iconBox,
+                                      highlightColor: cardColors(
+                                        appColor,
+                                      ).border,
+                                      duration: const Duration(
+                                        milliseconds: 1200,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      children: List.generate(
+                                        3,
+                                        (_) => _buildReminderCard(
+                                          ReminderData(
+                                            id: 'placeholder',
+                                            message:
+                                                'Loading reminder message here',
+                                            scheduledAt: DateTime.now(),
+                                            notificationId: 0,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
+                                ],
                               );
                             }
 
-                            return reminders.isEmpty
-                                ? Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: Responsive.height(context, 32),
-                                    ),
-                                    child: frostedGlassCard(
-                                      context,
-                                      color: appColor,
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: Responsive.height(
+                            if (reminders.isEmpty) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: sectionHeader(
+                                          headerLabel,
                                           context,
-                                          32,
-                                        ),
-                                        horizontal: Responsive.width(
-                                          context,
-                                          20,
+                                          appColor: appColor,
                                         ),
                                       ),
-                                      child: Column(
-                                        children: [
-                                          HugeIcon(
-                                            icon: HugeIcons
-                                                .strokeRoundedNotification02,
-                                            color: onTheme(
-                                              appColor,
-                                            ).withAlpha(120),
-                                            size: Responsive.scale(context, 48),
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          bottom: Responsive.height(
+                                            context,
+                                            12,
                                           ),
-                                          SizedBox(
-                                            height: Responsive.height(
-                                              context,
-                                              12,
-                                            ),
+                                        ),
+                                        child: GestureDetector(
+                                          onTap: () => setState(() {
+                                            _ghostMessages = List.generate(
+                                              3,
+                                              (_) =>
+                                                  generateReminderPlaceholderMessage(),
+                                            );
+                                          }),
+                                          child: themedIconBox(
+                                            context,
+                                            icon:
+                                                HugeIcons.strokeRoundedRefresh,
+                                            color: appColor,
+                                            iconSize: 14,
+                                            padding: 6,
+                                            radius: 8,
+                                            hugeIcon: true,
                                           ),
-                                          Text(
-                                            _emptyHeadlineMessage,
-                                            style: GoogleFonts.manrope(
-                                              fontSize: Responsive.font(
-                                                context,
-                                                15,
-                                              ),
-                                              color: onTheme(
-                                                appColor,
-                                              ).withAlpha(140),
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: Responsive.height(
-                                              context,
-                                              6,
-                                            ),
-                                          ),
-                                          Text(
-                                            _emptySubtitleMessage,
-                                            textAlign: TextAlign.center,
-                                            style: GoogleFonts.manrope(
-                                              fontSize: Responsive.font(
-                                                context,
-                                                13,
-                                              ),
-                                              color: onTheme(
-                                                appColor,
-                                              ).withAlpha(120),
-                                              height: 1.5,
-                                            ),
-                                          ),
-                                        ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  for (final msg in _ghostMessages)
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom: Responsive.height(context, 10),
+                                      ),
+                                      child: Opacity(
+                                        opacity: 0.65,
+                                        child: _buildGhostCard(msg),
                                       ),
                                     ),
-                                  )
-                                : Column(
-                                    children: reminders
-                                        .map(_buildReminderCard)
-                                        .toList(),
-                                  );
+                                ],
+                              );
+                            }
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                sectionHeader(
+                                  headerLabel,
+                                  context,
+                                  appColor: appColor,
+                                ),
+                                for (int i = 0; i < reminders.length; i++)
+                                  _buildReminderCard(
+                                    reminders[i],
+                                    showCountdown: true,
+                                    isSoonest: i == 0,
+                                  ),
+                              ],
+                            );
                           },
                         ),
 

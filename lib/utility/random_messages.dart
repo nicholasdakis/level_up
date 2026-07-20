@@ -218,7 +218,6 @@ String generateReminderPlaceholderMessage() {
     'before it gets too late',
     'and keep the streak alive',
     'to hit my goals',
-    'and log it in Level Up',
     '',
   ];
   const punctuation = [
