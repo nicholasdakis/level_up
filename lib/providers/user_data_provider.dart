@@ -477,12 +477,13 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
   Future<void> initializeFcmToken(String deviceToken) async {
     if (isGuest) return;
     try {
-      // Add token locally if not already present (guard against race condition where currentUserData may not be set yet)
+      // Always send to backend regardless of local state, backend handles deduplication
+      await authenticatedPost('add_fcm_token', body: {'token': deviceToken});
+      // Update local state only if user data is already loaded
       final tokens = state.value?.fcmTokens;
       if (tokens != null && !tokens.contains(deviceToken)) {
         patch((u) => u.copyWith(fcmTokens: [...u.fcmTokens, deviceToken]));
       }
-      await authenticatedPost('add_fcm_token', body: {'token': deviceToken});
     } catch (e) {
       if (kDebugMode) debugPrint("Error initializing FCM token: $e");
     }

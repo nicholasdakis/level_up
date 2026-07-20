@@ -15,8 +15,6 @@ import '../utility/shared_preferences/shared_prefs_async.dart';
 import 'premium_sheet.dart' show showPremiumSheet;
 import '../services/fcm/notification_service.dart'
     show requestNotificationPermissionIfNeeded;
-import 'package:firebase_messaging/firebase_messaging.dart'
-    show FirebaseMessaging, AuthorizationStatus;
 
 class DailyRewardDialog {
   String randomRewardReminderMessage() {
@@ -318,17 +316,8 @@ class DailyRewardDialog {
       await handleLevelUpOverlay(context, levelBefore, appColor, ref);
     }
 
-    // On first ever claim, show notification prompt if permission hasn't been granted yet.
-    // notDetermined is iOS-only; on Android the status comes back as authorized or denied
-    // so checking for anything other than authorized ensures the prompt shows on both platforms
     if (isFirstClaim && context.mounted) {
-      final settings = await FirebaseMessaging.instance
-          .getNotificationSettings();
-      if (settings.authorizationStatus != AuthorizationStatus.authorized) {
-        if (context.mounted) {
-          await _showFirstClaimNotificationPrompt(context, appColor, ref);
-        }
-      }
+      await _showFirstClaimNotificationPrompt(context, appColor, ref);
     }
 
     // Set a reminder 23 hours from now
