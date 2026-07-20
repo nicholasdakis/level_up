@@ -726,7 +726,9 @@ def search_user():
     uid, _, err = _parse_and_auth()
     if err:
         return err
+    
     username = request.args.get("username", "").strip()
+    
     if not username:
         return jsonify({"error": "username required"}), 400
     user = user_repo.get_user_by_username(username)
@@ -734,7 +736,9 @@ def search_user():
         return jsonify({"error": "not_found"}), 404
     if user["uid"] == uid:
         return jsonify({"error": "self_search"}), 400
-    return jsonify(SearchUserResponse(**user).model_dump()), 200
+
+    friendship_status = friendship_repo.get_status(uid, user["uid"])
+    return jsonify({**SearchUserResponse(**user).model_dump(), "friendship_status": friendship_status}), 200
 
 @app.route("/unfriend", methods=["POST"])
 def handle_unfriend():
