@@ -406,6 +406,7 @@ BEGIN
         RAISE EXCEPTION 'Invalid referral code';
     END IF;
 
+    -- also enforced at the DB level via CHECK constraint, but kept here for a clean user-facing message
     IF v_referrer_uid = p_referee_uid THEN
         RAISE EXCEPTION 'Cannot use your own referral code';
     END IF;

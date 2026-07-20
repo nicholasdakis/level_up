@@ -40,6 +40,7 @@ CREATE TABLE users (
 CREATE TABLE referrals (
     referee_uid TEXT PRIMARY KEY REFERENCES users(uid) ON DELETE CASCADE, -- the new user who signed up via the code
     referrer_uid TEXT REFERENCES users(uid) ON DELETE CASCADE,            -- the user who shared their code
+    CHECK (referee_uid <> referrer_uid),                                  -- prevents self-referrals
     referral_code TEXT NOT NULL,                                          -- the code that was used
     referred_at TIMESTAMPTZ DEFAULT NOW(),                                -- when the referral happened
     referee_xp_awarded BOOLEAN NOT NULL DEFAULT false,                   -- whether the referee has received their XP bonus
@@ -166,6 +167,21 @@ CREATE TABLE streaks (
     last_date DATE DEFAULT '1970-01-01', -- the most recent date that advanced the streak
     PRIMARY KEY (uid, streak_type) -- one row per user per streak type
 );
+
+-- Friendship requests and accepted friendships between users
+CREATE TABLE friendships (
+    sender_uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,    -- user who sent the request
+    recipient_uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE, -- user who received the request
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted')), -- pending until recipient accepts
+    CHECK (sender_uid <> recipient_uid),                                 -- prevents self-friendships
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),                       -- when the request was sent
+    accepted_at TIMESTAMPTZ,                                             -- null until accepted
+    PRIMARY KEY (sender_uid, recipient_uid)
+);
+
+-- Prevents duplicate rows for the same pair regardless of who sent the request
+CREATE UNIQUE INDEX friendships_unique_pair
+    ON friendships (LEAST(sender_uid, recipient_uid), GREATEST(sender_uid, recipient_uid));
 
 -- Table to store one snapshot of a user's data in a json file per day
 CREATE TABLE daily_snapshots (
