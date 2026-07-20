@@ -1,0 +1,992 @@
+import 'dart:convert';
+import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
+import '/globals.dart';
+import '/utility/responsive.dart';
+import '/services/user_data_manager.dart' show authenticatedGet;
+
+// Friendship state between the viewer and the profile owner
+enum FriendStatus { none, pendingSent, pendingReceived, accepted }
+
+// Maps the backend friendship_status string to the local enum
+FriendStatus _parseFriendStatus(String? raw) {
+  switch (raw) {
+    case 'pending_sent':
+      return FriendStatus.pendingSent;
+    case 'pending_received':
+      return FriendStatus.pendingReceived;
+    case 'accepted':
+      return FriendStatus.accepted;
+    default:
+      return FriendStatus.none;
+  }
+}
+
+// Fetches public profile data and friendship status for a given uid from the backend
+// Returns null on failure so callers can fall back gracefully
+Future<(PublicProfile, FriendStatus)?> fetchProfileCardData(String uid) async {
+  try {
+    final response = await authenticatedGet('user_profile_card?uid=$uid');
+    if (response.statusCode != 200) return null;
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    Uint8List? pfpBytes;
+    if (data['pfp_base64'] != null) {
+      pfpBytes = base64Decode(data['pfp_base64'] as String);
+    }
+    final profile = PublicProfile(
+      uid: data['uid'] as String,
+      username: (data['username'] as String?) ?? 'Unnamed',
+      level: data['level'] as int,
+      expPoints: data['exp_points'] as int,
+      pfpBytes: pfpBytes,
+      isPremium: data['is_premium'] as bool,
+      joinedAt: data['created_at'] != null
+          ? DateTime.tryParse(data['created_at'] as String)
+          : null,
+      bestDailyStreak: data['best_daily_streak'] as int,
+      bestFoodStreak: data['best_food_streak'] as int,
+      bestWorkoutStreak: data['best_workout_streak'] as int,
+    );
+    final friendStatus = _parseFriendStatus(
+      data['friendship_status'] as String?,
+    );
+    return (profile, friendStatus);
+  } catch (e) {
+    if (kDebugMode) debugPrint('fetchProfileCardData error: $e');
+    return null;
+  }
+}
+
+// Public profile data returned by the backend for any user
+// Only contains fields safe to expose to other users (no email, goals, weight, etc)
+class PublicProfile {
+  final String uid;
+  final String username;
+  final int level;
+  final int expPoints;
+  final Uint8List? pfpBytes;
+  final bool isPremium;
+  final DateTime? joinedAt;
+  final int bestDailyStreak;
+  final int bestFoodStreak;
+  final int bestWorkoutStreak;
+
+  const PublicProfile({
+    required this.uid,
+    required this.username,
+    required this.level,
+    required this.expPoints,
+    this.pfpBytes,
+    this.isPremium = false,
+    this.joinedAt,
+    this.bestDailyStreak = 0,
+    this.bestFoodStreak = 0,
+    this.bestWorkoutStreak = 0,
+  });
+}
+
+// XP needed to reach the next level, matching the formula used on the leaderboard
+int _expNeeded(int level) {
+  int exp = (100 * pow(1.25, level - 0.5) * 1.05 + (level * 10)).round();
+  return (exp / 10).round() * 10;
+}
+
+// Formats a join date as "Joined Jan 2025"
+String _joinedLabel(DateTime? date) {
+  if (date == null) return '';
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  return 'Joined ${months[date.month - 1]} ${date.year}';
+}
+
+// Preset nudge messages the sender can pick from
+const _nudgePresets = [
+  'Come claim your daily reward!',
+  "Don't lose your streak!",
+  'Time to log your food!',
+  'Let\'s get a workout in!',
+];
+
+// Dialog for sending a nudge to a friend. Shows preset messages and a custom input
+// Capped at 100 characters to keep notifications readable
+Future<void> _showNudgeDialog(
+  BuildContext context,
+  Color appColor,
+  String toUsername,
+) async {
+  final controller = TextEditingController();
+  String? selected = _nudgePresets.first;
+  bool useCustom = false;
+
+  await showFrostedDialog(
+    context: context,
+    appColor: appColor,
+    child: StatefulBuilder(
+      builder: (ctx, setState) {
+        final primary = lightenColor(appColor, 0.45);
+        final dim = lightenColor(appColor, 0.30);
+        final c = cardColors(appColor);
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Nudge $toUsername',
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(ctx, 18),
+                fontWeight: FontWeight.w800,
+                color: primary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: Responsive.height(ctx, 6)),
+            Text(
+              'Pick a message to send as a push notification.',
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(ctx, 13),
+                color: dim,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: Responsive.height(ctx, 20)),
+
+            // Preset message options
+            for (final preset in _nudgePresets) ...[
+              GestureDetector(
+                onTap: () => setState(() {
+                  selected = preset;
+                  useCustom = false;
+                }),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(ctx, 14),
+                    vertical: Responsive.height(ctx, 11),
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: (!useCustom && selected == preset)
+                        ? LinearGradient(
+                            colors: c.gradient,
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          )
+                        : null,
+                    color: (!useCustom && selected == preset)
+                        ? null
+                        : Colors.white.withAlpha(10),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(ctx, 10),
+                    ),
+                    border: Border.all(
+                      color: (!useCustom && selected == preset)
+                          ? c.border
+                          : Colors.white.withAlpha(25),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Text(
+                    preset,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(ctx, 13),
+                      fontWeight: (!useCustom && selected == preset)
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: Responsive.height(ctx, 6)),
+            ],
+
+            // Option to write a custom message instead
+            GestureDetector(
+              onTap: () => setState(() {
+                useCustom = true;
+                selected = null;
+              }),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(ctx, 14),
+                  vertical: Responsive.height(ctx, 11),
+                ),
+                decoration: BoxDecoration(
+                  gradient: useCustom
+                      ? LinearGradient(
+                          colors: c.gradient,
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        )
+                      : null,
+                  color: useCustom ? null : Colors.white.withAlpha(10),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(ctx, 10),
+                  ),
+                  border: Border.all(
+                    color: useCustom ? c.border : Colors.white.withAlpha(25),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedPencilEdit01,
+                      color: Colors.white,
+                      size: Responsive.scale(ctx, 14),
+                    ),
+                    SizedBox(width: Responsive.width(ctx, 8)),
+                    Text(
+                      'Write my own',
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(ctx, 13),
+                        fontWeight: useCustom
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Custom message text field, shown only when "Write my own" is selected
+            AnimatedSize(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutQuart,
+              child: useCustom
+                  ? Padding(
+                      padding: EdgeInsets.only(top: Responsive.height(ctx, 10)),
+                      child: TextField(
+                        controller: controller,
+                        autofocus: true,
+                        maxLength: 100,
+                        style: GoogleFonts.manrope(
+                          color: Colors.white,
+                          fontSize: Responsive.font(ctx, 13),
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Say something...',
+                          hintStyle: GoogleFonts.manrope(
+                            color: Colors.white38,
+                            fontSize: Responsive.font(ctx, 13),
+                          ),
+                          counterStyle: GoogleFonts.manrope(
+                            color: dim,
+                            fontSize: Responsive.font(ctx, 11),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withAlpha(10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(ctx, 10),
+                            ),
+                            borderSide: BorderSide(
+                              color: Colors.white.withAlpha(25),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(ctx, 10),
+                            ),
+                            borderSide: BorderSide(
+                              color: Colors.white.withAlpha(25),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(ctx, 10),
+                            ),
+                            borderSide: BorderSide(color: c.border, width: 1.5),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(ctx, 12),
+                            vertical: Responsive.height(ctx, 10),
+                          ),
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+
+            SizedBox(height: Responsive.height(ctx, 20)),
+
+            // Send button, disabled if the custom field is empty
+            GestureDetector(
+              onTap: () {
+                final message = useCustom
+                    ? controller.text.trim()
+                    : selected ?? '';
+                if (message.isEmpty) return;
+                // TODO: call backend POST /nudge with recipientUid + message
+                Navigator.of(ctx, rootNavigator: true).pop();
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  vertical: Responsive.height(ctx, 14),
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: c.gradient,
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(ctx, 12),
+                  ),
+                  border: Border.all(color: c.border, width: 1.5),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedNotification01,
+                      color: Colors.white,
+                      size: Responsive.scale(ctx, 16),
+                    ),
+                    SizedBox(width: Responsive.width(ctx, 8)),
+                    Text(
+                      'Send Nudge',
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(ctx, 14),
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+}
+
+// Opens a profile card dialog for any user by uid
+// The dialog shows a skeleton immediately and populates once the fetch resolves
+Future<void> showProfileCard(
+  BuildContext context, {
+  required String uid,
+  required Color appColor,
+  required bool isOwnProfile,
+  VoidCallback? onAddFriend,
+  VoidCallback? onCancelRequest,
+  VoidCallback? onAccept,
+  VoidCallback? onDecline,
+  VoidCallback? onUnfriend,
+}) {
+  return showFrostedDialog(
+    context: context,
+    appColor: appColor,
+    child: _ProfileCardLoader(
+      uid: uid,
+      appColor: appColor,
+      isOwnProfile: isOwnProfile,
+      onAddFriend: onAddFriend,
+      onCancelRequest: onCancelRequest,
+      onAccept: onAccept,
+      onDecline: onDecline,
+      onUnfriend: onUnfriend,
+    ),
+  );
+}
+
+// Kicks off the fetch and holds the result in state
+// Renders a skeleton until the data arrives
+class _ProfileCardLoader extends StatefulWidget {
+  final String uid;
+  final Color appColor;
+  final bool isOwnProfile;
+  final VoidCallback? onAddFriend;
+  final VoidCallback? onCancelRequest;
+  final VoidCallback? onAccept;
+  final VoidCallback? onDecline;
+  final VoidCallback? onUnfriend;
+
+  const _ProfileCardLoader({
+    required this.uid,
+    required this.appColor,
+    required this.isOwnProfile,
+    this.onAddFriend,
+    this.onCancelRequest,
+    this.onAccept,
+    this.onDecline,
+    this.onUnfriend,
+  });
+
+  @override
+  State<_ProfileCardLoader> createState() => _ProfileCardLoaderState();
+}
+
+class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
+  PublicProfile? _profile;
+  FriendStatus _friendStatus = FriendStatus.none;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchProfileCardData(widget.uid).then((result) {
+      if (mounted && result != null) {
+        setState(() {
+          _profile = result.$1;
+          _friendStatus = result.$2;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProfileCardContent(
+      profile: _profile,
+      appColor: widget.appColor,
+      isOwnProfile: widget.isOwnProfile,
+      friendStatus: _friendStatus,
+      onAddFriend: widget.onAddFriend,
+      onCancelRequest: widget.onCancelRequest,
+      onAccept: widget.onAccept,
+      onDecline: widget.onDecline,
+      onNudge: _friendStatus == FriendStatus.accepted && _profile != null
+          ? () => _showNudgeDialog(context, widget.appColor, _profile!.username)
+          : null,
+      onUnfriend: widget.onUnfriend,
+    );
+  }
+}
+
+// Skeleton shown while profile data is loading
+class _ProfileCardSkeleton extends StatelessWidget {
+  final Color appColor;
+  final Color primary;
+  final Color dim;
+
+  const _ProfileCardSkeleton({
+    required this.appColor,
+    required this.primary,
+    required this.dim,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final shimmer = Colors.white.withAlpha(30);
+    final shimmerDark = Colors.white.withAlpha(15);
+
+    Widget bar(double width, double height) => Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: shimmer,
+        borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
+      ),
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: Responsive.scale(context, 60),
+              height: Responsive.scale(context, 60),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: shimmer),
+            ),
+            SizedBox(width: Responsive.width(context, 14)),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                bar(
+                  Responsive.width(context, 120),
+                  Responsive.height(context, 16),
+                ),
+                SizedBox(height: Responsive.height(context, 6)),
+                bar(
+                  Responsive.width(context, 60),
+                  Responsive.height(context, 12),
+                ),
+                SizedBox(height: Responsive.height(context, 6)),
+                bar(
+                  Responsive.width(context, 80),
+                  Responsive.height(context, 10),
+                ),
+              ],
+            ),
+          ],
+        ),
+        SizedBox(height: Responsive.height(context, 20)),
+        bar(double.infinity, Responsive.height(context, 7)),
+        SizedBox(height: Responsive.height(context, 20)),
+        Row(
+          children: [
+            for (int i = 0; i < 3; i++) ...[
+              Expanded(
+                child: Column(
+                  children: [
+                    Container(
+                      width: Responsive.scale(context, 18),
+                      height: Responsive.scale(context, 18),
+                      decoration: BoxDecoration(
+                        color: shimmerDark,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    SizedBox(height: Responsive.height(context, 6)),
+                    bar(
+                      Responsive.width(context, 30),
+                      Responsive.height(context, 20),
+                    ),
+                    SizedBox(height: Responsive.height(context, 4)),
+                    bar(
+                      Responsive.width(context, 40),
+                      Responsive.height(context, 10),
+                    ),
+                  ],
+                ),
+              ),
+              if (i < 2)
+                Container(
+                  width: 1,
+                  height: Responsive.height(context, 48),
+                  color: Colors.white.withAlpha(20),
+                ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// Renders the profile card content once data is available
+// Shows a skeleton when profile is null
+class _ProfileCardContent extends StatelessWidget {
+  final PublicProfile? profile;
+  final Color appColor;
+  final bool isOwnProfile;
+  final FriendStatus friendStatus;
+  final VoidCallback? onAddFriend;
+  final VoidCallback? onCancelRequest;
+  final VoidCallback? onAccept;
+  final VoidCallback? onDecline;
+  final VoidCallback? onNudge;
+  final VoidCallback? onUnfriend;
+
+  const _ProfileCardContent({
+    required this.profile,
+    required this.appColor,
+    required this.isOwnProfile,
+    required this.friendStatus,
+    this.onAddFriend,
+    this.onCancelRequest,
+    this.onAccept,
+    this.onDecline,
+    this.onNudge,
+    this.onUnfriend,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = lightenColor(appColor, 0.45);
+    final secondary = lightenColor(appColor, 0.35);
+    final dim = lightenColor(appColor, 0.30);
+
+    if (profile == null) {
+      return _ProfileCardSkeleton(
+        appColor: appColor,
+        primary: primary,
+        dim: dim,
+      );
+    }
+
+    final expNeeded = _expNeeded(profile!.level);
+    final progress = (profile!.expPoints / expNeeded).clamp(0.0, 1.0);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Avatar, username, level, joined date
+        Row(
+          children: [
+            _avatar(context),
+            SizedBox(width: Responsive.width(context, 14)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          profile!.username,
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 18),
+                            fontWeight: FontWeight.w800,
+                            color: primary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (profile!.isPremium) ...[
+                        SizedBox(width: Responsive.width(context, 6)),
+                        Icon(
+                          Icons.verified_rounded,
+                          size: Responsive.scale(context, 16),
+                          color: lightenColor(appColor, 0.4),
+                        ),
+                      ],
+                    ],
+                  ),
+                  SizedBox(height: Responsive.height(context, 2)),
+                  Text(
+                    'Level ${profile!.level}',
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 13),
+                      fontWeight: FontWeight.w600,
+                      color: secondary,
+                    ),
+                  ),
+                  if (profile!.joinedAt != null) ...[
+                    SizedBox(height: Responsive.height(context, 2)),
+                    Text(
+                      _joinedLabel(profile!.joinedAt),
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 12),
+                        color: dim,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        SizedBox(height: Responsive.height(context, 20)),
+
+        // XP progress toward the next level
+        _xpBar(context, progress, primary, dim, expNeeded),
+
+        SizedBox(height: Responsive.height(context, 20)),
+
+        // Best streak counts across daily, food, and workout
+        _streakRow(context, primary, dim),
+
+        // Action buttons are hidden on the viewer's own profile
+        if (!isOwnProfile) ...[
+          SizedBox(height: Responsive.height(context, 24)),
+          _actionButtons(context),
+        ],
+      ],
+    );
+  }
+
+  Widget _avatar(BuildContext context) {
+    final size = Responsive.scale(context, 60);
+    if (profile!.pfpBytes != null) {
+      return ClipOval(
+        child: Image.memory(
+          profile!.pfpBytes!,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: cardColors(appColor).iconBox,
+        border: Border.all(color: cardColors(appColor).border, width: 1.5),
+      ),
+      child: Icon(
+        Icons.person_rounded,
+        color: lightenColor(appColor, 0.40),
+        size: Responsive.scale(context, 30),
+      ),
+    );
+  }
+
+  Widget _xpBar(
+    BuildContext context,
+    double progress,
+    Color primary,
+    Color dim,
+    int expNeeded,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'XP Progress',
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 12),
+                fontWeight: FontWeight.w600,
+                color: dim,
+              ),
+            ),
+            Text(
+              '${profile!.expPoints} / $expNeeded',
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 12),
+                color: dim,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: Responsive.height(context, 6)),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: Responsive.height(context, 7),
+            backgroundColor: Colors.white.withAlpha(15),
+            valueColor: AlwaysStoppedAnimation(primary),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _streakRow(BuildContext context, Color primary, Color dim) {
+    return Row(
+      children: [
+        _streakStat(
+          context,
+          HugeIcons.strokeRoundedFire,
+          'Daily',
+          profile!.bestDailyStreak,
+          primary,
+          dim,
+        ),
+        _divider(context),
+        _streakStat(
+          context,
+          HugeIcons.strokeRoundedRestaurant03,
+          'Food',
+          profile!.bestFoodStreak,
+          primary,
+          dim,
+        ),
+        _divider(context),
+        _streakStat(
+          context,
+          HugeIcons.strokeRoundedDumbbell01,
+          'Workout',
+          profile!.bestWorkoutStreak,
+          primary,
+          dim,
+        ),
+      ],
+    );
+  }
+
+  Widget _streakStat(
+    BuildContext context,
+    IconData icon,
+    String label,
+    int value,
+    Color primary,
+    Color dim,
+  ) {
+    return Expanded(
+      child: Column(
+        children: [
+          HugeIcon(icon: icon, color: dim, size: Responsive.scale(context, 18)),
+          SizedBox(height: Responsive.height(context, 4)),
+          Text(
+            '$value',
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 20),
+              fontWeight: FontWeight.w800,
+              color: primary,
+            ),
+          ),
+          Text(
+            label,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 11),
+              color: dim,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _divider(BuildContext context) {
+    return Container(
+      width: 1,
+      height: Responsive.height(context, 48),
+      color: Colors.white.withAlpha(20),
+    );
+  }
+
+  // Renders the correct action button(s) based on the viewer's friendship status with this user
+  Widget _actionButtons(BuildContext context) {
+    switch (friendStatus) {
+      case FriendStatus.none:
+        return _fullButton(
+          context,
+          label: 'Add Friend',
+          icon: HugeIcons.strokeRoundedUserAdd01,
+          onTap: onAddFriend ?? () {},
+        );
+
+      case FriendStatus.pendingSent:
+        // Tapping the greyed button cancels the pending request
+        return _fullButton(
+          context,
+          label: 'Request Sent',
+          icon: HugeIcons.strokeRoundedClock01,
+          onTap: onCancelRequest ?? () {},
+          muted: true,
+        );
+
+      case FriendStatus.pendingReceived:
+        return Row(
+          children: [
+            Expanded(
+              child: _fullButton(
+                context,
+                label: 'Accept',
+                icon: HugeIcons.strokeRoundedUserCheck01,
+                onTap: onAccept ?? () {},
+              ),
+            ),
+            SizedBox(width: Responsive.width(context, 10)),
+            Expanded(
+              child: _fullButton(
+                context,
+                label: 'Decline',
+                icon: HugeIcons.strokeRoundedUserRemove01,
+                onTap: onDecline ?? () {},
+                muted: true,
+              ),
+            ),
+          ],
+        );
+
+      case FriendStatus.accepted:
+        // Nudge is the primary action; unfriend is tucked into the small icon button
+        return Row(
+          children: [
+            Expanded(
+              child: _fullButton(
+                context,
+                label: 'Nudge',
+                icon: HugeIcons.strokeRoundedNotification01,
+                onTap: onNudge ?? () {},
+              ),
+            ),
+            SizedBox(width: Responsive.width(context, 10)),
+            _iconButton(
+              context,
+              icon: HugeIcons.strokeRoundedUserRemove01,
+              onTap: onUnfriend ?? () {},
+            ),
+          ],
+        );
+    }
+  }
+
+  // Full-width button used for primary actions (Add Friend, Nudge, Accept, Decline)
+  Widget _fullButton(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+    bool muted = false,
+  }) {
+    final c = cardColors(appColor);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 14)),
+        decoration: BoxDecoration(
+          gradient: muted
+              ? null
+              : LinearGradient(
+                  colors: c.gradient,
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+          color: muted ? Colors.white.withAlpha(12) : null,
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+          border: Border.all(
+            color: muted ? Colors.white.withAlpha(30) : c.border,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            HugeIcon(
+              icon: icon,
+              color: Colors.white,
+              size: Responsive.scale(context, 16),
+            ),
+            SizedBox(width: Responsive.width(context, 8)),
+            Text(
+              label,
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 14),
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Small square icon button used for secondary actions like unfriend
+  Widget _iconButton(
+    BuildContext context, {
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(Responsive.scale(context, 14)),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(12),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+          border: Border.all(color: Colors.white.withAlpha(30), width: 1.5),
+        ),
+        child: HugeIcon(
+          icon: icon,
+          color: Colors.white.withAlpha(180),
+          size: Responsive.scale(context, 18),
+        ),
+      ),
+    );
+  }
+}
