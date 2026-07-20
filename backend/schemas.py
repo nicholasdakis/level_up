@@ -611,4 +611,5 @@ class UserProfileCardResponse(BaseModel):
     best_daily_streak: int
     best_food_streak: int
     best_workout_streak: int
+    friendship_status: str = "none"
 

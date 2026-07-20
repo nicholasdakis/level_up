@@ -680,6 +680,9 @@ def get_user_profile_card():
     streaks = user_repo.get_streaks(target_uid)
     streak_map = {s["streak_type"]: s for s in streaks}
 
+    # TODO: query friends table for real status once it exists
+    friendship_status = "none"
+
     response = UserProfileCardResponse(
         uid=user["uid"],
         username=user.get("username"),
@@ -691,6 +694,7 @@ def get_user_profile_card():
         best_daily_streak=streak_map.get("daily_consecutive_streak", {}).get("highest_streak", 0),
         best_food_streak=streak_map.get("food_streak", {}).get("highest_streak", 0),
         best_workout_streak=streak_map.get("workout_streak", {}).get("highest_streak", 0),
+        friendship_status=friendship_status,
     )
     return jsonify(response.model_dump()), 200
 
