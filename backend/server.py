@@ -123,6 +123,7 @@ from backend.schemas import (
     UseShieldResponse,
     UserProfileCardResponse,
     FriendActionRequest,
+    UnfriendRequest,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -717,6 +718,14 @@ def handle_friend_request():
     else:
         return jsonify({"error": "unknown action"}), 400
 
+    return jsonify(result), 200
+
+@app.route("/unfriend", methods=["POST"])
+def handle_unfriend():
+    uid, body, err = _parse_and_auth(UnfriendRequest)
+    if err:
+        return err
+    result = friendship_service.unfriend(uid, body.target_uid)
     return jsonify(result), 200
 
 @app.route("/user_data", methods=["GET"])

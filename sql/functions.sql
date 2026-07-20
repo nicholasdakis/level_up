@@ -1303,6 +1303,19 @@ BEGIN
 END;
 $$;
 
+-- unfriend: removes a row only if it is accepted, so it cannot double as a decline/cancel
+CREATE OR REPLACE FUNCTION unfriend(p_uid TEXT, p_other_uid TEXT)
+RETURNS JSONB LANGUAGE plpgsql AS $$
+BEGIN
+    DELETE FROM friendships
+    WHERE ((sender_uid = p_uid AND recipient_uid = p_other_uid)
+        OR (sender_uid = p_other_uid AND recipient_uid = p_uid))
+      AND status = 'accepted';
+
+    RETURN jsonb_build_object('ok', true);
+END;
+$$;
+
 -- bulk_add_food_logs: inserts multiple food log rows atomically for a given user.
 -- all rows succeed or none do, so a network failure cannot leave a partial copy.
 CREATE OR REPLACE FUNCTION bulk_add_food_logs(p_uid TEXT, p_items JSONB)

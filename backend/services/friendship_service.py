@@ -26,3 +26,6 @@ class FriendshipService:
 
     def cancel_friend_request(self, sender_uid: str, target_uid: str) -> dict:
         return self._repo.cancel_request(sender_uid, target_uid) or {}
+
+    def unfriend(self, uid: str, other_uid: str) -> dict:
+        return self._repo.unfriend(uid, other_uid) or {}

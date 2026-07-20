@@ -28,6 +28,12 @@ class FriendshipRepository:
             "p_recipient_uid": target_uid,
         }).execute().data
 
+    def unfriend(self, uid: str, other_uid: str) -> dict:
+        return self._supabase.rpc("unfriend", {
+            "p_uid": uid,
+            "p_other_uid": other_uid,
+        }).execute().data
+
     def get_status(self, uid: str, other_uid: str) -> str:
         result = self._supabase.table("friendships") \
             .select("sender_uid, status") \

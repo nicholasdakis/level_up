@@ -617,3 +617,5 @@ class FriendActionRequest(BaseModel):
     target_uid: str = Field(..., min_length=1)
     action: str = Field(..., pattern="^(send|accept|decline|cancel)$")
 
+class UnfriendRequest(BaseModel):
+    target_uid: str = Field(..., min_length=1)
