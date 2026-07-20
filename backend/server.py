@@ -688,9 +688,9 @@ def get_user_profile_card():
         pfp_base64=user.get("pfp_base64"),
         is_premium=user.get("is_premium", False),
         created_at=user.get("created_at"),
-        best_daily_streak=streak_map.get("daily_claim", {}).get("highest_streak", 0),
-        best_food_streak=streak_map.get("food_log", {}).get("highest_streak", 0),
-        best_workout_streak=streak_map.get("workout", {}).get("highest_streak", 0),
+        best_daily_streak=streak_map.get("daily_consecutive_streak", {}).get("highest_streak", 0),
+        best_food_streak=streak_map.get("food_streak", {}).get("highest_streak", 0),
+        best_workout_streak=streak_map.get("workout_streak", {}).get("highest_streak", 0),
     )
     return jsonify(response.model_dump()), 200
 
