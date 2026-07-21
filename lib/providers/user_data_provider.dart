@@ -170,7 +170,6 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
           username: data['username'] ?? current.uid,
           notificationsEnabled: data['notifications_enabled'] ?? true,
           notifyFriendRequests: data['notify_friend_requests'] ?? true,
-          notifyFriendAccepts: data['notify_friend_accepts'] ?? true,
           notifyNudges: data['notify_nudges'] ?? true,
           notifyDailyReward: data['notify_daily_reward'] ?? true,
           fcmTokens:
@@ -689,16 +688,15 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
 
   Future<void> updateNotificationPrefs({
     required bool notifyFriendRequests,
-    required bool notifyFriendAccepts,
     required bool notifyNudges,
     required bool notifyDailyReward,
+    required BuildContext context,
   }) async {
     final previous = state.value;
     if (previous == null) return;
     state = AsyncData(
       previous.copyWith(
         notifyFriendRequests: notifyFriendRequests,
-        notifyFriendAccepts: notifyFriendAccepts,
         notifyNudges: notifyNudges,
         notifyDailyReward: notifyDailyReward,
       ),
@@ -708,13 +706,20 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
         'update_notification_prefs',
         body: {
           'notify_friend_requests': notifyFriendRequests,
-          'notify_friend_accepts': notifyFriendAccepts,
           'notify_nudges': notifyNudges,
           'notify_daily_reward': notifyDailyReward,
         },
       );
     } catch (_) {
       state = AsyncData(previous);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save notification preference.'),
+            duration: snackBarDuration,
+          ),
+        );
+      }
     }
   }
 

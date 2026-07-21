@@ -2099,11 +2099,20 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                                 .updateNotificationPrefs(
                                                   notifyFriendRequests:
                                                       u.notifyFriendRequests,
-                                                  notifyFriendAccepts:
-                                                      u.notifyFriendAccepts,
                                                   notifyNudges: u.notifyNudges,
                                                   notifyDailyReward: v,
+                                                  context: context,
                                                 );
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Daily Reward notifications ${v ? 'on' : 'off'}',
+                                                ),
+                                                duration: snackBarDuration,
+                                              ),
+                                            );
                                           },
                                         ),
                                         _notifTypeRow(
@@ -2131,12 +2140,21 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                                 .read(userDataProvider.notifier)
                                                 .updateNotificationPrefs(
                                                   notifyFriendRequests: v,
-                                                  notifyFriendAccepts:
-                                                      u.notifyFriendAccepts,
                                                   notifyNudges: u.notifyNudges,
                                                   notifyDailyReward:
                                                       u.notifyDailyReward,
+                                                  context: context,
                                                 );
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Friend Request notifications ${v ? 'on' : 'off'}',
+                                                ),
+                                                duration: snackBarDuration,
+                                              ),
+                                            );
                                           },
                                         ),
                                         _notifTypeRow(
@@ -2162,12 +2180,21 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                                 .updateNotificationPrefs(
                                                   notifyFriendRequests:
                                                       u.notifyFriendRequests,
-                                                  notifyFriendAccepts:
-                                                      u.notifyFriendAccepts,
                                                   notifyNudges: v,
                                                   notifyDailyReward:
                                                       u.notifyDailyReward,
+                                                  context: context,
                                                 );
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Nudge notifications ${v ? 'on' : 'off'}',
+                                                ),
+                                                duration: snackBarDuration,
+                                              ),
+                                            );
                                           },
                                         ),
                                       ],

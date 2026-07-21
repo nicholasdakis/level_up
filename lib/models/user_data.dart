@@ -9,7 +9,6 @@ class UserData {
   bool canClaimDailyReward;
   bool notificationsEnabled;
   bool notifyFriendRequests;
-  bool notifyFriendAccepts;
   bool notifyNudges;
   bool notifyDailyReward;
   DateTime? lastDailyClaim;
@@ -55,7 +54,6 @@ class UserData {
     this.canClaimDailyReward = true,
     this.notificationsEnabled = true,
     this.notifyFriendRequests = true,
-    this.notifyFriendAccepts = true,
     this.notifyNudges = true,
     this.notifyDailyReward = true,
     this.lastDailyClaim,
@@ -100,7 +98,6 @@ class UserData {
     bool? canClaimDailyReward,
     bool? notificationsEnabled,
     bool? notifyFriendRequests,
-    bool? notifyFriendAccepts,
     bool? notifyNudges,
     bool? notifyDailyReward,
     DateTime? lastDailyClaim,
@@ -145,7 +142,6 @@ class UserData {
       canClaimDailyReward: canClaimDailyReward ?? this.canClaimDailyReward,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       notifyFriendRequests: notifyFriendRequests ?? this.notifyFriendRequests,
-      notifyFriendAccepts: notifyFriendAccepts ?? this.notifyFriendAccepts,
       notifyNudges: notifyNudges ?? this.notifyNudges,
       notifyDailyReward: notifyDailyReward ?? this.notifyDailyReward,
       lastDailyClaim: lastDailyClaim ?? this.lastDailyClaim,
