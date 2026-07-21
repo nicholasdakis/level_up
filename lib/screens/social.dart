@@ -99,6 +99,9 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                             uid: friend.uid,
                             appColor: appColor,
                             isOwnProfile: false,
+                            onUnfriend: () => ref
+                                .read(friendsProvider.notifier)
+                                .removeFriend(friend.uid),
                           );
                         },
                         child: Padding(
@@ -218,6 +221,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                                   friendsPendingBadge(
                                     context,
                                     friendsAsync.value!.incomingCount,
+                                    appColor,
                                   ),
                                 ],
                               ],
@@ -410,6 +414,60 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                                                 c,
                                                 muted: true,
                                                 onTap: () async {
+                                                  final confirmed =
+                                                      await showFrostedAlertDialog<
+                                                        bool
+                                                      >(
+                                                        context: context,
+                                                        appColor: appColor,
+                                                        title:
+                                                            'Decline request?',
+                                                        content: Text(
+                                                          'Are you sure you want to decline ${entry.username}\'s friend request?',
+                                                          style: GoogleFonts.manrope(
+                                                            color: Colors.white,
+                                                            fontSize:
+                                                                Responsive.font(
+                                                                  context,
+                                                                  13,
+                                                                ),
+                                                          ),
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.of(
+                                                                  context,
+                                                                  rootNavigator:
+                                                                      true,
+                                                                ).pop(false),
+                                                            child: Text(
+                                                              'Cancel',
+                                                              style:
+                                                                  dialogButtonStyle(),
+                                                            ),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.of(
+                                                                  context,
+                                                                  rootNavigator:
+                                                                      true,
+                                                                ).pop(true),
+                                                            child: Text(
+                                                              'Decline',
+                                                              style:
+                                                                  dialogButtonStyle(
+                                                                    confirm:
+                                                                        true,
+                                                                  ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                  if (confirmed != true) return;
                                                   await authenticatedPost(
                                                     'friends/request',
                                                     body: {
@@ -611,6 +669,9 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                             uid: friend.uid,
                             appColor: appColor,
                             isOwnProfile: false,
+                            onUnfriend: () => ref
+                                .read(friendsProvider.notifier)
+                                .removeFriend(friend.uid),
                           ),
                           child: SizedBox(
                             width: cellWidth,
@@ -785,7 +846,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
           ),
           if (count > 0) ...[
             SizedBox(width: Responsive.width(context, 6)),
-            friendsPendingBadge(context, count),
+            friendsPendingBadge(context, count, appColor),
           ],
           const Spacer(),
           Icon(
@@ -802,7 +863,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
 
   Widget _divider(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 14)),
+      padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 8)),
       child: Container(height: 1.5, color: cardColors(appColor).border),
     );
   }

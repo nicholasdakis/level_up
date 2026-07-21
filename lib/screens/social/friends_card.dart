@@ -41,15 +41,17 @@ class _UserSearchResult {
   }
 }
 
-Widget friendsPendingBadge(BuildContext context, int count) {
+Widget friendsPendingBadge(BuildContext context, int count, Color appColor) {
+  final c = cardColors(appColor);
   return Container(
     padding: EdgeInsets.symmetric(
       horizontal: Responsive.width(context, 7),
       vertical: Responsive.height(context, 2),
     ),
     decoration: BoxDecoration(
-      color: Colors.redAccent.withAlpha(200),
+      gradient: LinearGradient(colors: c.gradient),
       borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+      border: Border.all(color: c.border, width: 1),
     ),
     child: Text(
       '$count',

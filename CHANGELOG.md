@@ -2953,3 +2953,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Unfriend lives in a "Manage Friendship" dialog behind a three-dot menu in the profile card header
 - Added a friends provider as the SoT for friend-related data which contains a profile card cache
 - Added the UI for per-type notification preference toggles in Settings for Daily Reward, Friend Requests, Nudges, and Reminders (not backend-wired yet)
+
+## 2026-07-21
+- Made the social tab UI update when a user unfriends someone with a new removeFriend method that only patches the frontend

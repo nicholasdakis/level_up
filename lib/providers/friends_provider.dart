@@ -149,6 +149,17 @@ class FriendsNotifier extends AsyncNotifier<FriendsState> {
     }
   }
 
+  // frontend-only patch, actual unfriend POST is fired by the profile card
+  void removeFriend(String uid) {
+    final current = state.value;
+    if (current == null) return;
+    state = AsyncData(
+      current.copyWith(
+        friends: current.friends.where((f) => f.uid != uid).toList(),
+      ),
+    );
+  }
+
   Future<void> loadMoreFriends() async {
     final current = state.value;
     if (current == null || !current.friendsHasMore) return;
