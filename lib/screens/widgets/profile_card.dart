@@ -551,6 +551,7 @@ class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
       'friends/unfriend',
       body: {'target_uid': widget.uid},
     );
+    widget.onUnfriend?.call();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

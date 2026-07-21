@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
 import '../utility/responsive.dart';
 import '../providers/user_data_provider.dart';
+import '../providers/friends_provider.dart';
 import '../services/user_data_manager.dart' show defaultAppColor;
 
 // Tab index constants
@@ -63,6 +64,9 @@ class FloatingNavBar extends ConsumerWidget {
     final appColor = ref.watch(
       userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
     );
+    final hasPendingRequests = ref.watch(
+      friendsProvider.select((s) => (s.value?.incomingCount ?? 0) > 0),
+    );
     return SafeArea(
       // SafeArea prevents the bar from overlapping the home indicator on iOS
       child: Center(
@@ -104,6 +108,7 @@ class FloatingNavBar extends ConsumerWidget {
                         isActive: selectedIndex == i,
                         appColor: appColor,
                         onTap: () => onTap(i),
+                        showBadge: i == kTabSocial && hasPendingRequests,
                       ),
                   ],
                 ),
@@ -123,6 +128,7 @@ class _NavItem extends StatelessWidget {
   final bool isActive;
   final Color appColor;
   final VoidCallback onTap;
+  final bool showBadge;
 
   const _NavItem({
     required this.icon,
@@ -130,6 +136,7 @@ class _NavItem extends StatelessWidget {
     required this.isActive,
     required this.appColor,
     required this.onTap,
+    this.showBadge = false,
   });
 
   @override
@@ -152,13 +159,31 @@ class _NavItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Icon grows when active to emphasize selected tab
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 350),
-              child: HugeIcon(
-                icon: icon,
-                color: isActive ? activeColor : inactiveColor,
-                size: Responsive.scale(context, isActive ? 28 : 23),
-              ),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 350),
+                  child: HugeIcon(
+                    icon: icon,
+                    color: isActive ? activeColor : inactiveColor,
+                    size: Responsive.scale(context, isActive ? 28 : 23),
+                  ),
+                ),
+                if (showBadge)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      width: Responsive.scale(context, 7),
+                      height: Responsive.scale(context, 7),
+                      decoration: BoxDecoration(
+                        color: isActive ? activeColor : inactiveColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             SizedBox(height: Responsive.scale(context, 3)),
             // Label animates color and weight, invisible on inactive tabs

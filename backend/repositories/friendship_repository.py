@@ -82,6 +82,14 @@ class FriendshipRepository:
             .execute().data
         return [row["users"] for row in rows if row.get("users")]
 
+    def count_incoming_requests(self, uid: str) -> int:
+        result = self._supabase.table("friendships") \
+            .select("id", count="exact") \
+            .eq("recipient_uid", uid) \
+            .eq("status", "pending") \
+            .execute()
+        return result.count or 0
+
     def get_status(self, uid: str, other_uid: str) -> str:
         result = self._supabase.table("friendships") \
             .select("sender_uid, status") \
