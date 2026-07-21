@@ -71,7 +71,7 @@ class FloatingNavBar extends ConsumerWidget {
       child: Center(
         child: ConstrainedBox(
           // Cap the width so the bar doesn't stretch too wide on tablets/desktop
-          constraints: BoxConstraints(maxWidth: Responsive.scale(context, 360)),
+          constraints: BoxConstraints(maxWidth: Responsive.scale(context, 340)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(Responsive.scale(context, 30)),
             child: BackdropFilter(
@@ -94,7 +94,7 @@ class FloatingNavBar extends ConsumerWidget {
                         width: Responsive.width(context, 1.5),
                       ),
                 padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.padding(context, 8),
+                  horizontal: Responsive.padding(context, 2),
                   vertical: Responsive.padding(context, 10),
                 ),
                 child: Row(
@@ -151,7 +151,7 @@ class _NavItem extends StatelessWidget {
       behavior: HitTestBehavior.opaque, // makes the full padding area tappable
       child: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: Responsive.padding(context, 10),
+          horizontal: Responsive.padding(context, 5),
           vertical: Responsive.padding(context, 4),
         ),
         child: Column(
