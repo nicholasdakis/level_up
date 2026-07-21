@@ -479,6 +479,7 @@ Future<void> showProfileCard(
   VoidCallback? onBlock,
   VoidCallback? onUnblock,
 }) {
+  if (isGuest) return Future.value();
   return showFrostedDialog(
     context: context,
     appColor: appColor,

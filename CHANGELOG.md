@@ -2999,3 +2999,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Foods and workouts friends filter fetches the aggregated RPC result and filters by UID set server-side before returning
 - Friends Only leaderboard with no friends shows a CTA card with Add a Friend and Invite buttons
 - Invite a Friend in the settings drawer and referral dialog now uses SharePlus on all platforms instead of copying to clipboard on web
+- Added locks to the social tab for guests

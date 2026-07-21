@@ -85,7 +85,30 @@ class FriendsNotifier extends AsyncNotifier<FriendsState> {
 
   @override
   Future<FriendsState> build() async {
-    if (isGuest) return const FriendsState();
+    if (isGuest) {
+      return FriendsState(
+        friends: [
+          FriendEntry(
+            uid: 'guest_1',
+            username: 'HealthHero',
+            level: 14,
+            expPoints: 3200,
+          ),
+          FriendEntry(
+            uid: 'guest_2',
+            username: 'FitStreak99',
+            level: 8,
+            expPoints: 1400,
+          ),
+          FriendEntry(
+            uid: 'guest_3',
+            username: 'NutriChamp',
+            level: 21,
+            expPoints: 7800,
+          ),
+        ],
+      );
+    }
     return _fetchAll();
   }
 

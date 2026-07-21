@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../globals.dart';
+import '../guest.dart' show Guest;
 import '../providers/user_data_provider.dart';
 import '../providers/friends_provider.dart';
 import '../services/user_data_manager.dart'
@@ -234,7 +235,14 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                               context,
                               'Search',
                               c,
-                              onTap: () => _showFriendSearch(context, appColor),
+                              onTap: () => isGuest
+                                  ? Guest.block(
+                                      context,
+                                      title: 'Sign up to find friends',
+                                      description:
+                                          'Create a free account to search and add friends.',
+                                    )
+                                  : _showFriendSearch(context, appColor),
                             ),
                           ],
                         ),
@@ -266,7 +274,33 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                                     SizedBox(
                                       height: Responsive.height(context, 10),
                                     ),
-                                    _friendsGrid(context, primary, dim, data),
+                                    if (isGuest)
+                                      GestureDetector(
+                                        onTap: () => Guest.block(
+                                          context,
+                                          title: 'Sign up to add friends',
+                                          description:
+                                              'Create a free account to add friends and compete together.',
+                                        ),
+                                        child: Stack(
+                                          children: [
+                                            IgnorePointer(
+                                              child: Opacity(
+                                                opacity: 0.35,
+                                                child: _friendsGrid(
+                                                  context,
+                                                  primary,
+                                                  dim,
+                                                  data,
+                                                ),
+                                              ),
+                                            ),
+                                            guestLockOverlay(context, appColor),
+                                          ],
+                                        ),
+                                      )
+                                    else
+                                      _friendsGrid(context, primary, dim, data),
                                     SizedBox(
                                       height: Responsive.height(context, 20),
                                     ),
@@ -278,73 +312,273 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                                     SizedBox(
                                       height: Responsive.height(context, 10),
                                     ),
-                                    frostedGlassCard(
-                                      context,
-                                      color: appColor,
-                                      baseRadius: 16,
-                                      padding: EdgeInsets.all(
-                                        Responsive.scale(context, 16),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        children: [
-                                          _collapsibleHeader(
-                                            context,
-                                            'Incoming',
-                                            data.incomingCount,
-                                            _incomingExpanded,
-                                            primary,
-                                            dim,
-                                            onTap: () async {
-                                              if (!_incomingExpanded) {
-                                                await ref
-                                                    .read(
-                                                      friendsProvider.notifier,
-                                                    )
-                                                    .expandIncoming();
-                                              }
-                                              setState(
-                                                () => _incomingExpanded =
-                                                    !_incomingExpanded,
-                                              );
-                                            },
+                                    Builder(
+                                      builder: (context) {
+                                        final requestsCard = frostedGlassCard(
+                                          context,
+                                          color: appColor,
+                                          baseRadius: 16,
+                                          padding: EdgeInsets.all(
+                                            Responsive.scale(context, 16),
                                           ),
-                                          if (_incomingExpanded) ...[
-                                            SizedBox(
-                                              height: Responsive.height(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
+                                            children: [
+                                              _collapsibleHeader(
                                                 context,
-                                                8,
-                                              ),
-                                            ),
-                                            if (data.incoming.isEmpty)
-                                              _sectionEmptyState(
-                                                context,
-                                                dim,
-                                                'No pending requests',
-                                              ),
-                                            for (final entry in data.incoming)
-                                              _entryRow(
-                                                context,
-                                                entry,
+                                                'Incoming',
+                                                data.incomingCount,
+                                                _incomingExpanded,
                                                 primary,
                                                 dim,
-                                                c,
-                                                trailing: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    _actionButton(
+                                                onTap: () async {
+                                                  if (!_incomingExpanded) {
+                                                    await ref
+                                                        .read(
+                                                          friendsProvider
+                                                              .notifier,
+                                                        )
+                                                        .expandIncoming();
+                                                  }
+                                                  setState(
+                                                    () => _incomingExpanded =
+                                                        !_incomingExpanded,
+                                                  );
+                                                },
+                                              ),
+                                              if (_incomingExpanded) ...[
+                                                SizedBox(
+                                                  height: Responsive.height(
+                                                    context,
+                                                    8,
+                                                  ),
+                                                ),
+                                                if (data.incoming.isEmpty)
+                                                  _sectionEmptyState(
+                                                    context,
+                                                    dim,
+                                                    'No pending requests',
+                                                  ),
+                                                for (final entry
+                                                    in data.incoming)
+                                                  _entryRow(
+                                                    context,
+                                                    entry,
+                                                    primary,
+                                                    dim,
+                                                    c,
+                                                    trailing: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        _actionButton(
+                                                          context,
+                                                          'Accept',
+                                                          c,
+                                                          onTap: () async {
+                                                            if (isGuest) {
+                                                              Guest.block(
+                                                                context,
+                                                              );
+                                                              return;
+                                                            }
+                                                            await authenticatedPost(
+                                                              'friends/request',
+                                                              body: {
+                                                                'target_uid':
+                                                                    entry.uid,
+                                                                'action':
+                                                                    'accept',
+                                                              },
+                                                            );
+                                                            _refresh();
+                                                            if (!mounted) {
+                                                              return;
+                                                            }
+                                                            ScaffoldMessenger.of(
+                                                              context,
+                                                            ).showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(
+                                                                  'You and ${entry.username} are now friends',
+                                                                  style: GoogleFonts.manrope(
+                                                                    color: Colors
+                                                                        .white,
+                                                                  ),
+                                                                ),
+                                                                duration:
+                                                                    snackBarDuration,
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                        SizedBox(
+                                                          width:
+                                                              Responsive.width(
+                                                                context,
+                                                                6,
+                                                              ),
+                                                        ),
+                                                        _actionButton(
+                                                          context,
+                                                          'Decline',
+                                                          c,
+                                                          muted: true,
+                                                          onTap: () async {
+                                                            if (isGuest) {
+                                                              Guest.block(
+                                                                context,
+                                                              );
+                                                              return;
+                                                            }
+                                                            final confirmed = await showFrostedAlertDialog<bool>(
+                                                              context: context,
+                                                              appColor:
+                                                                  appColor,
+                                                              title:
+                                                                  'Decline request?',
+                                                              content: Text(
+                                                                'Are you sure you want to decline ${entry.username}\'s friend request?',
+                                                                style: GoogleFonts.manrope(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize:
+                                                                      Responsive.font(
+                                                                        context,
+                                                                        13,
+                                                                      ),
+                                                                ),
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
+                                                              ),
+                                                              actions: [
+                                                                TextButton(
+                                                                  onPressed: () =>
+                                                                      Navigator.of(
+                                                                        context,
+                                                                        rootNavigator:
+                                                                            true,
+                                                                      ).pop(
+                                                                        false,
+                                                                      ),
+                                                                  child: Text(
+                                                                    'Cancel',
+                                                                    style:
+                                                                        dialogButtonStyle(),
+                                                                  ),
+                                                                ),
+                                                                TextButton(
+                                                                  onPressed: () =>
+                                                                      Navigator.of(
+                                                                        context,
+                                                                        rootNavigator:
+                                                                            true,
+                                                                      ).pop(
+                                                                        true,
+                                                                      ),
+                                                                  child: Text(
+                                                                    'Decline',
+                                                                    style: dialogButtonStyle(
+                                                                      confirm:
+                                                                          true,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            );
+                                                            if (confirmed !=
+                                                                true) {
+                                                              return;
+                                                            }
+                                                            await authenticatedPost(
+                                                              'friends/request',
+                                                              body: {
+                                                                'target_uid':
+                                                                    entry.uid,
+                                                                'action':
+                                                                    'decline',
+                                                              },
+                                                            );
+                                                            _refresh();
+                                                          },
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                if (data.incomingHasMore)
+                                                  _loadMoreButton(
+                                                    context,
+                                                    primary,
+                                                    () => ref
+                                                        .read(
+                                                          friendsProvider
+                                                              .notifier,
+                                                        )
+                                                        .expandIncoming(),
+                                                  ),
+                                              ],
+                                              _divider(context),
+                                              _collapsibleHeader(
+                                                context,
+                                                'Sent',
+                                                data.outgoingCount,
+                                                _outgoingExpanded,
+                                                primary,
+                                                dim,
+                                                onTap: () async {
+                                                  if (!_outgoingExpanded) {
+                                                    await ref
+                                                        .read(
+                                                          friendsProvider
+                                                              .notifier,
+                                                        )
+                                                        .expandOutgoing();
+                                                  }
+                                                  setState(
+                                                    () => _outgoingExpanded =
+                                                        !_outgoingExpanded,
+                                                  );
+                                                },
+                                              ),
+                                              if (_outgoingExpanded) ...[
+                                                SizedBox(
+                                                  height: Responsive.height(
+                                                    context,
+                                                    8,
+                                                  ),
+                                                ),
+                                                if (data.outgoing.isEmpty)
+                                                  _sectionEmptyState(
+                                                    context,
+                                                    dim,
+                                                    'No sent requests',
+                                                  ),
+                                                for (final entry
+                                                    in data.outgoing)
+                                                  _entryRow(
+                                                    context,
+                                                    entry,
+                                                    primary,
+                                                    dim,
+                                                    c,
+                                                    trailing: _actionButton(
                                                       context,
-                                                      'Accept',
+                                                      'Cancel',
                                                       c,
+                                                      muted: true,
                                                       onTap: () async {
+                                                        if (isGuest) {
+                                                          Guest.block(context);
+                                                          return;
+                                                        }
                                                         await authenticatedPost(
                                                           'friends/request',
                                                           body: {
                                                             'target_uid':
                                                                 entry.uid,
-                                                            'action': 'accept',
+                                                            'action': 'cancel',
                                                           },
                                                         );
                                                         _refresh();
@@ -354,7 +588,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                                                         ).showSnackBar(
                                                           SnackBar(
                                                             content: Text(
-                                                              'You and ${entry.username} are now friends',
+                                                              'Friend request to ${entry.username} cancelled',
                                                               style:
                                                                   GoogleFonts.manrope(
                                                                     color: Colors
@@ -367,202 +601,69 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                                                         );
                                                       },
                                                     ),
-                                                    SizedBox(
-                                                      width: Responsive.width(
-                                                        context,
-                                                        6,
-                                                      ),
-                                                    ),
-                                                    _actionButton(
-                                                      context,
-                                                      'Decline',
-                                                      c,
-                                                      muted: true,
-                                                      onTap: () async {
-                                                        final confirmed = await showFrostedAlertDialog<bool>(
-                                                          context: context,
-                                                          appColor: appColor,
-                                                          title:
-                                                              'Decline request?',
-                                                          content: Text(
-                                                            'Are you sure you want to decline ${entry.username}\'s friend request?',
-                                                            style: GoogleFonts.manrope(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize:
-                                                                  Responsive.font(
-                                                                    context,
-                                                                    13,
-                                                                  ),
-                                                            ),
-                                                            textAlign: TextAlign
-                                                                .center,
-                                                          ),
-                                                          actions: [
-                                                            TextButton(
-                                                              onPressed: () =>
-                                                                  Navigator.of(
-                                                                    context,
-                                                                    rootNavigator:
-                                                                        true,
-                                                                  ).pop(false),
-                                                              child: Text(
-                                                                'Cancel',
-                                                                style:
-                                                                    dialogButtonStyle(),
-                                                              ),
-                                                            ),
-                                                            TextButton(
-                                                              onPressed: () =>
-                                                                  Navigator.of(
-                                                                    context,
-                                                                    rootNavigator:
-                                                                        true,
-                                                                  ).pop(true),
-                                                              child: Text(
-                                                                'Decline',
-                                                                style:
-                                                                    dialogButtonStyle(
-                                                                      confirm:
-                                                                          true,
-                                                                    ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        );
-                                                        if (confirmed != true) {
-                                                          return;
-                                                        }
-                                                        await authenticatedPost(
-                                                          'friends/request',
-                                                          body: {
-                                                            'target_uid':
-                                                                entry.uid,
-                                                            'action': 'decline',
-                                                          },
-                                                        );
-                                                        _refresh();
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            if (data.incomingHasMore)
-                                              _loadMoreButton(
-                                                context,
-                                                primary,
-                                                () => ref
-                                                    .read(
-                                                      friendsProvider.notifier,
-                                                    )
-                                                    .expandIncoming(),
-                                              ),
-                                          ],
-                                          _divider(context),
-                                          _collapsibleHeader(
-                                            context,
-                                            'Sent',
-                                            data.outgoingCount,
-                                            _outgoingExpanded,
-                                            primary,
-                                            dim,
-                                            onTap: () async {
-                                              if (!_outgoingExpanded) {
-                                                await ref
-                                                    .read(
-                                                      friendsProvider.notifier,
-                                                    )
-                                                    .expandOutgoing();
-                                              }
-                                              setState(
-                                                () => _outgoingExpanded =
-                                                    !_outgoingExpanded,
-                                              );
-                                            },
+                                                  ),
+                                                if (data.outgoingHasMore)
+                                                  _loadMoreButton(
+                                                    context,
+                                                    primary,
+                                                    () => ref
+                                                        .read(
+                                                          friendsProvider
+                                                              .notifier,
+                                                        )
+                                                        .expandOutgoing(),
+                                                  ),
+                                              ],
+                                            ],
                                           ),
-                                          if (_outgoingExpanded) ...[
-                                            SizedBox(
-                                              height: Responsive.height(
-                                                context,
-                                                8,
-                                              ),
+                                        );
+                                        if (isGuest) {
+                                          return GestureDetector(
+                                            onTap: () => Guest.block(
+                                              context,
+                                              title:
+                                                  'Sign up to see friend requests',
+                                              description:
+                                                  'Create a free account to send and receive friend requests.',
                                             ),
-                                            if (data.outgoing.isEmpty)
-                                              _sectionEmptyState(
-                                                context,
-                                                dim,
-                                                'No sent requests',
-                                              ),
-                                            for (final entry in data.outgoing)
-                                              _entryRow(
-                                                context,
-                                                entry,
-                                                primary,
-                                                dim,
-                                                c,
-                                                trailing: _actionButton(
-                                                  context,
-                                                  'Cancel',
-                                                  c,
-                                                  muted: true,
-                                                  onTap: () async {
-                                                    await authenticatedPost(
-                                                      'friends/request',
-                                                      body: {
-                                                        'target_uid': entry.uid,
-                                                        'action': 'cancel',
-                                                      },
-                                                    );
-                                                    _refresh();
-                                                    if (!mounted) return;
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          'Friend request to ${entry.username} cancelled',
-                                                          style:
-                                                              GoogleFonts.manrope(
-                                                                color: Colors
-                                                                    .white,
-                                                              ),
-                                                        ),
-                                                        duration:
-                                                            snackBarDuration,
-                                                      ),
-                                                    );
-                                                  },
+                                            child: Stack(
+                                              children: [
+                                                IgnorePointer(
+                                                  child: Opacity(
+                                                    opacity: 0.35,
+                                                    child: requestsCard,
+                                                  ),
                                                 ),
-                                              ),
-                                            if (data.outgoingHasMore)
-                                              _loadMoreButton(
-                                                context,
-                                                primary,
-                                                () => ref
-                                                    .read(
-                                                      friendsProvider.notifier,
-                                                    )
-                                                    .expandOutgoing(),
-                                              ),
-                                          ],
-                                        ],
+                                                guestLockOverlay(
+                                                  context,
+                                                  appColor,
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }
+                                        return requestsCard;
+                                      },
+                                    ),
+                                    if (!friendsAsync.isLoading &&
+                                        (friendsAsync.value?.friends.isEmpty ??
+                                            false)) ...[
+                                      SizedBox(
+                                        height: Responsive.height(context, 20),
                                       ),
+                                      AddFriendsCta(
+                                        appColor: appColor,
+                                        onFriendAdded: _refresh,
+                                      ),
+                                    ],
+                                    SizedBox(
+                                      height: Responsive.height(context, 120),
                                     ),
                                   ],
                                 );
                               },
                             ),
                           ),
-
-                        if (!friendsAsync.isLoading &&
-                            (friendsAsync.value?.friends.isEmpty ?? false)) ...[
-                          SizedBox(height: Responsive.height(context, 20)),
-                          AddFriendsCta(
-                            appColor: appColor,
-                            onFriendAdded: _refresh,
-                          ),
-                        ],
-                        SizedBox(height: Responsive.height(context, 120)),
                       ],
                     ),
                   ),
@@ -725,6 +826,15 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                       // Add friend slot always appears as the last circle
                       GestureDetector(
                         onTap: () async {
+                          if (isGuest) {
+                            Guest.block(
+                              context,
+                              title: 'Sign up to add friends',
+                              description:
+                                  'Create a free account to add friends and compete together.',
+                            );
+                            return;
+                          }
                           await showAddFriendDialog(context, appColor);
                           _refresh();
                         },

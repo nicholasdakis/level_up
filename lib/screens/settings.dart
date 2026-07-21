@@ -7,7 +7,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:pwa_install/pwa_install.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:share_plus/share_plus.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../globals.dart';
 import '../providers/user_data_provider.dart';

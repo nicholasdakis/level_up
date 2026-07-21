@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../globals.dart';
+import '../../guest.dart' show Guest;
 import '../../providers/user_data_provider.dart';
 import '../../utility/responsive.dart';
 import '../social/friends_card.dart' show showAddFriendDialog;
@@ -52,6 +53,7 @@ class AddFriendsCta extends ConsumerWidget {
               Expanded(
                 child: GestureDetector(
                   onTap: () async {
+                    if (isGuest) { Guest.block(context, title: 'Sign up to add friends', description: 'Create a free account to add friends and compete together.'); return; }
                     await showAddFriendDialog(context, appColor);
                     onFriendAdded?.call();
                   },
@@ -96,6 +98,7 @@ class AddFriendsCta extends ConsumerWidget {
               Expanded(
                 child: GestureDetector(
                   onTap: () async {
+                    if (isGuest) { Guest.block(context, title: 'Sign up to invite friends', description: 'Create a free account to invite friends and earn bonus XP.'); return; }
                     final code = await ref
                         .read(userDataProvider.notifier)
                         .fetchReferralCode();
