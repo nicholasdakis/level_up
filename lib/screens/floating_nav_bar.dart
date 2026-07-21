@@ -5,7 +5,6 @@ import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
 import '../utility/responsive.dart';
 import '../providers/user_data_provider.dart';
-import '../providers/friends_provider.dart';
 import '../services/user_data_manager.dart' show defaultAppColor;
 
 // Tab index constants
@@ -64,8 +63,8 @@ class FloatingNavBar extends ConsumerWidget {
     final appColor = ref.watch(
       userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
     );
-    final hasPendingRequests = ref.watch(
-      friendsProvider.select((s) => (s.value?.incomingCount ?? 0) > 0),
+    final pendingRequestCount = ref.watch(
+      userDataProvider.select((s) => s.value?.incomingFriendRequestCount ?? 0),
     );
     return SafeArea(
       // SafeArea prevents the bar from overlapping the home indicator on iOS
@@ -108,7 +107,7 @@ class FloatingNavBar extends ConsumerWidget {
                         isActive: selectedIndex == i,
                         appColor: appColor,
                         onTap: () => onTap(i),
-                        showBadge: i == kTabSocial && hasPendingRequests,
+                        badgeCount: i == kTabSocial ? pendingRequestCount : 0,
                       ),
                   ],
                 ),
@@ -128,7 +127,7 @@ class _NavItem extends StatelessWidget {
   final bool isActive;
   final Color appColor;
   final VoidCallback onTap;
-  final bool showBadge;
+  final int badgeCount;
 
   const _NavItem({
     required this.icon,
@@ -136,7 +135,7 @@ class _NavItem extends StatelessWidget {
     required this.isActive,
     required this.appColor,
     required this.onTap,
-    this.showBadge = false,
+    this.badgeCount = 0,
   });
 
   @override
@@ -170,16 +169,33 @@ class _NavItem extends StatelessWidget {
                     size: Responsive.scale(context, isActive ? 28 : 23),
                   ),
                 ),
-                if (showBadge)
+                if (badgeCount > 0)
                   Positioned(
                     top: -2,
                     right: -2,
                     child: Container(
-                      width: Responsive.scale(context, 7),
-                      height: Responsive.scale(context, 7),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 4),
+                        vertical: Responsive.height(context, 1),
+                      ),
                       decoration: BoxDecoration(
                         color: isActive ? activeColor : inactiveColor,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 8),
+                        ),
+                      ),
+                      child: Text(
+                        '$badgeCount',
+                        style: TextStyle(
+                          fontSize: Responsive.font(context, 8),
+                          fontWeight: FontWeight.w700,
+                          color: isActive
+                              ? (appColor.computeLuminance() < 0.18
+                                    ? Colors.black
+                                    : Colors.white)
+                              : Colors.black.withAlpha(180),
+                          fontFamily: 'Manrope',
+                        ),
                       ),
                     ),
                   ),

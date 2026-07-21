@@ -2957,3 +2957,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-07-21
 - Made the social tab UI update when a user unfriends someone with a new removeFriend method that only patches the frontend
 - Made the social tab icon show a small badge indicator if the user has any incoming friend requests
+- Realized this was an extra network call for no reason, so made a get_incoming_requests method that loads into the user_data load
+- Replaced the dot indicator with the number of incoming friend requests

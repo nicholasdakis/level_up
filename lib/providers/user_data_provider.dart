@@ -206,6 +206,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
               : null,
           shieldCount: shieldCount,
           shieldsResetAt: shieldsResetAt,
+          incomingFriendRequestCount: data['incoming_request_count'] ?? 0,
           foodLogStreak: foodStreak,
           foodLogStreakBest: foodStreakBest,
           foodLogStreakLastDate: foodStreakLastDate,

@@ -858,7 +858,10 @@ def get_user_data():
 
     email = (g.decoded_token or {}).get("email")
     result = progression_service.get_user_data(uid, email=email)
-    result["incoming_request_count"] = friendship_repo.count_incoming_requests(uid)
+    try:
+        result["incoming_request_count"] = friendship_repo.count_incoming_requests(uid)
+    except Exception:
+        result["incoming_request_count"] = 0
     response = GetUserDataResponse(**result)
     return jsonify(response.model_dump()), 200
 

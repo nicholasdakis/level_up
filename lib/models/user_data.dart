@@ -40,6 +40,7 @@ class UserData {
   DateTime? premiumExpiresAt;
   int shieldCount;
   DateTime? shieldsResetAt;
+  int incomingFriendRequestCount;
 
   // constructor
   UserData({
@@ -80,6 +81,7 @@ class UserData {
     this.premiumExpiresAt,
     this.shieldCount = 0,
     this.shieldsResetAt,
+    this.incomingFriendRequestCount = 0,
   }) : fcmTokens = fcmTokens ?? [],
        username = username ?? uid; // Default username is the UID
 
@@ -121,6 +123,7 @@ class UserData {
     DateTime? premiumExpiresAt,
     int? shieldCount,
     DateTime? shieldsResetAt,
+    int? incomingFriendRequestCount,
   }) {
     return UserData(
       uid: uid,
@@ -161,6 +164,8 @@ class UserData {
       premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,
       shieldCount: shieldCount ?? this.shieldCount,
       shieldsResetAt: shieldsResetAt ?? this.shieldsResetAt,
+      incomingFriendRequestCount:
+          incomingFriendRequestCount ?? this.incomingFriendRequestCount,
     );
   }
 }
