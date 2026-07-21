@@ -14,7 +14,9 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:hugeicons/hugeicons.dart';
+import 'package:share_plus/share_plus.dart';
 import 'premium_sheet.dart' show showPremiumSheet;
+import 'social/friends_card.dart' show showAddFriendDialog;
 import 'widgets/profile_card.dart';
 
 enum _LeaderboardType { xp, foods, workouts }
@@ -41,6 +43,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
 
   _LeaderboardType _selectedType = _LeaderboardType.xp;
   _LeaderboardPeriod _selectedPeriod = _LeaderboardPeriod.allTime;
+  bool _friendsOnly = false;
 
   // Fake entries for the skeleton loading placeholder
   static final List<LeaderboardEntry> _skeletonEntries = List.generate(
@@ -76,6 +79,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
     _leaderboardFuture = leaderboardService.fetchLeaderboard(
       type: _lbType,
       period: _lbPeriod,
+      friendsOnly: _friendsOnly,
     );
     if (isGuest) {
       Guest.blockOnOpen(
@@ -120,6 +124,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
       _leaderboardFuture = leaderboardService.fetchLeaderboard(
         type: _lbType,
         period: _lbPeriod,
+        friendsOnly: _friendsOnly,
         forceRefresh: true,
       );
     });
@@ -415,6 +420,53 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
     );
   }
 
+  Widget _buildFriendsToggle() {
+    final accent = onTheme(appColor);
+    final dim = onTheme(appColor);
+    return GestureDetector(
+      onTap: () {
+        setState(() => _friendsOnly = !_friendsOnly);
+        _refreshLeaderboard();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 14),
+          vertical: Responsive.height(context, 7),
+        ),
+        decoration: BoxDecoration(
+          color: _friendsOnly
+              ? appColor.withAlpha(60)
+              : Colors.white.withAlpha(10),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+          border: Border.all(
+            color: _friendsOnly ? accent.withAlpha(180) : dim.withAlpha(60),
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedUserGroup,
+              color: _friendsOnly ? accent : dim,
+              size: Responsive.scale(context, 13),
+            ),
+            SizedBox(width: Responsive.width(context, 5)),
+            Text(
+              'Friends only',
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 12),
+                fontWeight: FontWeight.w600,
+                color: _friendsOnly ? accent : dim,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPeriodToggle() {
     final accent = onTheme(appColor);
     final dim = onTheme(appColor);
@@ -572,6 +624,8 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                       child: Text(
                         isGuest
                             ? "Create an account to see the leaderboard"
+                            : _friendsOnly
+                            ? "None of your friends have logged any data yet"
                             : "No users found",
                         textAlign: TextAlign.center,
                         style: TextStyle(color: onTheme(appColor)),
@@ -611,29 +665,42 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Back and refresh buttons
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                themedIconBox(
-                                  context,
-                                  icon: Icons.arrow_back_ios_new,
-                                  color: appColor,
-                                  iconSize: 13,
-                                  padding: 12,
-                                  circle: true,
-                                  onTap: () => context.pop(),
-                                ),
-                                themedIconBox(
-                                  context,
-                                  icon: Icons.refresh,
-                                  color: appColor,
-                                  iconSize: 13,
-                                  padding: 12,
-                                  circle: true,
-                                  onTap: _refreshLeaderboard,
-                                ),
-                              ],
+                            // Back, friends toggle, and refresh buttons
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final chipWidth =
+                                    (constraints.maxWidth -
+                                        Responsive.width(context, 8) * 2) /
+                                    3;
+                                return Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    themedIconBox(
+                                      context,
+                                      icon: Icons.arrow_back_ios_new,
+                                      color: appColor,
+                                      iconSize: 13,
+                                      padding: 12,
+                                      circle: true,
+                                      onTap: () => context.pop(),
+                                    ),
+                                    SizedBox(
+                                      width: chipWidth,
+                                      child: _buildFriendsToggle(),
+                                    ),
+                                    themedIconBox(
+                                      context,
+                                      icon: Icons.refresh,
+                                      color: appColor,
+                                      iconSize: 13,
+                                      padding: 12,
+                                      circle: true,
+                                      onTap: _refreshLeaderboard,
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                             SizedBox(height: Responsive.height(context, 16)),
                             _buildTypeChips(),
@@ -674,10 +741,217 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                         bottom: Responsive.height(context, 120),
                       ),
                       sliver: SliverList.builder(
-                        itemCount: leaderboardUsers.length > 100
-                            ? 100
-                            : leaderboardUsers.length,
+                        itemCount:
+                            (leaderboardUsers.length > 100
+                                ? 100
+                                : leaderboardUsers.length) +
+                            (_friendsOnly && leaderboardUsers.length <= 1
+                                ? 1
+                                : 0),
                         itemBuilder: (context, i) {
+                          // <= 1 means only the viewer is shown, no friends on the board yet
+                          if (_friendsOnly &&
+                              leaderboardUsers.length <= 1 &&
+                              i == leaderboardUsers.length) {
+                            final c = cardColors(appColor);
+                            final primary = onTheme(appColor);
+                            final dim = onTheme(appColor).withAlpha(150);
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                top: Responsive.height(context, 16),
+                              ),
+                              child: frostedGlassCard(
+                                context,
+                                color: appColor,
+                                baseRadius: 16,
+                                padding: EdgeInsets.all(
+                                  Responsive.scale(context, 16),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Text(
+                                      'Compete with friends',
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 14),
+                                        fontWeight: FontWeight.w700,
+                                        color: primary,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(
+                                      height: Responsive.height(context, 4),
+                                    ),
+                                    Text(
+                                      'Add friends to see how you rank against them.',
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 12),
+                                        color: dim,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(
+                                      height: Responsive.height(context, 14),
+                                    ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: GestureDetector(
+                                            onTap: () async {
+                                              await showAddFriendDialog(
+                                                context,
+                                                appColor,
+                                              );
+                                            },
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(
+                                                vertical: Responsive.height(
+                                                  context,
+                                                  10,
+                                                ),
+                                              ),
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: c.gradient,
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      Responsive.scale(
+                                                        context,
+                                                        12,
+                                                      ),
+                                                    ),
+                                                border: Border.all(
+                                                  color: c.border,
+                                                  width: 1.5,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  HugeIcon(
+                                                    icon: HugeIcons
+                                                        .strokeRoundedUserAdd01,
+                                                    color: Colors.white,
+                                                    size: Responsive.scale(
+                                                      context,
+                                                      14,
+                                                    ),
+                                                  ),
+                                                  SizedBox(
+                                                    width: Responsive.width(
+                                                      context,
+                                                      6,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    'Add a Friend',
+                                                    style: GoogleFonts.manrope(
+                                                      fontSize: Responsive.font(
+                                                        context,
+                                                        13,
+                                                      ),
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: Responsive.width(context, 10),
+                                        ),
+                                        Expanded(
+                                          child: GestureDetector(
+                                            onTap: () async {
+                                              final code = await ref
+                                                  .read(
+                                                    userDataProvider.notifier,
+                                                  )
+                                                  .fetchReferralCode();
+                                              if (code == null) return;
+                                              await SharePlus.instance.share(
+                                                ShareParams(
+                                                  text:
+                                                      'Join me on Level Up! Use my referral code $code to get bonus XP when you sign up. https://nicholasdakis.com',
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(
+                                                vertical: Responsive.height(
+                                                  context,
+                                                  10,
+                                                ),
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withAlpha(
+                                                  12,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      Responsive.scale(
+                                                        context,
+                                                        12,
+                                                      ),
+                                                    ),
+                                                border: Border.all(
+                                                  color: Colors.white.withAlpha(
+                                                    30,
+                                                  ),
+                                                  width: 1.5,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  HugeIcon(
+                                                    icon: HugeIcons
+                                                        .strokeRoundedShare01,
+                                                    color: Colors.white,
+                                                    size: Responsive.scale(
+                                                      context,
+                                                      14,
+                                                    ),
+                                                  ),
+                                                  SizedBox(
+                                                    width: Responsive.width(
+                                                      context,
+                                                      6,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    'Invite',
+                                                    style: GoogleFonts.manrope(
+                                                      fontSize: Responsive.font(
+                                                        context,
+                                                        13,
+                                                      ),
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
                           final user = leaderboardUsers[i];
                           final isCurrentUser = user.uid == currentUserId;
                           final card = GestureDetector(
