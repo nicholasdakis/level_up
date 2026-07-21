@@ -178,6 +178,12 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
   late String _units; // tracks the selected unit system (metric or imperial)
   bool _cropLoading = false;
 
+  // TODO: load per-type prefs from backend when setup
+  bool _notifyDailyReward = true;
+  bool _notifyFriendRequests = true;
+  bool _notifyNudges = true;
+  bool _notifyReminders = true;
+
   @override
   void initState() {
     super.initState();
@@ -990,6 +996,30 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
     );
   }
 
+  Widget _notifTypeRow(
+    BuildContext context, {
+    required Color appColor,
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return buildPreferenceRow(
+      icon: icon,
+      label: label,
+      subtitle: subtitle,
+      trailing: Switch.adaptive(
+        value: value,
+        activeThumbColor: onTheme(appColor),
+        activeTrackColor: cardColors(appColor).border,
+        inactiveThumbColor: onTheme(appColor).withAlpha(120),
+        inactiveTrackColor: cardColors(appColor).iconBox,
+        onChanged: isGuest ? (_) => Guest.block(context) : onChanged,
+      ),
+    );
+  }
+
   // builds a single tappable row inside a frosted glass card
   // each row has: icon badge on the left, label + optional subtitle, and a trailing widget or chevron
   Widget buildPreferenceRow({
@@ -1458,6 +1488,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                         color: appColor,
                         child: Column(
                           children: [
+                            // Master toggle
                             buildPreferenceRow(
                               icon: notificationsEnabled
                                   ? HugeIcons.strokeRoundedNotification01
@@ -1482,9 +1513,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                     Guest.block(context);
                                     return;
                                   }
-                                  setState(() {
-                                    notificationsEnabled = value;
-                                  });
+                                  setState(() => notificationsEnabled = value);
                                   await ref
                                       .read(userDataProvider.notifier)
                                       .updateNotificationsEnabled(
@@ -1510,6 +1539,88 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                   }
                                 },
                               ),
+                            ),
+
+                            // Per-type toggles, only shown when master is on
+                            AnimatedSize(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOutQuart,
+                              child: notificationsEnabled
+                                  ? Column(
+                                      children: [
+                                        Divider(
+                                          color: cardColors(
+                                            appColor,
+                                          ).border.withAlpha(80),
+                                          height: 1,
+                                          indent: Responsive.width(context, 16),
+                                          endIndent: Responsive.width(
+                                            context,
+                                            16,
+                                          ),
+                                        ),
+                                        _notifTypeRow(
+                                          context,
+                                          appColor: appColor,
+                                          icon: HugeIcons.strokeRoundedGift,
+                                          label: "Daily Reward",
+                                          subtitle:
+                                              "Remind me to claim my reward",
+                                          value: _notifyDailyReward,
+                                          onChanged: (v) {
+                                            setState(
+                                              () => _notifyDailyReward = v,
+                                            );
+                                            // TODO: save to backend notification_prefs
+                                          },
+                                        ),
+                                        _notifTypeRow(
+                                          context,
+                                          appColor: appColor,
+                                          icon:
+                                              HugeIcons.strokeRoundedUserAdd01,
+                                          label: "Friend Requests",
+                                          subtitle: "When someone adds you",
+                                          value: _notifyFriendRequests,
+                                          onChanged: (v) {
+                                            setState(
+                                              () => _notifyFriendRequests = v,
+                                            );
+                                            // TODO: save to backend notification_prefs
+                                          },
+                                        ),
+                                        _notifTypeRow(
+                                          context,
+                                          appColor: appColor,
+                                          icon: HugeIcons
+                                              .strokeRoundedNotification01,
+                                          label: "Nudges",
+                                          subtitle: "When a friend nudges you",
+                                          value: _notifyNudges,
+                                          onChanged: (v) {
+                                            setState(() => _notifyNudges = v);
+                                            // TODO: save to backend notification_prefs
+                                          },
+                                        ),
+                                        _notifTypeRow(
+                                          context,
+                                          appColor: appColor,
+                                          icon:
+                                              HugeIcons.strokeRoundedAlarmClock,
+                                          label: "Reminders",
+                                          subtitle:
+                                              "Custom reminders you've set",
+                                          value: _notifyReminders,
+                                          onChanged: (v) {
+                                            setState(
+                                              () => _notifyReminders = v,
+                                            );
+                                            // TODO: save to backend notification_prefs
+                                          },
+                                        ),
+                                      ],
+                                    )
+                                  : const SizedBox.shrink(),
                             ),
                           ],
                         ),

@@ -25,6 +25,7 @@ import 'screens/badges.dart';
 import 'screens/leaderboard.dart';
 import 'screens/progression.dart';
 import 'screens/explore.dart';
+import 'screens/social.dart';
 import 'screens/workout.dart';
 import 'screens/active_workout_screen.dart';
 import 'screens/finish_workout_screen.dart';
@@ -61,6 +62,7 @@ final _homeNavKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _foodNavKey = GlobalKey<NavigatorState>(debugLabel: 'food');
 final _workoutNavKey = GlobalKey<NavigatorState>(debugLabel: 'workout');
 final _exploreNavKey = GlobalKey<NavigatorState>(debugLabel: 'explore');
+final _socialNavKey = GlobalKey<NavigatorState>(debugLabel: 'social');
 final _leaderboardNavKey = GlobalKey<NavigatorState>(debugLabel: 'leaderboard');
 
 // slides in from the right on push, instant on pop
@@ -341,6 +343,20 @@ final GoRouter appRouter = GoRouter(
           ],
         ),
 
+        // Social tab
+        StatefulShellBranch(
+          navigatorKey: _socialNavKey,
+          routes: [
+            GoRoute(
+              path: '/social',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const SocialScreen(),
+              ),
+            ),
+          ],
+        ),
+
         // Explore tab
         StatefulShellBranch(
           navigatorKey: _exploreNavKey,
@@ -530,7 +546,9 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
         final mid = lightenColor(base, 0.015);
         final notch = darkenColor(base, 0.07);
         final on = onTheme(base);
-        web_fcm.setAppColor('${toHex(dark)}|${toHex(mid)}|${toHex(notch)}|${toHex(on)}');
+        web_fcm.setAppColor(
+          '${toHex(dark)}|${toHex(mid)}|${toHex(notch)}|${toHex(on)}',
+        );
       } catch (e) {
         if (kDebugMode) debugPrint('setAppColor failed: $e');
       }

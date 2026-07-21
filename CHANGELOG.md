@@ -2941,3 +2941,15 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-07-20
 - Reordered ads so AdMob is the fallback now
 - Changed the "ads not ready" dialog to an "ads not available" fallback dialog
+- Fixed a bug where Android users were never prompted for notification permission after claiming their first daily reward, causing push notifications to silently fail for the majority of new users
+- Added the friendship table with related methods and schemas for handling friendship actions
+- New social tab added which shows the full friends system: paginated friends grid, add friend search, incoming/outgoing friend request sections, and a friends list search dialog
+- Friends grid has an Add circle as the last slot on every page for adding new friends
+- Added Public profile cards which show level, XP progress, streaks, and join date
+- The cards are accessible by clicking on a friend's icon in the friends tab, the user's own icon in the settings drawer, or on any user in the leaderboard tab
+- Added a nudge feature so friends can send instant notifications to each other
+- The nudge feature is accessed from the profile card and shows a few placeholder messages and a custom entry option
+- Added rate limiting to nudges to 3 per recipient per hour and 20 max per day
+- Unfriend lives in a "Manage Friendship" dialog behind a three-dot menu in the profile card header
+- Added a friends provider as the SoT for friend-related data which contains a profile card cache
+- Added the UI for per-type notification preference toggles in Settings for Daily Reward, Friend Requests, Nudges, and Reminders (not backend-wired yet)

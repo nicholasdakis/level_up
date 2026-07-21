@@ -15,6 +15,7 @@ import '../providers/workout_provider.dart';
 import '../utility/responsive.dart';
 import '../authentication/auth_services.dart';
 import 'premium_sheet.dart';
+import 'widgets/profile_card.dart';
 import 'settings_stub_utils.dart'
     if (dart.library.js_interop) 'settings_web_utils.dart';
 
@@ -121,67 +122,79 @@ Widget buildSettingsDrawer(
                 padding: EdgeInsets.zero,
                 children: [
                   // Profile header (contains pfp, username, level)
-                  Container(
-                    padding: EdgeInsets.fromLTRB(
-                      Responsive.width(context, 20),
-                      Responsive.height(context, 28),
-                      0,
-                      Responsive.height(context, 12),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: Responsive.scale(context, 48),
-                          height: Responsive.scale(context, 48),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.black,
-                            border: Border.all(
-                              color: darkenColor(appColor, 0.06),
-                              width: Responsive.scale(context, 2),
+                  GestureDetector(
+                    onTap: () {
+                      final uid = userData?.uid;
+                      if (uid == null) return;
+                      showProfileCard(
+                        context,
+                        uid: uid,
+                        appColor: appColor,
+                        isOwnProfile: true,
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.fromLTRB(
+                        Responsive.width(context, 20),
+                        Responsive.height(context, 28),
+                        0,
+                        Responsive.height(context, 12),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: Responsive.scale(context, 48),
+                            height: Responsive.scale(context, 48),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black,
+                              border: Border.all(
+                                color: darkenColor(appColor, 0.06),
+                                width: Responsive.scale(context, 2),
+                              ),
+                            ),
+                            child: ClipOval(
+                              child: userData?.pfpBase64 != null
+                                  ? Image.memory(
+                                      base64Decode(userData!.pfpBase64!),
+                                      width: 40,
+                                      height: 40,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Icon(
+                                      Icons.person,
+                                      color: onTheme(appColor),
+                                      size: 40,
+                                    ),
                             ),
                           ),
-                          child: ClipOval(
-                            child: userData?.pfpBase64 != null
-                                ? Image.memory(
-                                    base64Decode(userData!.pfpBase64!),
-                                    width: 40,
-                                    height: 40,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Icon(
-                                    Icons.person,
-                                    color: onTheme(appColor),
-                                    size: 40,
+                          SizedBox(width: Responsive.width(context, 14)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  username,
+                                  softWrap: true,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 16),
+                                    color: accentColor,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                          ),
-                        ),
-                        SizedBox(width: Responsive.width(context, 14)),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                username,
-                                softWrap: true,
-                                style: GoogleFonts.manrope(
-                                  fontSize: Responsive.font(context, 16),
-                                  color: accentColor,
-                                  fontWeight: FontWeight.w600,
                                 ),
-                              ),
-                              SizedBox(height: Responsive.height(context, 2)),
-                              Text(
-                                "Level ${userData?.level ?? 1}",
-                                style: GoogleFonts.manrope(
-                                  fontSize: Responsive.font(context, 12),
-                                  color: accentColor,
+                                SizedBox(height: Responsive.height(context, 2)),
+                                Text(
+                                  "Level ${userData?.level ?? 1}",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 12),
+                                    color: accentColor,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   Padding(

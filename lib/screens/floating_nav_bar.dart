@@ -12,7 +12,8 @@ const kTabHome = 0;
 const kTabWorkout = 1;
 const kTabFood = 2;
 const kTabProgress = 3;
-const kTabExplore = 4;
+const kTabSocial = 4;
+const kTabExplore = 5;
 
 // Routes matching each tab index, order must match _navIcons and _navLabels
 const _navRoutes = [
@@ -20,6 +21,7 @@ const _navRoutes = [
   '/workout',
   '/food-logging',
   '/progression',
+  '/social',
   '/explore',
 ];
 
@@ -29,11 +31,12 @@ const _navIcons = [
   HugeIcons.strokeRoundedDumbbell01,
   HugeIcons.strokeRoundedPencil,
   HugeIcons.strokeRoundedMedal02,
+  HugeIcons.strokeRoundedUserGroup,
   HugeIcons.strokeRoundedLocation01,
 ];
 
 // Labels shown below each icon, active label is slightly larger and bolder
-const _navLabels = ['Home', 'Workout', 'Food', 'Progress', 'Explore'];
+const _navLabels = ['Home', 'Workout', 'Food', 'Progress', 'Social', 'Explore'];
 
 // Floating frosted glass bottom navigation bar with 5 persistent tabs
 class FloatingNavBar extends ConsumerWidget {

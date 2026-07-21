@@ -6,7 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
-import '/services/user_data_manager.dart' show authenticatedGet;
+import '/services/user_data_manager.dart'
+    show authenticatedGet, authenticatedPost;
 
 // Friendship state between the viewer and the profile owner
 enum FriendStatus { none, pendingSent, pendingReceived, accepted }
@@ -128,6 +129,7 @@ Future<void> _showNudgeDialog(
   BuildContext context,
   Color appColor,
   String toUsername,
+  String targetUid,
 ) async {
   final controller = TextEditingController();
   String? selected = _nudgePresets.first;
@@ -292,6 +294,10 @@ Future<void> _showNudgeDialog(
                             color: dim,
                             fontSize: Responsive.font(ctx, 11),
                           ),
+                          suffixIcon: const SizedBox.shrink(),
+                          suffixIconConstraints: const BoxConstraints(
+                            maxWidth: 0,
+                          ),
                           filled: true,
                           fillColor: Colors.white.withAlpha(10),
                           border: OutlineInputBorder(
@@ -331,13 +337,57 @@ Future<void> _showNudgeDialog(
 
             // Send button, disabled if the custom field is empty
             GestureDetector(
-              onTap: () {
+              onTap: () async {
                 final message = useCustom
                     ? controller.text.trim()
                     : selected ?? '';
                 if (message.isEmpty) return;
-                // TODO: call backend POST /nudge with recipientUid + message
+                final confirmed = await showFrostedAlertDialog<bool>(
+                  context: ctx,
+                  appColor: appColor,
+                  title: 'Nudge $toUsername?',
+                  content: Text(
+                    '"$message"',
+                    style: GoogleFonts.manrope(
+                      color: Colors.white,
+                      fontSize: Responsive.font(ctx, 13),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.of(ctx, rootNavigator: true).pop(false),
+                      child: Text('Back', style: dialogButtonStyle()),
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.of(ctx, rootNavigator: true).pop(true),
+                      child: Text(
+                        'Send',
+                        style: dialogButtonStyle(confirm: true),
+                      ),
+                    ),
+                  ],
+                );
+                if (confirmed != true) return;
+                if (!ctx.mounted) return;
                 Navigator.of(ctx, rootNavigator: true).pop();
+                await authenticatedPost(
+                  'friends/nudge',
+                  body: {'target_uid': targetUid, 'message': message},
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Nudge sent to $toUsername',
+                        style: GoogleFonts.manrope(color: Colors.white),
+                      ),
+                      duration: snackBarDuration,
+                    ),
+                  );
+                }
               },
               child: Container(
                 padding: EdgeInsets.symmetric(
@@ -358,9 +408,9 @@ Future<void> _showNudgeDialog(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     HugeIcon(
-                      icon: HugeIcons.strokeRoundedNotification01,
+                      icon: HugeIcons.strokeRoundedSent,
                       color: Colors.white,
-                      size: Responsive.scale(ctx, 16),
+                      size: Responsive.scale(ctx, 18),
                     ),
                     SizedBox(width: Responsive.width(ctx, 8)),
                     Text(
@@ -455,6 +505,64 @@ class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
     });
   }
 
+  Future<void> _sendFriendAction(
+    String action,
+    FriendStatus optimisticStatus,
+  ) async {
+    setState(() => _friendStatus = optimisticStatus);
+    await authenticatedPost(
+      'friends/request',
+      body: {'target_uid': widget.uid, 'action': action},
+    );
+    if (!mounted) return;
+    final username = _profile?.username ?? 'User';
+    final message = switch (action) {
+      'send' => 'Friend request sent to $username',
+      'accept' => "You and $username are now friends",
+      'decline' => 'Friend request declined',
+      'cancel' => 'Friend request cancelled',
+      _ => null,
+    };
+    if (message != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            message,
+            style: GoogleFonts.manrope(color: Colors.white),
+          ),
+          duration: snackBarDuration,
+        ),
+      );
+    }
+  }
+
+  Future<void> _unfriend() async {
+    final username = _profile?.username ?? 'this user';
+    final confirmed = await showHoldToConfirmDialog(
+      context: context,
+      appColor: widget.appColor,
+      title: 'Unfriend $username?',
+      subtitle: 'You will need to send a new friend request to reconnect.',
+      icon: HugeIcons.strokeRoundedUserRemove01,
+    );
+    if (confirmed != true) return;
+    setState(() => _friendStatus = FriendStatus.none);
+    await authenticatedPost(
+      'friends/unfriend',
+      body: {'target_uid': widget.uid},
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Removed $username from friends',
+          style: GoogleFonts.manrope(color: Colors.white),
+        ),
+        duration: snackBarDuration,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return _ProfileCardContent(
@@ -462,14 +570,19 @@ class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
       appColor: widget.appColor,
       isOwnProfile: widget.isOwnProfile,
       friendStatus: _friendStatus,
-      onAddFriend: widget.onAddFriend,
-      onCancelRequest: widget.onCancelRequest,
-      onAccept: widget.onAccept,
-      onDecline: widget.onDecline,
+      onAddFriend: () => _sendFriendAction('send', FriendStatus.pendingSent),
+      onCancelRequest: () => _sendFriendAction('cancel', FriendStatus.none),
+      onAccept: () => _sendFriendAction('accept', FriendStatus.accepted),
+      onDecline: () => _sendFriendAction('decline', FriendStatus.none),
       onNudge: _friendStatus == FriendStatus.accepted && _profile != null
-          ? () => _showNudgeDialog(context, widget.appColor, _profile!.username)
+          ? () => _showNudgeDialog(
+              context,
+              widget.appColor,
+              _profile!.username,
+              widget.uid,
+            )
           : null,
-      onUnfriend: widget.onUnfriend,
+      onUnfriend: _unfriend,
     );
   }
 }
@@ -627,6 +740,7 @@ class _ProfileCardContent extends StatelessWidget {
       children: [
         // Avatar, username, level, joined date
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _avatar(context),
             SizedBox(width: Responsive.width(context, 14)),
@@ -679,6 +793,41 @@ class _ProfileCardContent extends StatelessWidget {
                 ],
               ),
             ),
+            if (!isOwnProfile &&
+                friendStatus == FriendStatus.accepted &&
+                onUnfriend != null)
+              GestureDetector(
+                onTap: () => showFrostedAlertDialog(
+                  context: context,
+                  appColor: appColor,
+                  title: 'Manage Friendship',
+                  actions: [
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.of(context, rootNavigator: true).pop(),
+                      child: Text('Close', style: dialogButtonStyle()),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context, rootNavigator: true).pop();
+                        onUnfriend!();
+                      },
+                      child: Text(
+                        'Unfriend',
+                        style: dialogButtonStyle(confirm: true),
+                      ),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: EdgeInsets.only(left: Responsive.width(context, 8)),
+                  child: Icon(
+                    Icons.more_horiz_rounded,
+                    color: dim,
+                    size: Responsive.scale(context, 20),
+                  ),
+                ),
+              ),
           ],
         ),
 
@@ -893,24 +1042,11 @@ class _ProfileCardContent extends StatelessWidget {
         );
 
       case FriendStatus.accepted:
-        // Nudge is the primary action; unfriend is tucked into the small icon button
-        return Row(
-          children: [
-            Expanded(
-              child: _fullButton(
-                context,
-                label: 'Nudge',
-                icon: HugeIcons.strokeRoundedNotification01,
-                onTap: onNudge ?? () {},
-              ),
-            ),
-            SizedBox(width: Responsive.width(context, 10)),
-            _iconButton(
-              context,
-              icon: HugeIcons.strokeRoundedUserRemove01,
-              onTap: onUnfriend ?? () {},
-            ),
-          ],
+        return _fullButton(
+          context,
+          label: 'Nudge',
+          icon: HugeIcons.strokeRoundedSent,
+          onTap: onNudge ?? () {},
         );
     }
   }
@@ -961,30 +1097,6 @@ class _ProfileCardContent extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  // Small square icon button used for secondary actions like unfriend
-  Widget _iconButton(
-    BuildContext context, {
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(Responsive.scale(context, 14)),
-        decoration: BoxDecoration(
-          color: Colors.white.withAlpha(12),
-          borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-          border: Border.all(color: Colors.white.withAlpha(30), width: 1.5),
-        ),
-        child: HugeIcon(
-          icon: icon,
-          color: Colors.white.withAlpha(180),
-          size: Responsive.scale(context, 18),
         ),
       ),
     );

@@ -15,6 +15,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:hugeicons/hugeicons.dart';
 import 'premium_sheet.dart' show showPremiumSheet;
+import 'widgets/profile_card.dart';
 
 enum _LeaderboardType { xp, foods, workouts }
 
@@ -679,7 +680,15 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                         itemBuilder: (context, i) {
                           final user = leaderboardUsers[i];
                           final isCurrentUser = user.uid == currentUserId;
-                          final card = _buildUserCard(user, i, isCurrentUser);
+                          final card = GestureDetector(
+                            onTap: () => showProfileCard(
+                              context,
+                              uid: user.uid,
+                              appColor: appColor,
+                              isOwnProfile: isCurrentUser,
+                            ),
+                            child: _buildUserCard(user, i, isCurrentUser),
+                          );
                           // Only the first 20 spots get the animation
                           if (isLoading ||
                               i >= 20 ||
