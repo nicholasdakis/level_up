@@ -901,22 +901,33 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
         padding: EdgeInsets.only(bottom: Responsive.height(context, 10)),
         child: Row(
           children: [
-            Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: c.iconBox,
-                border: Border.all(color: c.border, width: 1.5),
+            GestureDetector(
+              onTap: () => showProfileCard(
+                context,
+                uid: entry.uid,
+                appColor: appColor,
+                isOwnProfile: false,
+                onAccept: _refresh,
+                onDecline: _refresh,
+                onCancelRequest: _refresh,
               ),
-              child: ClipOval(
-                child: entry.pfpBytes != null
-                    ? Image.memory(entry.pfpBytes!, fit: BoxFit.cover)
-                    : Icon(
-                        Icons.person_rounded,
-                        color: lightenColor(appColor, 0.40),
-                        size: Responsive.scale(context, 20),
-                      ),
+              child: Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: c.iconBox,
+                  border: Border.all(color: c.border, width: 1.5),
+                ),
+                child: ClipOval(
+                  child: entry.pfpBytes != null
+                      ? Image.memory(entry.pfpBytes!, fit: BoxFit.cover)
+                      : Icon(
+                          Icons.person_rounded,
+                          color: lightenColor(appColor, 0.40),
+                          size: Responsive.scale(context, 20),
+                        ),
+                ),
               ),
             ),
             SizedBox(width: Responsive.width(context, 10)),

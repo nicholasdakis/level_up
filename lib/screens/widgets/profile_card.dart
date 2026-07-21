@@ -534,6 +534,16 @@ class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
         ),
       );
     }
+    switch (action) {
+      case 'accept':
+        widget.onAccept?.call();
+      case 'decline':
+        widget.onDecline?.call();
+      case 'cancel':
+        widget.onCancelRequest?.call();
+      case 'send':
+        widget.onAddFriend?.call();
+    }
   }
 
   Future<void> _unfriend() async {

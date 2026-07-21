@@ -2959,3 +2959,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the social tab icon show a small badge indicator if the user has any incoming friend requests
 - Realized this was an extra network call for no reason, so made a get_incoming_requests method that loads into the user_data load
 - Replaced the dot indicator with the number of incoming friend requests
+- Made it so clicking profile icons in incoming / outgoing friend requests opens the profile card
+- Fixed accepting / declining a friend request directly in the profile badge not refreshing the social tab UI
