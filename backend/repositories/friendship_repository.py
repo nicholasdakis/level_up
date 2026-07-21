@@ -84,7 +84,7 @@ class FriendshipRepository:
 
     def count_incoming_requests(self, uid: str) -> int:
         result = self._supabase.table("friendships") \
-            .select("id", count="exact") \
+            .select("sender_uid", count="exact") \
             .eq("recipient_uid", uid) \
             .eq("status", "pending") \
             .execute()
