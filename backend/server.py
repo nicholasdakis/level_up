@@ -835,13 +835,14 @@ def handle_nudge():
         data={"type": "nudge", "sender_uid": uid, "body": body.message},
         tokens=tokens,
     )
-    response = messaging.send_each_for_multicast(message)
-    logger.info(f"[nudge] {uid} -> {body.target_uid}: success={response.success_count}, failure={response.failure_count}")
-
-    # clean up invalid tokens
-    _cleanup_invalid_fcm_tokens(body.target_uid, tokens, response)
-
-    return jsonify({"ok": True, "delivered": response.success_count > 0}), 200
+    try:
+        response = messaging.send_each_for_multicast(message)
+        logger.info(f"[nudge] {uid} -> {body.target_uid}: success={response.success_count}, failure={response.failure_count}")
+        _cleanup_invalid_fcm_tokens(body.target_uid, tokens, response)
+        return jsonify({"ok": True, "delivered": response.success_count > 0}), 200
+    except Exception as e:
+        logger.warning(f"[nudge] FCM send failed for {uid} -> {body.target_uid}: {e}")
+        return jsonify({"ok": True, "delivered": False}), 200
 
 @app.route("/friends/unfriend", methods=["POST"])
 def handle_unfriend():
