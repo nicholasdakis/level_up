@@ -391,15 +391,22 @@ Future<void> _showNudgeDialog(
                 if (confirmed != true) return;
                 if (!ctx.mounted) return;
                 Navigator.of(ctx, rootNavigator: true).pop();
-                await authenticatedPost(
+                final nudgeRes = await authenticatedPost(
                   'friends/nudge',
                   body: {'target_uid': targetUid, 'message': message},
                 );
                 if (context.mounted) {
+                  final String snackText;
+                  if (nudgeRes.statusCode == 429) {
+                    snackText =
+                        'You\'ve nudged $toUsername too many times. Try again later.';
+                  } else {
+                    snackText = 'Nudge sent to $toUsername';
+                  }
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        'Nudge sent to $toUsername',
+                        snackText,
                         style: GoogleFonts.manrope(color: Colors.white),
                       ),
                       duration: snackBarDuration,

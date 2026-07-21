@@ -900,7 +900,7 @@ def handle_nudge():
 
     target_settings = user_repo.get_user_settings(body.target_uid)
     if not target_settings.get("notify_nudges", True) or not target_settings.get("notifications_enabled", True):
-        return jsonify({"ok": True, "delivered": False}), 200
+        return jsonify({"ok": True, "delivered": False, "reason": "nudges_disabled"}), 200
 
     # get target's FCM tokens
     tokens = user_repo.get_user_fcm_tokens(body.target_uid)
