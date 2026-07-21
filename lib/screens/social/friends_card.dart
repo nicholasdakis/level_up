@@ -277,6 +277,10 @@ Future<void> showAddFriendDialog(BuildContext context, Color appColor) async {
                         setState(() => addState = 'pending');
                         return;
                       }
+                      logAnalyticsEvent(
+                        'friend_request_sent',
+                        parameters: {'source': 'add_friend_dialog'},
+                      );
                       Navigator.of(ctx, rootNavigator: true).pop();
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -299,6 +303,10 @@ Future<void> showAddFriendDialog(BuildContext context, Color appColor) async {
                         },
                       );
                       if (!ctx.mounted) return;
+                      logAnalyticsEvent(
+                        'friend_request_cancelled',
+                        parameters: {'source': 'add_friend_dialog'},
+                      );
                       setState(() => addState = 'none');
                       ScaffoldMessenger.of(ctx).showSnackBar(
                         SnackBar(
@@ -325,6 +333,10 @@ Future<void> showAddFriendDialog(BuildContext context, Color appColor) async {
                         body: {'target_uid': searchResult!.uid},
                       );
                       if (!ctx.mounted) return;
+                      logAnalyticsEvent(
+                        'friend_removed',
+                        parameters: {'source': 'add_friend_dialog'},
+                      );
                       setState(() => addState = 'none');
                       ScaffoldMessenger.of(ctx).showSnackBar(
                         SnackBar(
@@ -401,6 +413,7 @@ Widget _searchResultTile(
           uid: user.uid,
           appColor: appColor,
           isOwnProfile: false,
+          source: 'add_friend_dialog',
           onUnfriend: onUnfriendFromCard,
           onBlock: onBlockFromCard,
         ),

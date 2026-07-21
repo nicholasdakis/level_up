@@ -130,6 +130,7 @@ Widget buildSettingsDrawer(
                         uid: uid,
                         appColor: appColor,
                         isOwnProfile: true,
+                        source: 'settings',
                       );
                     },
                     child: Container(

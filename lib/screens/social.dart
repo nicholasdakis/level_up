@@ -80,6 +80,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
         final hits = await ref
             .read(friendsProvider.notifier)
             .searchFriends(query);
+        logAnalyticsEvent('friends_searched');
         if (!ctx.mounted) return;
         setState(() {
           results = hits;
@@ -120,6 +121,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                             uid: friend.uid,
                             appColor: appColor,
                             isOwnProfile: false,
+                            source: 'friend_search',
                             onUnfriend: () => ref
                                 .read(friendsProvider.notifier)
                                 .removeFriend(friend.uid),
@@ -405,6 +407,13 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                                                                     'accept',
                                                               },
                                                             );
+                                                            logAnalyticsEvent(
+                                                              'friend_request_accepted',
+                                                              parameters: {
+                                                                'source':
+                                                                    'social_tab',
+                                                              },
+                                                            );
                                                             _refresh();
                                                             if (!mounted) {
                                                               return;
@@ -514,6 +523,13 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                                                                     'decline',
                                                               },
                                                             );
+                                                            logAnalyticsEvent(
+                                                              'friend_request_declined',
+                                                              parameters: {
+                                                                'source':
+                                                                    'social_tab',
+                                                              },
+                                                            );
                                                             _refresh();
                                                           },
                                                         ),
@@ -592,6 +608,13 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                                                             'target_uid':
                                                                 entry.uid,
                                                             'action': 'cancel',
+                                                          },
+                                                        );
+                                                        logAnalyticsEvent(
+                                                          'friend_request_cancelled',
+                                                          parameters: {
+                                                            'source':
+                                                                'social_tab',
                                                           },
                                                         );
                                                         _refresh();
@@ -785,6 +808,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                             uid: friend.uid,
                             appColor: appColor,
                             isOwnProfile: false,
+                            source: 'friends_grid',
                             onUnfriend: () => ref
                                 .read(friendsProvider.notifier)
                                 .removeFriend(friend.uid),
@@ -1027,6 +1051,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                 uid: entry.uid,
                 appColor: appColor,
                 isOwnProfile: false,
+                source: 'friend_requests',
                 onAccept: _refresh,
                 onDecline: _refresh,
                 onCancelRequest: _refresh,

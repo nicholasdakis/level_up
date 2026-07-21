@@ -1122,6 +1122,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       uid: uid,
                       appColor: appColor,
                       isOwnProfile: false,
+                      source: 'blocked_users',
                       onUnblock: () => setState(
                         () => items.removeWhere((u) => u['uid'] == uid),
                       ),

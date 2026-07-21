@@ -395,6 +395,7 @@ Future<void> _showNudgeDialog(
                   'friends/nudge',
                   body: {'target_uid': targetUid, 'message': message},
                 );
+                logAnalyticsEvent('nudge_sent');
                 if (context.mounted) {
                   final String snackText;
                   if (nudgeRes.statusCode == 429) {
@@ -471,6 +472,7 @@ Future<void> showProfileCard(
   required String uid,
   required Color appColor,
   required bool isOwnProfile,
+  String source = 'unknown',
   VoidCallback? onAddFriend,
   VoidCallback? onCancelRequest,
   VoidCallback? onAccept,
@@ -480,6 +482,10 @@ Future<void> showProfileCard(
   VoidCallback? onUnblock,
 }) {
   if (isGuest) return Future.value();
+  logAnalyticsEvent(
+    'profile_card_viewed',
+    parameters: {'source': source, 'is_own_profile': isOwnProfile},
+  );
   return showFrostedDialog(
     context: context,
     appColor: appColor,
@@ -564,6 +570,7 @@ class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
       _friendStatus = FriendStatus.none;
     });
     await authenticatedPost('block', body: {'target_uid': widget.uid});
+    logAnalyticsEvent('user_blocked');
     widget.onBlock?.call();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -598,6 +605,7 @@ class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
     if (confirmed != true) return;
     setState(() => _blockStatus = BlockStatus.none);
     await authenticatedPost('unblock', body: {'target_uid': widget.uid});
+    logAnalyticsEvent('user_unblocked');
     widget.onUnblock?.call();
   }
 
@@ -611,6 +619,16 @@ class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
       body: {'target_uid': widget.uid, 'action': action},
     );
     if (!mounted) return;
+    final eventName = switch (action) {
+      'send' => 'friend_request_sent',
+      'accept' => 'friend_request_accepted',
+      'decline' => 'friend_request_declined',
+      'cancel' => 'friend_request_cancelled',
+      _ => null,
+    };
+    if (eventName != null) {
+      logAnalyticsEvent(eventName, parameters: {'source': 'profile_card'});
+    }
     final username = _profile?.username ?? 'User';
     final message = switch (action) {
       'send' => 'Friend request sent to $username',
@@ -657,6 +675,7 @@ class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
       'friends/unfriend',
       body: {'target_uid': widget.uid},
     );
+    logAnalyticsEvent('friend_removed', parameters: {'source': 'profile_card'});
     widget.onUnfriend?.call();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

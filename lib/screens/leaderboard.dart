@@ -767,6 +767,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                               uid: user.uid,
                               appColor: appColor,
                               isOwnProfile: isCurrentUser,
+                              source: 'leaderboard',
                             ),
                             child: _buildUserCard(user, i, isCurrentUser),
                           );
