@@ -34,6 +34,49 @@ class FriendshipRepository:
             "p_other_uid": other_uid,
         }).execute().data
 
+    def get_friends(self, uid: str, limit: int, offset: int) -> list:
+        # get all accepted friendship rows involving this uid
+        rows = self._supabase.table("friendships") \
+            .select("sender_uid, recipient_uid") \
+            .eq("status", "accepted") \
+            .or_(f"sender_uid.eq.{uid},recipient_uid.eq.{uid}") \
+            .order("created_at", desc=True) \
+            .range(offset, offset + limit - 1) \
+            .execute().data
+        other_uids = [
+            row["recipient_uid"] if row["sender_uid"] == uid else row["sender_uid"]
+            for row in rows
+        ]
+        if not other_uids:
+            return []
+        users = self._supabase.table("users") \
+            .select("uid, username, level, exp_points, pfp_base64, is_premium") \
+            .in_("uid", other_uids) \
+            .execute().data
+        # preserve the order from friendships query
+        order_map = {uid_: i for i, uid_ in enumerate(other_uids)}
+        return sorted(users, key=lambda u: order_map.get(u["uid"], 999))
+
+    def get_incoming_requests(self, uid: str, limit: int, offset: int) -> list:
+        rows = self._supabase.table("friendships") \
+            .select("sender_uid, created_at, users!friendships_sender_uid_fkey(uid, username, level, exp_points, pfp_base64, is_premium)") \
+            .eq("recipient_uid", uid) \
+            .eq("status", "pending") \
+            .order("created_at", desc=True) \
+            .range(offset, offset + limit - 1) \
+            .execute().data
+        return [row["users"] for row in rows if row.get("users")]
+
+    def get_outgoing_requests(self, uid: str, limit: int, offset: int) -> list:
+        rows = self._supabase.table("friendships") \
+            .select("recipient_uid, created_at, users!friendships_recipient_uid_fkey(uid, username, level, exp_points, pfp_base64, is_premium)") \
+            .eq("sender_uid", uid) \
+            .eq("status", "pending") \
+            .order("created_at", desc=True) \
+            .range(offset, offset + limit - 1) \
+            .execute().data
+        return [row["users"] for row in rows if row.get("users")]
+
     def get_status(self, uid: str, other_uid: str) -> str:
         result = self._supabase.table("friendships") \
             .select("sender_uid, status") \

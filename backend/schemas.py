@@ -627,3 +627,15 @@ class SearchUserResponse(BaseModel):
     exp_points: int
     pfp_base64: Optional[str] = None
     is_premium: bool = False
+
+class FriendEntry(BaseModel):
+    uid: str
+    username: str
+    level: int
+    exp_points: int
+    pfp_base64: Optional[str] = None
+    is_premium: bool = False
+
+class GetFriendsResponse(BaseModel):
+    items: list[FriendEntry]
+    has_more: bool

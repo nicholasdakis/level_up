@@ -125,6 +125,8 @@ from backend.schemas import (
     FriendActionRequest,
     UnfriendRequest,
     SearchUserResponse,
+    FriendEntry,
+    GetFriendsResponse,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -720,6 +722,48 @@ def handle_friend_request():
         return jsonify({"error": "unknown action"}), 400
 
     return jsonify(result), 200
+
+@app.route("/friends", methods=["GET"])
+def get_friends():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    limit = min(int(request.args.get("limit", 20)), 50)
+    offset = int(request.args.get("offset", 0))
+    items = friendship_service.get_friends(uid, limit + 1, offset)
+    has_more = len(items) > limit
+    return jsonify(GetFriendsResponse(
+        items=[FriendEntry(**u) for u in items[:limit]],
+        has_more=has_more,
+    ).model_dump()), 200
+
+@app.route("/friend_requests/incoming", methods=["GET"])
+def get_incoming_requests():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    limit = min(int(request.args.get("limit", 20)), 50)
+    offset = int(request.args.get("offset", 0))
+    items = friendship_service.get_incoming_requests(uid, limit + 1, offset)
+    has_more = len(items) > limit
+    return jsonify(GetFriendsResponse(
+        items=[FriendEntry(**u) for u in items[:limit]],
+        has_more=has_more,
+    ).model_dump()), 200
+
+@app.route("/friend_requests/outgoing", methods=["GET"])
+def get_outgoing_requests():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    limit = min(int(request.args.get("limit", 20)), 50)
+    offset = int(request.args.get("offset", 0))
+    items = friendship_service.get_outgoing_requests(uid, limit + 1, offset)
+    has_more = len(items) > limit
+    return jsonify(GetFriendsResponse(
+        items=[FriendEntry(**u) for u in items[:limit]],
+        has_more=has_more,
+    ).model_dump()), 200
 
 @app.route("/search_user", methods=["GET"])
 def search_user():

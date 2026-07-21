@@ -32,3 +32,12 @@ class FriendshipService:
 
     def unfriend(self, uid: str, other_uid: str) -> dict:
         return self._repo.unfriend(uid, other_uid) or {}
+
+    def get_friends(self, uid: str, limit: int, offset: int) -> list:
+        return self._repo.get_friends(uid, limit, offset)
+
+    def get_incoming_requests(self, uid: str, limit: int, offset: int) -> list:
+        return self._repo.get_incoming_requests(uid, limit, offset)
+
+    def get_outgoing_requests(self, uid: str, limit: int, offset: int) -> list:
+        return self._repo.get_outgoing_requests(uid, limit, offset)
