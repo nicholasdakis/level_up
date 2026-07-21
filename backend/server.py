@@ -857,6 +857,17 @@ def handle_unfriend():
     result = friendship_service.unfriend(uid, body.target_uid)
     return jsonify(result), 200
 
+@app.route("/blocked_users", methods=["GET"])
+def get_blocked_users():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    limit = min(int(request.args.get("limit", 11)), 51)
+    offset = int(request.args.get("offset", 0))
+    users = friendship_repo.get_blocked_users(uid, limit, offset)
+    has_more = len(users) > limit - 1
+    return jsonify({"items": users[:limit - 1], "has_more": has_more}), 200
+
 @app.route("/block", methods=["POST"])
 def handle_block():
     uid, body, err = _parse_and_auth(BlockRequest)

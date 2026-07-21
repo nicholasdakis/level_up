@@ -112,6 +112,15 @@ class FriendshipRepository:
             return "blocked_by_you"
         return "blocked_you"
 
+    def get_blocked_users(self, uid: str, limit: int, offset: int) -> list:
+        result = self._supabase.table("blocked_users") \
+            .select("blocked_uid, created_at, users!blocked_users_blocked_uid_fkey(uid, username, pfp_base64)") \
+            .eq("blocker_uid", uid) \
+            .order("created_at", desc=True) \
+            .range(offset, offset + limit - 1) \
+            .execute()
+        return [row["users"] for row in result.data if row.get("users")] if result.data else []
+
     def count_incoming_requests(self, uid: str) -> int:
         result = self._supabase.table("friendships") \
             .select("sender_uid", count="exact") \
