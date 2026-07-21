@@ -617,12 +617,16 @@ class UserProfileCardResponse(BaseModel):
     best_food_streak: int
     best_workout_streak: int
     friendship_status: str = "none"
+    block_status: str = "none"
 
 class FriendActionRequest(BaseModel):
     target_uid: str = Field(..., min_length=1)
     action: str = Field(..., pattern="^(send|accept|decline|cancel)$")
 
 class UnfriendRequest(BaseModel):
+    target_uid: str = Field(..., min_length=1)
+
+class BlockRequest(BaseModel):
     target_uid: str = Field(..., min_length=1)
 
 class NudgeRequest(BaseModel):

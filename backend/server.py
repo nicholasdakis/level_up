@@ -125,6 +125,7 @@ from backend.schemas import (
     UserProfileCardResponse,
     FriendActionRequest,
     UnfriendRequest,
+    BlockRequest,
     NudgeRequest,
     SearchUserResponse,
     FriendEntry,
@@ -686,6 +687,7 @@ def get_user_profile_card():
     streak_map = {s["streak_type"]: s for s in streaks}
 
     friendship_status = friendship_repo.get_status(uid, target_uid)
+    block_status = friendship_repo.get_block_status(uid, target_uid)
 
     response = UserProfileCardResponse(
         uid=user["uid"],
@@ -699,6 +701,7 @@ def get_user_profile_card():
         best_food_streak=streak_map.get("food_streak", {}).get("highest_streak", 0),
         best_workout_streak=streak_map.get("workout_streak", {}).get("highest_streak", 0),
         friendship_status=friendship_status,
+        block_status=block_status,
     )
     return jsonify(response.model_dump()), 200
 
@@ -851,6 +854,22 @@ def handle_unfriend():
         return err
     result = friendship_service.unfriend(uid, body.target_uid)
     return jsonify(result), 200
+
+@app.route("/block", methods=["POST"])
+def handle_block():
+    uid, body, err = _parse_and_auth(BlockRequest)
+    if err:
+        return err
+    friendship_repo.block_user(uid, body.target_uid)
+    return jsonify({"ok": True}), 200
+
+@app.route("/unblock", methods=["POST"])
+def handle_unblock():
+    uid, body, err = _parse_and_auth(BlockRequest)
+    if err:
+        return err
+    friendship_repo.unblock_user(uid, body.target_uid)
+    return jsonify({"ok": True}), 200
 
 @app.route("/user_data", methods=["GET"])
 def get_user_data():

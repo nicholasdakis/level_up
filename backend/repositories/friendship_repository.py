@@ -82,6 +82,36 @@ class FriendshipRepository:
             .execute().data
         return [row["users"] for row in rows if row.get("users")]
 
+    def block_user(self, blocker_uid: str, blocked_uid: str):
+        # Remove any existing friendship or pending request between the two users
+        self._supabase.rpc("unfriend", {"p_uid": blocker_uid, "p_other_uid": blocked_uid}).execute()
+        self._supabase.table("friendships") \
+            .delete() \
+            .or_(f"and(sender_uid.eq.{blocker_uid},recipient_uid.eq.{blocked_uid}),and(sender_uid.eq.{blocked_uid},recipient_uid.eq.{blocker_uid})") \
+            .execute()
+        self._supabase.table("blocked_users").upsert({
+            "blocker_uid": blocker_uid,
+            "blocked_uid": blocked_uid,
+        }).execute()
+
+    def unblock_user(self, blocker_uid: str, blocked_uid: str):
+        self._supabase.table("blocked_users") \
+            .delete() \
+            .eq("blocker_uid", blocker_uid) \
+            .eq("blocked_uid", blocked_uid) \
+            .execute()
+
+    def get_block_status(self, uid: str, other_uid: str) -> str:
+        result = self._supabase.table("blocked_users") \
+            .select("blocker_uid") \
+            .or_(f"and(blocker_uid.eq.{uid},blocked_uid.eq.{other_uid}),and(blocker_uid.eq.{other_uid},blocked_uid.eq.{uid})") \
+            .execute()
+        if not result.data:
+            return "none"
+        if result.data[0]["blocker_uid"] == uid:
+            return "blocked_by_you"
+        return "blocked_you"
+
     def count_incoming_requests(self, uid: str) -> int:
         result = self._supabase.table("friendships") \
             .select("sender_uid", count="exact") \

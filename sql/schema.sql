@@ -378,3 +378,11 @@ CREATE TABLE fcm_tokens (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (uid, device_id)
 );
+
+-- Tracks blocked relationships independently of friendships
+CREATE TABLE blocked_users (
+    blocker_uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+    blocked_uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (blocker_uid, blocked_uid)
+);
