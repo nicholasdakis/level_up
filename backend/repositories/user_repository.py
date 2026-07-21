@@ -31,6 +31,10 @@ class UserRepository:
         result = self._supabase.table("users").select("*").eq("uid", uid).execute()
         return result.data[0] if result.data else None
 
+    def get_username(self, uid: str) -> str | None:
+        result = self._supabase.table("users").select("username").eq("uid", uid).execute()
+        return result.data[0]["username"] if result.data else None
+
     def get_user_by_username(self, username: str):
         result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64, is_premium").eq("username", username).execute()
         return result.data[0] if result.data else None

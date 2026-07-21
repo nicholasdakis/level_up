@@ -620,6 +620,10 @@ class FriendActionRequest(BaseModel):
 class UnfriendRequest(BaseModel):
     target_uid: str = Field(..., min_length=1)
 
+class NudgeRequest(BaseModel):
+    target_uid: str = Field(..., min_length=1)
+    message: str = Field(..., min_length=1, max_length=100)
+
 class SearchUserResponse(BaseModel):
     uid: str
     username: str

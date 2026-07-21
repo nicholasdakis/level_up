@@ -124,6 +124,7 @@ from backend.schemas import (
     UserProfileCardResponse,
     FriendActionRequest,
     UnfriendRequest,
+    NudgeRequest,
     SearchUserResponse,
     FriendEntry,
     GetFriendsResponse,
@@ -227,6 +228,15 @@ def _try_verify_token(id_token: str):
     except ValueError as e:
         return None, None, (jsonify({"error": str(e)}), 401)
 
+def _cleanup_invalid_fcm_tokens(uid: str, tokens: list, response) -> None:
+    if response.failure_count == 0:
+        return
+    for i, res in enumerate(response.responses):
+        if not res.success and res.exception:
+            code = getattr(res.exception, 'code', None)
+            if code in ('NOT_FOUND', 'registration-token-not-registered', 'invalid-registration-token'):
+                user_repo.remove_fcm_token(uid, tokens[i])
+
 def _parse_and_auth(schema=None):
     token, err = _get_token()
     if err:
@@ -299,20 +309,7 @@ def send_due_reminders():
                 logger.info(f'[reminders] Sent to {uid}: success={response.success_count}, failure={response.failure_count}')
 
                 # Remove any tokens that are no longer valid
-                if response.failure_count > 0:
-                    invalid_tokens = []
-                    for i, res in enumerate(response.responses):
-                        if not res.success and res.exception:
-                            code = getattr(res.exception, 'code', None)
-                            logger.warning(f'[reminders] Token {i} failed: code={code} error={res.exception}')
-                            if code in (
-                                'NOT_FOUND',
-                                'registration-token-not-registered',
-                                'invalid-registration-token',
-                            ):
-                                invalid_tokens.append(fcm_tokens[i])
-                    for token in invalid_tokens:
-                        user_repo.remove_fcm_token(uid, token)
+                _cleanup_invalid_fcm_tokens(uid, fcm_tokens, response)
             except Exception as send_err:
                 logger.exception(f'[reminders] FCM send failed for {uid}, reminder already deleted: {send_err}')
 
@@ -797,6 +794,53 @@ def search_user():
 
     friendship_status = friendship_repo.get_status(uid, user["uid"])
     return jsonify({**SearchUserResponse(**user).model_dump(), "friendship_status": friendship_status}), 200
+
+@app.route("/friends/nudge", methods=["POST"])
+def handle_nudge():
+    uid, body, err = _parse_and_auth(NudgeRequest)
+    if err:
+        return err
+
+    # verify they are actually friends
+    status = friendship_repo.get_status(uid, body.target_uid)
+    if status != "accepted":
+        return jsonify({"error": "not_friends"}), 403
+
+    sender_name = user_repo.get_username(uid) or "A friend"
+
+    # rate limit: max 3 nudges per recipient per hour, 20 per day
+    hour_key = f"nudge_hour:{uid}:{body.target_uid}"
+    day_key = f"nudge_day:{uid}"
+    hour_count = int(redis.get(hour_key) or 0)
+    day_count = int(redis.get(day_key) or 0)
+    if hour_count >= 3:
+        return jsonify({"error": "rate_limited_hour"}), 429
+    if day_count >= 20:
+        return jsonify({"error": "rate_limited_day"}), 429
+    pipe = redis.pipeline()
+    pipe.incr(hour_key)
+    pipe.expire(hour_key, 3600)
+    pipe.incr(day_key)
+    pipe.expire(day_key, 86400)
+    pipe.execute()
+
+    # get target's FCM tokens
+    tokens = user_repo.get_user_fcm_tokens(body.target_uid)
+    if not tokens:
+        return jsonify({"ok": True, "delivered": False}), 200
+
+    message = messaging.MulticastMessage(
+        notification=messaging.Notification(title=f"Nudge from {sender_name}", body=body.message),
+        data={"type": "nudge", "sender_uid": uid, "body": body.message},
+        tokens=tokens,
+    )
+    response = messaging.send_each_for_multicast(message)
+    logger.info(f"[nudge] {uid} -> {body.target_uid}: success={response.success_count}, failure={response.failure_count}")
+
+    # clean up invalid tokens
+    _cleanup_invalid_fcm_tokens(body.target_uid, tokens, response)
+
+    return jsonify({"ok": True, "delivered": response.success_count > 0}), 200
 
 @app.route("/friends/unfriend", methods=["POST"])
 def handle_unfriend():
