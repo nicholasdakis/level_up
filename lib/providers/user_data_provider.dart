@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_data.dart';
+import '../utility/device_id.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../globals.dart'
     show isGuest, snackBarDuration, dailyRewardCooldown, logAnalyticsEvent;
@@ -474,13 +475,15 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
     }
   }
 
-  // adds FCM token locally and syncs to backend; no-op if already present
+  // upserts FCM token to backend keyed by device ID; one row per device
   Future<void> initializeFcmToken(String deviceToken) async {
     if (isGuest) return;
     try {
-      // Always send to backend regardless of local state, backend handles deduplication
-      await authenticatedPost('add_fcm_token', body: {'token': deviceToken});
-      // Update local state only if user data is already loaded
+      final deviceId = await getDeviceId();
+      await authenticatedPost(
+        'upsert_fcm_token',
+        body: {'token': deviceToken, 'device_id': deviceId},
+      );
       final tokens = state.value?.fcmTokens;
       if (tokens != null && !tokens.contains(deviceToken)) {
         patch((u) => u.copyWith(fcmTokens: [...u.fcmTokens, deviceToken]));
@@ -490,16 +493,26 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
     }
   }
 
-  // removes stale token then adds new one (called on token refresh)
+  // re-upserts with new token on Firebase token rotation
   Future<void> addFcmToken(String deviceToken, {String? oldToken}) async {
     if (isGuest) return;
     try {
-      if (oldToken != null) await removeFcmToken(oldToken);
+      final deviceId = await getDeviceId();
+      await authenticatedPost(
+        'upsert_fcm_token',
+        body: {'token': deviceToken, 'device_id': deviceId},
+      );
       final tokens = state.value?.fcmTokens;
       if (tokens != null && !tokens.contains(deviceToken)) {
         patch((u) => u.copyWith(fcmTokens: [...u.fcmTokens, deviceToken]));
       }
-      await authenticatedPost('add_fcm_token', body: {'token': deviceToken});
+      if (oldToken != null) {
+        patch(
+          (u) => u.copyWith(
+            fcmTokens: u.fcmTokens.where((t) => t != oldToken).toList(),
+          ),
+        );
+      }
     } catch (e) {
       if (kDebugMode) debugPrint("Error adding FCM token: $e");
     }

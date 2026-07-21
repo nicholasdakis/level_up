@@ -2961,3 +2961,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced the dot indicator with the number of incoming friend requests
 - Made it so clicking profile icons in incoming / outgoing friend requests opens the profile card
 - Fixed accepting / declining a friend request directly in the profile badge not refreshing the social tab UI
+- Discovered the dev account had accumulated 83 FCM tokens since stale tokens are never removed unless Firebase explicitly rejects them, which it often does not on reinstalls etc
+- Replaced the fcm_tokens array on users with a dedicated fcm_tokens table keyed by (uid, device_id), so each physical device holds exactly one row and reinstalls upsert rather than append
+- FCM tokens are capped at 5 per user
+- The oldest device row is removed when the cap is exceeded
+- Device ID is stable per device: Android uses androidId, iOS and web generate a UUID on first launch and persist it in SharedPreferences
+- Token upsert, duplicate cleanup, and cap enforcement are handled atomically in a single Postgres RPC so concurrent requests cannot interfere
+- A trigger keeps updated_at accurate on the fcm_tokens table so the 5-device trim always evicts the least recently active device

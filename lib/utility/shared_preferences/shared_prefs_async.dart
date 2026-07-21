@@ -18,6 +18,9 @@ class SharedPreferencesKey {
   static const String streakShieldDialogDismissed =
       'streak_shield_dialog_dismissed';
 
+  // Device ID key for FCM token upsert
+  static const String deviceId = 'device_id';
+
   // POIService keys
   static const String cachedPois = 'cached_pois';
   static const String cachedPoiLat = 'cached_poi_lat';

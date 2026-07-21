@@ -39,12 +39,9 @@ class UserRepository:
         result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64, is_premium").eq("username", username).execute()
         return result.data[0] if result.data else None
 
-    def get_user_fcm_tokens(self, uid: str):
-        # Fetches only the fcm_tokens array for a given user
-        result = self._supabase.table("users").select("fcm_tokens").eq("uid", uid).execute()
-        if not result.data:
-            return None
-        return result.data[0].get("fcm_tokens") or []
+    def get_user_fcm_tokens(self, uid: str) -> list:
+        result = self._supabase.table("fcm_tokens").select("token").eq("uid", uid).execute()
+        return [row["token"] for row in result.data] if result.data else []
 
     def get_leaderboard_standing(self, uid: str, type: str = "xp"):
         # Returns the user's rank and total player count for the given leaderboard type
@@ -417,13 +414,19 @@ class UserRepository:
         }).execute()
         return result.data
 
-    def add_fcm_token(self, uid: str, token: str):
-        # Single atomic UPDATE via RPC
-        self._supabase.rpc("add_fcm_token", {"p_uid": uid, "p_token": token}).execute()
+    def upsert_fcm_token(self, uid: str, device_id: str, token: str):
+        self._supabase.rpc("upsert_fcm_token", {
+            "p_uid": uid,
+            "p_device_id": device_id,
+            "p_token": token,
+        }).execute()
 
     def remove_fcm_token(self, uid: str, token: str):
-        # Single atomic UPDATE via RPC
-        self._supabase.rpc("remove_fcm_token", {"p_uid": uid, "p_token": token}).execute()
+        self._supabase.table("fcm_tokens").delete().eq("uid", uid).eq("token", token).execute()
+
+    def add_fcm_token(self, uid: str, token: str):
+        # TODO: delete once MIN_APP_VERSION forces all clients onto upsert_fcm_token
+        pass
 
     def update_utc_offset_minutes(self, uid: str, utc_offset: int):
         self._supabase.table("users").update({"utc_offset_minutes": utc_offset}).eq("uid", uid).execute()

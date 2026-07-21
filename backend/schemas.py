@@ -49,6 +49,10 @@ class AddFcmTokenRequest(BaseModel):
 class RemoveFcmTokenRequest(BaseModel):
     token: str = Field(..., min_length=1)
 
+class UpsertFcmTokenRequest(BaseModel):
+    token: str = Field(..., min_length=1)
+    device_id: str = Field(..., min_length=1)
+
 class UpsertFoodLogV2Request(BaseModel):
     date: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$')
     items: list = Field(default_factory=list)  # list of food item dicts with meal, macros, etc.
@@ -331,7 +335,7 @@ class GetUserDataResponse(BaseModel):
     pfp_base64: str | None = None
     username: str
     app_color: int | None = None
-    fcm_tokens: list[str] = []
+    fcm_tokens: list[str] = []  # TODO: drop once MIN_APP_VERSION forces all clients onto upsert_fcm_token; remove fcm_tokens array from users table at the same time
     notifications_enabled: bool = True
     last_daily_claim: str | None = None  # ISO string
     can_claim_daily_reward: bool = True  # computed from last_daily_claim, not stored in DB

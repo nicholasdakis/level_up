@@ -37,6 +37,7 @@ from backend.schemas import (
     UpdateNotificationsRequest,
     UpdateUnitsRequest,
     AddFcmTokenRequest,
+    UpsertFcmTokenRequest,
     RemoveFcmTokenRequest,
     UpsertFoodLogV2Request,
     AddFoodLogRequest,
@@ -934,14 +935,20 @@ def update_units():
 
 
 
+@app.route("/upsert_fcm_token", methods=["POST"])
+def upsert_fcm_token():
+    uid, body, err = _parse_and_auth(UpsertFcmTokenRequest)
+    if err:
+        return err
+    user_repo.upsert_fcm_token(uid, body.device_id, body.token)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
 @app.route("/add_fcm_token", methods=["POST"])
 def add_fcm_token():
-    # Method that adds an FCM token to the user's token list for push notifications, ignoring duplicates
+    # TODO: delete once MIN_APP_VERSION forces all clients onto upsert_fcm_token
     uid, body, err = _parse_and_auth(AddFcmTokenRequest)
     if err:
         return err
-
-    progression_service.add_fcm_token(uid, body.token)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 

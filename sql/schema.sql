@@ -22,7 +22,7 @@ CREATE TABLE users (
     username CITEXT UNIQUE NOT NULL,   -- display name, case-insensitive unique
     app_color BIGINT,                  -- Flutter Color value stored as an integer
     can_claim_daily_reward BOOLEAN NOT NULL DEFAULT true,  -- whether the user can claim their daily reward
-    fcm_tokens TEXT[] NOT NULL DEFAULT '{}', -- Firebase Cloud Messaging tokens for push notifications
+    fcm_tokens TEXT[] NOT NULL DEFAULT '{}', -- TODO: drop once MIN_APP_VERSION forces all clients onto upsert_fcm_token and the fcm_tokens table is the source of truth
     last_daily_claim TIMESTAMPTZ,     -- when the user last claimed their daily reward
     notifications_enabled BOOLEAN NOT NULL DEFAULT true,   -- whether the user has push notifications turned on
     utc_offset_minutes SMALLINT DEFAULT NULL,  -- user's UTC offset in minutes for snapshot scheduling
@@ -368,3 +368,13 @@ CREATE OR REPLACE FUNCTION increment_download_count(tid UUID)
 RETURNS VOID AS $$
   UPDATE workout_templates SET download_count = download_count + 1 WHERE template_id = tid;
 $$ LANGUAGE SQL SECURITY DEFINER;
+
+-- Per-device FCM token storage, replaces the fcm_tokens array on users
+-- One row per device per user, upserted on token refresh, capped at 5 devices per user
+CREATE TABLE fcm_tokens (
+    uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+    device_id TEXT NOT NULL,
+    token TEXT NOT NULL UNIQUE,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (uid, device_id)
+);

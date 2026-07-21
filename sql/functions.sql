@@ -1372,3 +1372,40 @@ BEGIN
     RETURNING *;
 END;
 $$;
+
+-- Keeps updated_at current on every fcm_tokens row update
+CREATE OR REPLACE FUNCTION set_fcm_token_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Fires set_fcm_token_updated_at before every UPDATE so updated_at stays accurate for the 5-device cap trim
+CREATE TRIGGER fcm_tokens_updated_at
+BEFORE UPDATE ON fcm_tokens
+FOR EACH ROW EXECUTE FUNCTION set_fcm_token_updated_at();
+
+-- Atomically upserts a device token and trims the oldest rows beyond the 5-device cap
+CREATE OR REPLACE FUNCTION upsert_fcm_token(p_uid TEXT, p_device_id TEXT, p_token TEXT)
+RETURNS VOID AS $$
+BEGIN
+  -- Remove any other row that holds the same token (token reuse edge case)
+  DELETE FROM fcm_tokens WHERE token = p_token AND (uid, device_id) <> (p_uid, p_device_id);
+
+  -- Upsert this device
+  INSERT INTO fcm_tokens (uid, device_id, token)
+  VALUES (p_uid, p_device_id, p_token)
+  ON CONFLICT (uid, device_id) DO UPDATE SET token = EXCLUDED.token;
+
+  -- Trim oldest rows beyond 5 per user
+  DELETE FROM fcm_tokens
+  WHERE uid = p_uid AND device_id IN (
+    SELECT device_id FROM fcm_tokens
+    WHERE uid = p_uid
+    ORDER BY updated_at DESC
+    OFFSET 5
+  );
+END;
+$$ LANGUAGE plpgsql;
