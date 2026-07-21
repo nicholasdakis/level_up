@@ -731,8 +731,42 @@ def handle_friend_request():
         if friendship_repo.get_block_status(uid, body.target_uid) != "none":
             return jsonify({"error": "blocked"}), 403
         result = friendship_service.send_friend_request(uid, body.target_uid)
+        if result.get("ok"):
+            sender_name = user_repo.get_username(uid) or "Someone"
+            tokens = user_repo.get_user_fcm_tokens(body.target_uid)
+            if tokens:
+                try:
+                    msg = messaging.MulticastMessage(
+                        notification=messaging.Notification(
+                            title="New Friend Request",
+                            body=f"{sender_name} sent you a friend request.",
+                        ),
+                        data={"type": "friend_request", "sender_uid": uid},
+                        tokens=tokens,
+                    )
+                    resp = messaging.send_each_for_multicast(msg)
+                    _cleanup_invalid_fcm_tokens(body.target_uid, tokens, resp)
+                except Exception as e:
+                    logger.warning(f"[friend_request] FCM send failed: {e}")
     elif body.action == "accept":
         result = friendship_service.accept_friend_request(uid, body.target_uid)
+        if result.get("ok"):
+            accepter_name = user_repo.get_username(uid) or "Someone"
+            tokens = user_repo.get_user_fcm_tokens(body.target_uid)
+            if tokens:
+                try:
+                    msg = messaging.MulticastMessage(
+                        notification=messaging.Notification(
+                            title="Friend Request Accepted",
+                            body=f"{accepter_name} accepted your friend request.",
+                        ),
+                        data={"type": "friend_accept", "sender_uid": uid},
+                        tokens=tokens,
+                    )
+                    resp = messaging.send_each_for_multicast(msg)
+                    _cleanup_invalid_fcm_tokens(body.target_uid, tokens, resp)
+                except Exception as e:
+                    logger.warning(f"[friend_accept] FCM send failed: {e}")
     elif body.action == "decline":
         result = friendship_service.decline_friend_request(uid, body.target_uid)
     elif body.action == "cancel":

@@ -2982,3 +2982,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Blocking via search clears the search field and adds the user to the blocked list immediately
 - Avatars in the Add a Friend dialog and blocked users dialog are tappable and open the profile card
 - Added onUnblock callback to showProfileCard so unblocking from the profile card removes the user from the blocked list in the calling dialog
+- Added push notifications for sending and accepting friend requests
