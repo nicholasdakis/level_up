@@ -215,15 +215,6 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                                   context,
                                   appColor: appColor,
                                 ),
-                                if ((friendsAsync.value?.incomingCount ?? 0) >
-                                    0) ...[
-                                  SizedBox(width: Responsive.width(context, 8)),
-                                  friendsPendingBadge(
-                                    context,
-                                    friendsAsync.value!.incomingCount,
-                                    appColor,
-                                  ),
-                                ],
                               ],
                             ),
                           ),
