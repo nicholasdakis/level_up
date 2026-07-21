@@ -10,14 +10,15 @@ class LeaderboardService {
   Future<List<LeaderboardEntry>> fetchLeaderboard({
     String type = 'xp',
     String period = 'all_time',
+    bool friendsOnly = false,
     bool forceRefresh = false,
   }) async {
     if (isGuest) return [];
-    final key = '$type-$period';
+    final key = '$type-$period-${friendsOnly ? 'friends' : 'all'}';
     if (!forceRefresh && _cache.containsKey(key)) return _cache[key]!;
 
     final response = await authenticatedGet(
-      'leaderboard?type=$type&period=$period',
+      'leaderboard?type=$type&period=$period&friends_only=$friendsOnly',
     );
 
     if (response.statusCode != 200) {

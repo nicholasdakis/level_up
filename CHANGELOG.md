@@ -2994,3 +2994,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed cancelling an outgoing friend request showing no feedback
 - Fixed the Add a Friend snackbar using the dialog context after it was popped, which could silently fail
 - Fixed unfriending or blocking via the avatar in Add a Friend not resetting the action button back to Add
+- Added Friends Only toggle to the leaderboard that filters results to friends and the viewer
+- XP leaderboard friends filter queries Supabase directly with IN (friend_uids) so friends beyond the top 100 still appear
+- Foods and workouts friends filter fetches the aggregated RPC result and filters by UID set server-side before returning
