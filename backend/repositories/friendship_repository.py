@@ -55,6 +55,13 @@ class FriendshipRepository:
             .execute().data
         return users
 
+    def search_friends(self, uid: str, query: str, limit: int) -> list:
+        return self._supabase.rpc("search_friends", {
+            "p_uid": uid,
+            "p_query": query,
+            "p_limit": limit,
+        }).execute().data or []
+
     def get_incoming_requests(self, uid: str, limit: int, offset: int) -> list:
         rows = self._supabase.table("friendships") \
             .select("sender_uid, created_at, users!friendships_sender_uid_fkey(uid, username, level, exp_points, pfp_base64, is_premium)") \

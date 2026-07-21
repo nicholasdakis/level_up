@@ -737,6 +737,20 @@ def get_friends():
         has_more=has_more,
     ).model_dump()), 200
 
+@app.route("/friends/search", methods=["GET"])
+def search_friends():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    query = request.args.get("q", "").strip()
+    if not query:
+        return jsonify({"items": []}), 200
+    items = friendship_service.search_friends(uid, query)
+    return jsonify(GetFriendsResponse(
+        items=[FriendEntry(**u) for u in items],
+        has_more=False,
+    ).model_dump()), 200
+
 @app.route("/friends/requests/incoming", methods=["GET"])
 def get_incoming_requests():
     uid, _, err = _parse_and_auth()

@@ -1255,6 +1255,23 @@ AS $$
     LIMIT p_limit;
 $$;
 
+-- search_friends: finds a user's accepted friends by partial username match in one join query
+CREATE OR REPLACE FUNCTION search_friends(p_uid TEXT, p_query TEXT, p_limit INT DEFAULT 20)
+RETURNS TABLE(uid TEXT, username TEXT, level INT, exp_points INT, pfp_base64 TEXT, is_premium BOOLEAN)
+LANGUAGE SQL STABLE AS $$
+    SELECT u.uid, u.username, u.level, u.exp_points, u.pfp_base64, u.is_premium
+    FROM friendships f
+    JOIN users u ON u.uid = CASE
+        WHEN f.sender_uid = p_uid THEN f.recipient_uid
+        ELSE f.sender_uid
+    END
+    WHERE f.status = 'accepted'
+      AND (f.sender_uid = p_uid OR f.recipient_uid = p_uid)
+      AND u.username ILIKE '%' || p_query || '%'
+    ORDER BY u.username
+    LIMIT p_limit;
+$$;
+
 -- send_friend_request: inserts a pending friendship row from sender to recipient
 CREATE OR REPLACE FUNCTION send_friend_request(p_sender_uid TEXT, p_recipient_uid TEXT)
 RETURNS JSONB LANGUAGE plpgsql AS $$
