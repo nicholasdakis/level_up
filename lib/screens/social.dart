@@ -175,402 +175,479 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
     final c = cardColors(appColor);
     final friendsAsync = ref.watch(friendsProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        color: primary,
+    return Container(
+      decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        child: ScrollConfiguration(
-          behavior: NoGlowScrollBehavior(),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.centeredHorizontalPadding(context, 20),
-              ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(
-                        height:
-                            MediaQuery.paddingOf(context).top +
-                            Responsive.height(context, 24),
-                      ),
+        body: RefreshIndicator(
+          onRefresh: _refresh,
+          color: primary,
+          backgroundColor: Colors.transparent,
+          child: ScrollConfiguration(
+            behavior: NoGlowScrollBehavior(),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.centeredHorizontalPadding(context, 20),
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(
+                          height:
+                              MediaQuery.paddingOf(context).top +
+                              Responsive.height(context, 24),
+                        ),
 
-                      // Header
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
+                        // Header
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  sectionHeader(
+                                    'FRIENDS',
+                                    context,
+                                    appColor: appColor,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            _headerButton(
+                              context,
+                              'Search',
+                              c,
+                              onTap: () => _showFriendSearch(context, appColor),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: Responsive.height(context, 12)),
+
+                        friendsAsync.when(
+                          loading: () => Skeletonizer(
+                            enabled: true,
+                            effect: ShimmerEffect(
+                              baseColor: c.iconBox,
+                              highlightColor: c.border,
+                              duration: const Duration(milliseconds: 1200),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                sectionHeader(
-                                  'FRIENDS',
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.chevron_left_rounded,
+                                      size: Responsive.scale(context, 28),
+                                      color: c.border,
+                                    ),
+                                    SizedBox(
+                                      width: Responsive.width(context, 8),
+                                    ),
+                                    Expanded(
+                                      child: Wrap(
+                                        spacing: Responsive.width(context, 6),
+                                        runSpacing: Responsive.height(
+                                          context,
+                                          10,
+                                        ),
+                                        children: List.generate(8, (_) {
+                                          final size = Responsive.scale(
+                                            context,
+                                            52,
+                                          );
+                                          return SizedBox(
+                                            width:
+                                                (MediaQuery.sizeOf(
+                                                      context,
+                                                    ).width -
+                                                    Responsive.width(
+                                                          context,
+                                                          6,
+                                                        ) *
+                                                        3 -
+                                                    Responsive.scale(
+                                                          context,
+                                                          28,
+                                                        ) *
+                                                        2 -
+                                                    Responsive.width(
+                                                          context,
+                                                          16,
+                                                        ) *
+                                                        2 -
+                                                    Responsive.width(
+                                                      context,
+                                                      16,
+                                                    )) /
+                                                4,
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  width: size,
+                                                  height: size,
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: c.iconBox,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: Responsive.height(
+                                                    context,
+                                                    4,
+                                                  ),
+                                                ),
+                                                Container(
+                                                  height: Responsive.height(
+                                                    context,
+                                                    10,
+                                                  ),
+                                                  width: Responsive.width(
+                                                    context,
+                                                    36,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: c.iconBox,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: Responsive.width(context, 8),
+                                    ),
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      size: Responsive.scale(context, 28),
+                                      color: c.border,
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: Responsive.height(context, 20),
+                                ),
+                                frostedGlassCard(
                                   context,
-                                  appColor: appColor,
+                                  color: appColor,
+                                  baseRadius: 16,
+                                  padding: EdgeInsets.all(
+                                    Responsive.scale(context, 16),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Container(
+                                        height: Responsive.height(context, 14),
+                                        width: Responsive.width(context, 100),
+                                        decoration: BoxDecoration(
+                                          color: c.iconBox,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: Responsive.height(context, 12),
+                                      ),
+                                      Container(
+                                        height: Responsive.height(context, 14),
+                                        decoration: BoxDecoration(
+                                          color: c.iconBox,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          _headerButton(
-                            context,
-                            'Search',
-                            c,
-                            onTap: () => _showFriendSearch(context, appColor),
+                          error: (err, _) => Center(
+                            child: Text(
+                              'Failed to load',
+                              style: GoogleFonts.manrope(color: dim),
+                            ),
                           ),
-                        ],
-                      ),
-                      SizedBox(height: Responsive.height(context, 12)),
-
-                      friendsAsync.when(
-                        loading: () => Skeletonizer(
-                          enabled: true,
-                          effect: ShimmerEffect(
-                            baseColor: c.iconBox,
-                            highlightColor: c.border,
-                            duration: const Duration(milliseconds: 1200),
-                          ),
-                          child: Row(
+                          data: (data) => Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Icon(
-                                Icons.chevron_left_rounded,
-                                size: Responsive.scale(context, 28),
-                                color: c.border,
-                              ),
-                              SizedBox(width: Responsive.width(context, 8)),
-                              Expanded(
-                                child: Wrap(
-                                  spacing: Responsive.width(context, 6),
-                                  runSpacing: Responsive.height(context, 10),
-                                  children: List.generate(8, (_) {
-                                    final size = Responsive.scale(context, 52);
-                                    return SizedBox(
-                                      width:
-                                          (MediaQuery.sizeOf(context).width -
-                                              Responsive.width(context, 6) * 3 -
-                                              Responsive.scale(context, 28) *
-                                                  2 -
-                                              Responsive.width(context, 16) *
-                                                  2 -
-                                              Responsive.width(context, 16)) /
-                                          4,
-                                      child: Column(
-                                        children: [
-                                          Container(
-                                            width: size,
-                                            height: size,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: c.iconBox,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: Responsive.height(
-                                              context,
-                                              4,
-                                            ),
-                                          ),
-                                          Container(
-                                            height: Responsive.height(
-                                              context,
-                                              10,
-                                            ),
-                                            width: Responsive.width(
-                                              context,
-                                              36,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: c.iconBox,
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }),
-                                ),
-                              ),
-                              SizedBox(width: Responsive.width(context, 8)),
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: Responsive.scale(context, 28),
-                                color: c.border,
-                              ),
-                            ],
-                          ),
-                        ),
-                        error: (err, _) => Center(
-                          child: Text(
-                            'Failed to load',
-                            style: GoogleFonts.manrope(color: dim),
-                          ),
-                        ),
-                        data: (data) => Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Friends grid
-                            SizedBox(height: Responsive.height(context, 10)),
-                            _friendsGrid(context, primary, dim, data),
-
-                            ...[
-                              SizedBox(height: Responsive.height(context, 20)),
-
-                              sectionHeader(
-                                'FRIEND REQUESTS',
-                                context,
-                                appColor: appColor,
-                              ),
+                              // Friends grid
                               SizedBox(height: Responsive.height(context, 10)),
-                              frostedGlassCard(
-                                context,
-                                color: appColor,
-                                baseRadius: 16,
-                                padding: EdgeInsets.all(
-                                  Responsive.scale(context, 16),
+                              _friendsGrid(context, primary, dim, data),
+
+                              ...[
+                                SizedBox(
+                                  height: Responsive.height(context, 20),
                                 ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    _collapsibleHeader(
-                                      context,
-                                      'Incoming',
-                                      data.incomingCount,
-                                      _incomingExpanded,
-                                      primary,
-                                      dim,
-                                      onTap: () async {
-                                        if (!_incomingExpanded) {
-                                          await ref
-                                              .read(friendsProvider.notifier)
-                                              .expandIncoming();
-                                        }
-                                        setState(
-                                          () => _incomingExpanded =
-                                              !_incomingExpanded,
-                                        );
-                                      },
-                                    ),
-                                    if (_incomingExpanded) ...[
-                                      SizedBox(
-                                        height: Responsive.height(context, 8),
+
+                                sectionHeader(
+                                  'FRIEND REQUESTS',
+                                  context,
+                                  appColor: appColor,
+                                ),
+                                SizedBox(
+                                  height: Responsive.height(context, 10),
+                                ),
+                                frostedGlassCard(
+                                  context,
+                                  color: appColor,
+                                  baseRadius: 16,
+                                  padding: EdgeInsets.all(
+                                    Responsive.scale(context, 16),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      _collapsibleHeader(
+                                        context,
+                                        'Incoming',
+                                        data.incomingCount,
+                                        _incomingExpanded,
+                                        primary,
+                                        dim,
+                                        onTap: () async {
+                                          if (!_incomingExpanded) {
+                                            await ref
+                                                .read(friendsProvider.notifier)
+                                                .expandIncoming();
+                                          }
+                                          setState(
+                                            () => _incomingExpanded =
+                                                !_incomingExpanded,
+                                          );
+                                        },
                                       ),
-                                      if (data.incoming.isEmpty)
-                                        _sectionEmptyState(
-                                          context,
-                                          dim,
-                                          'No pending requests',
+                                      if (_incomingExpanded) ...[
+                                        SizedBox(
+                                          height: Responsive.height(context, 8),
                                         ),
-                                      for (final entry in data.incoming)
-                                        _entryRow(
-                                          context,
-                                          entry,
-                                          primary,
-                                          dim,
-                                          c,
-                                          trailing: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              _actionButton(
-                                                context,
-                                                'Accept',
-                                                c,
-                                                onTap: () async {
-                                                  await authenticatedPost(
-                                                    'friends/request',
-                                                    body: {
-                                                      'target_uid': entry.uid,
-                                                      'action': 'accept',
-                                                    },
-                                                  );
-                                                  _refresh();
-                                                  if (!mounted) return;
-                                                  ScaffoldMessenger.of(
+                                        if (data.incoming.isEmpty)
+                                          _sectionEmptyState(
+                                            context,
+                                            dim,
+                                            'No pending requests',
+                                          ),
+                                        for (final entry in data.incoming)
+                                          _entryRow(
+                                            context,
+                                            entry,
+                                            primary,
+                                            dim,
+                                            c,
+                                            trailing: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                _actionButton(
+                                                  context,
+                                                  'Accept',
+                                                  c,
+                                                  onTap: () async {
+                                                    await authenticatedPost(
+                                                      'friends/request',
+                                                      body: {
+                                                        'target_uid': entry.uid,
+                                                        'action': 'accept',
+                                                      },
+                                                    );
+                                                    _refresh();
+                                                    if (!mounted) return;
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          'You and ${entry.username} are now friends',
+                                                          style:
+                                                              GoogleFonts.manrope(
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                        ),
+                                                        duration:
+                                                            snackBarDuration,
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                                SizedBox(
+                                                  width: Responsive.width(
                                                     context,
-                                                  ).showSnackBar(
-                                                    SnackBar(
+                                                    6,
+                                                  ),
+                                                ),
+                                                _actionButton(
+                                                  context,
+                                                  'Decline',
+                                                  c,
+                                                  muted: true,
+                                                  onTap: () async {
+                                                    final confirmed = await showFrostedAlertDialog<bool>(
+                                                      context: context,
+                                                      appColor: appColor,
+                                                      title: 'Decline request?',
                                                       content: Text(
-                                                        'You and ${entry.username} are now friends',
+                                                        'Are you sure you want to decline ${entry.username}\'s friend request?',
                                                         style:
                                                             GoogleFonts.manrope(
                                                               color:
                                                                   Colors.white,
-                                                            ),
-                                                      ),
-                                                      duration:
-                                                          snackBarDuration,
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                              SizedBox(
-                                                width: Responsive.width(
-                                                  context,
-                                                  6,
-                                                ),
-                                              ),
-                                              _actionButton(
-                                                context,
-                                                'Decline',
-                                                c,
-                                                muted: true,
-                                                onTap: () async {
-                                                  final confirmed =
-                                                      await showFrostedAlertDialog<
-                                                        bool
-                                                      >(
-                                                        context: context,
-                                                        appColor: appColor,
-                                                        title:
-                                                            'Decline request?',
-                                                        content: Text(
-                                                          'Are you sure you want to decline ${entry.username}\'s friend request?',
-                                                          style: GoogleFonts.manrope(
-                                                            color: Colors.white,
-                                                            fontSize:
-                                                                Responsive.font(
-                                                                  context,
-                                                                  13,
-                                                                ),
-                                                          ),
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                        ),
-                                                        actions: [
-                                                          TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.of(
-                                                                  context,
-                                                                  rootNavigator:
-                                                                      true,
-                                                                ).pop(false),
-                                                            child: Text(
-                                                              'Cancel',
-                                                              style:
-                                                                  dialogButtonStyle(),
-                                                            ),
-                                                          ),
-                                                          TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.of(
-                                                                  context,
-                                                                  rootNavigator:
-                                                                      true,
-                                                                ).pop(true),
-                                                            child: Text(
-                                                              'Decline',
-                                                              style:
-                                                                  dialogButtonStyle(
-                                                                    confirm:
-                                                                        true,
+                                                              fontSize:
+                                                                  Responsive.font(
+                                                                    context,
+                                                                    13,
                                                                   ),
                                                             ),
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.of(
+                                                                context,
+                                                                rootNavigator:
+                                                                    true,
+                                                              ).pop(false),
+                                                          child: Text(
+                                                            'Cancel',
+                                                            style:
+                                                                dialogButtonStyle(),
                                                           ),
-                                                        ],
-                                                      );
-                                                  if (confirmed != true) return;
-                                                  await authenticatedPost(
-                                                    'friends/request',
-                                                    body: {
-                                                      'target_uid': entry.uid,
-                                                      'action': 'decline',
-                                                    },
-                                                  );
-                                                  _refresh();
-                                                },
-                                              ),
-                                            ],
+                                                        ),
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.of(
+                                                                context,
+                                                                rootNavigator:
+                                                                    true,
+                                                              ).pop(true),
+                                                          child: Text(
+                                                            'Decline',
+                                                            style:
+                                                                dialogButtonStyle(
+                                                                  confirm: true,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                    if (confirmed != true) {
+                                                      return;
+                                                    }
+                                                    await authenticatedPost(
+                                                      'friends/request',
+                                                      body: {
+                                                        'target_uid': entry.uid,
+                                                        'action': 'decline',
+                                                      },
+                                                    );
+                                                    _refresh();
+                                                  },
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      if (data.incomingHasMore)
-                                        _loadMoreButton(
-                                          context,
-                                          primary,
-                                          () => ref
-                                              .read(friendsProvider.notifier)
-                                              .expandIncoming(),
-                                        ),
-                                    ],
-                                    _divider(context),
-                                    _collapsibleHeader(
-                                      context,
-                                      'Sent',
-                                      data.outgoingCount,
-                                      _outgoingExpanded,
-                                      primary,
-                                      dim,
-                                      onTap: () async {
-                                        if (!_outgoingExpanded) {
-                                          await ref
-                                              .read(friendsProvider.notifier)
-                                              .expandOutgoing();
-                                        }
-                                        setState(
-                                          () => _outgoingExpanded =
-                                              !_outgoingExpanded,
-                                        );
-                                      },
-                                    ),
-                                    if (_outgoingExpanded) ...[
-                                      SizedBox(
-                                        height: Responsive.height(context, 8),
-                                      ),
-                                      if (data.outgoing.isEmpty)
-                                        _sectionEmptyState(
-                                          context,
-                                          dim,
-                                          'No sent requests',
-                                        ),
-                                      for (final entry in data.outgoing)
-                                        _entryRow(
-                                          context,
-                                          entry,
-                                          primary,
-                                          dim,
-                                          c,
-                                          trailing: _actionButton(
+                                        if (data.incomingHasMore)
+                                          _loadMoreButton(
                                             context,
-                                            'Cancel',
-                                            c,
-                                            muted: true,
-                                            onTap: () async {
-                                              await authenticatedPost(
-                                                'friends/request',
-                                                body: {
-                                                  'target_uid': entry.uid,
-                                                  'action': 'cancel',
-                                                },
-                                              );
-                                              _refresh();
-                                            },
+                                            primary,
+                                            () => ref
+                                                .read(friendsProvider.notifier)
+                                                .expandIncoming(),
                                           ),
+                                      ],
+                                      _divider(context),
+                                      _collapsibleHeader(
+                                        context,
+                                        'Sent',
+                                        data.outgoingCount,
+                                        _outgoingExpanded,
+                                        primary,
+                                        dim,
+                                        onTap: () async {
+                                          if (!_outgoingExpanded) {
+                                            await ref
+                                                .read(friendsProvider.notifier)
+                                                .expandOutgoing();
+                                          }
+                                          setState(
+                                            () => _outgoingExpanded =
+                                                !_outgoingExpanded,
+                                          );
+                                        },
+                                      ),
+                                      if (_outgoingExpanded) ...[
+                                        SizedBox(
+                                          height: Responsive.height(context, 8),
                                         ),
-                                      if (data.outgoingHasMore)
-                                        _loadMoreButton(
-                                          context,
-                                          primary,
-                                          () => ref
-                                              .read(friendsProvider.notifier)
-                                              .expandOutgoing(),
-                                        ),
+                                        if (data.outgoing.isEmpty)
+                                          _sectionEmptyState(
+                                            context,
+                                            dim,
+                                            'No sent requests',
+                                          ),
+                                        for (final entry in data.outgoing)
+                                          _entryRow(
+                                            context,
+                                            entry,
+                                            primary,
+                                            dim,
+                                            c,
+                                            trailing: _actionButton(
+                                              context,
+                                              'Cancel',
+                                              c,
+                                              muted: true,
+                                              onTap: () async {
+                                                await authenticatedPost(
+                                                  'friends/request',
+                                                  body: {
+                                                    'target_uid': entry.uid,
+                                                    'action': 'cancel',
+                                                  },
+                                                );
+                                                _refresh();
+                                              },
+                                            ),
+                                          ),
+                                        if (data.outgoingHasMore)
+                                          _loadMoreButton(
+                                            context,
+                                            primary,
+                                            () => ref
+                                                .read(friendsProvider.notifier)
+                                                .expandOutgoing(),
+                                          ),
+                                      ],
                                     ],
-                                  ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-                      ),
 
-                      SizedBox(height: Responsive.height(context, 120)),
-                    ],
+                        SizedBox(height: Responsive.height(context, 120)),
+                      ],
+                    ),
                   ),
                 ),
               ),
