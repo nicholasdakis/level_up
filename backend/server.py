@@ -704,7 +704,7 @@ def get_user_profile_card():
     )
     return jsonify(response.model_dump()), 200
 
-@app.route("/friend_request", methods=["POST"])
+@app.route("/friends/request", methods=["POST"])
 def handle_friend_request():
     uid, body, err = _parse_and_auth(FriendActionRequest)
     if err:
@@ -737,7 +737,7 @@ def get_friends():
         has_more=has_more,
     ).model_dump()), 200
 
-@app.route("/friend_requests/incoming", methods=["GET"])
+@app.route("/friends/requests/incoming", methods=["GET"])
 def get_incoming_requests():
     uid, _, err = _parse_and_auth()
     if err:
@@ -751,7 +751,7 @@ def get_incoming_requests():
         has_more=has_more,
     ).model_dump()), 200
 
-@app.route("/friend_requests/outgoing", methods=["GET"])
+@app.route("/friends/requests/outgoing", methods=["GET"])
 def get_outgoing_requests():
     uid, _, err = _parse_and_auth()
     if err:
@@ -784,7 +784,7 @@ def search_user():
     friendship_status = friendship_repo.get_status(uid, user["uid"])
     return jsonify({**SearchUserResponse(**user).model_dump(), "friendship_status": friendship_status}), 200
 
-@app.route("/unfriend", methods=["POST"])
+@app.route("/friends/unfriend", methods=["POST"])
 def handle_unfriend():
     uid, body, err = _parse_and_auth(UnfriendRequest)
     if err:
