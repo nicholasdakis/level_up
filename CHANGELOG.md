@@ -2976,3 +2976,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made profile cards show blocked cases (blocked by vs someone the user blocked)
 - Added a block button to the Manage Friendship dialog
 - Manage button added to non-friend profiles too so they can be blocked
+- Added a social section in personal preferences for managing blocked list and unblocking users
+- Moved the ToS check above the google button
+- Blocked users dialog now includes a search-by-username field to block new users directly from the dialog
+- Blocking via search clears the search field and adds the user to the blocked list immediately
+- Avatars in the Add a Friend dialog and blocked users dialog are tappable and open the profile card
+- Added onUnblock callback to showProfileCard so unblocking from the profile card removes the user from the blocked list in the calling dialog

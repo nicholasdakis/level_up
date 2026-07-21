@@ -7,6 +7,7 @@ import '../../globals.dart';
 import '../../utility/responsive.dart';
 import '../../services/user_data_manager.dart'
     show authenticatedGet, authenticatedPost;
+import '../widgets/profile_card.dart' show showProfileCard;
 
 class _UserSearchResult {
   final String uid;
@@ -88,8 +89,6 @@ Future<void> showUsernameDialog({
     appColor: appColor,
     child: StatefulBuilder(
       builder: (ctx, setState) {
-        final c = cardColors(appColor);
-
         Future<void> doConfirm() async {
           if (controller.text.trim().isEmpty) return;
           await onConfirm(controller.text.trim(), setState, ctx);
@@ -140,19 +139,19 @@ Future<void> showUsernameDialog({
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(ctx, 10),
                   ),
-                  borderSide: BorderSide(color: Colors.white.withAlpha(25)),
+                  borderSide: BorderSide(color: Colors.white.withAlpha(60)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(ctx, 10),
                   ),
-                  borderSide: BorderSide(color: Colors.white.withAlpha(25)),
+                  borderSide: BorderSide(color: Colors.white.withAlpha(60)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(ctx, 10),
                   ),
-                  borderSide: BorderSide(color: c.border, width: 1.5),
+                  borderSide: const BorderSide(color: Colors.white, width: 1.5),
                 ),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: Responsive.width(ctx, 12),
@@ -242,124 +241,118 @@ Future<void> showAddFriendDialog(BuildContext context, Color appColor) async {
       final primary = lightenColor(appColor, 0.45);
       final dim = lightenColor(appColor, 0.30);
 
-      return AnimatedSize(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutQuart,
-        child: searched
-            ? Padding(
-                padding: EdgeInsets.only(top: Responsive.height(ctx, 16)),
-                child: searchResult != null
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _searchResultTile(
-                            ctx,
-                            searchResult!,
-                            appColor,
-                            primary,
-                            dim,
-                            addState: addState,
-                            onAdd: () async {
-                              final res = await authenticatedPost(
-                                'friends/request',
-                                body: {
-                                  'target_uid': searchResult!.uid,
-                                  'action': 'send',
-                                },
-                              );
-                              if (!ctx.mounted) return;
-                              final body =
-                                  jsonDecode(res.body) as Map<String, dynamic>;
-                              final reason = body['reason'] as String?;
-                              if (reason == 'already_friends') {
-                                setState(() => addState = 'friends');
-                                return;
-                              }
-                              if (reason == 'request_already_exists') {
-                                setState(() => addState = 'pending');
-                                return;
-                              }
-                              if (ctx.mounted) {
-                                ScaffoldMessenger.of(ctx).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Friend request sent to ${searchResult!.username}',
-                                      style: GoogleFonts.manrope(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    duration: snackBarDuration,
-                                  ),
-                                );
-                              }
-                              Navigator.of(ctx, rootNavigator: true).pop();
-                            },
-                            onCancelRequest: () async {
-                              await authenticatedPost(
-                                'friends/request',
-                                body: {
-                                  'target_uid': searchResult!.uid,
-                                  'action': 'cancel',
-                                },
-                              );
-                              if (!ctx.mounted) return;
-                              setState(() => addState = 'none');
-                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Friend request cancelled',
-                                    style: GoogleFonts.manrope(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  duration: snackBarDuration,
-                                ),
-                              );
-                            },
-                            onUnfriend: () async {
-                              final confirmed = await showHoldToConfirmDialog(
-                                context: ctx,
-                                appColor: appColor,
-                                title: 'Unfriend ${searchResult!.username}?',
-                                subtitle:
-                                    'You will need to send a new friend request to reconnect.',
-                                icon: HugeIcons.strokeRoundedUserRemove01,
-                              );
-                              if (confirmed != true || !ctx.mounted) return;
-                              await authenticatedPost(
-                                'friends/unfriend',
-                                body: {'target_uid': searchResult!.uid},
-                              );
-                              if (!ctx.mounted) return;
-                              setState(() => addState = 'none');
-                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Removed ${searchResult!.username} from friends',
-                                    style: GoogleFonts.manrope(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  duration: snackBarDuration,
-                                ),
-                              );
-                            },
+      if (!searched) return const SizedBox.shrink();
+      return Padding(
+        padding: EdgeInsets.only(top: Responsive.height(ctx, 16)),
+        child: searchResult != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _searchResultTile(
+                    ctx,
+                    searchResult!,
+                    appColor,
+                    primary,
+                    dim,
+                    addState: addState,
+                    onAdd: () async {
+                      final res = await authenticatedPost(
+                        'friends/request',
+                        body: {
+                          'target_uid': searchResult!.uid,
+                          'action': 'send',
+                        },
+                      );
+                      if (!ctx.mounted) return;
+                      final body = jsonDecode(res.body) as Map<String, dynamic>;
+                      final reason = body['reason'] as String?;
+                      if (reason == 'already_friends') {
+                        setState(() => addState = 'friends');
+                        return;
+                      }
+                      if (reason == 'request_already_exists') {
+                        setState(() => addState = 'pending');
+                        return;
+                      }
+                      Navigator.of(ctx, rootNavigator: true).pop();
+                      if (ctx.mounted) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Friend request sent to ${searchResult!.username}',
+                              style: GoogleFonts.manrope(color: Colors.white),
+                            ),
+                            duration: snackBarDuration,
                           ),
-                        ],
-                      )
-                    : Text(
-                        isSelf
-                            ? "You can't add yourself."
-                            : 'No user found with that username.',
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(ctx, 13),
-                          color: dim,
+                        );
+                      }
+                    },
+                    onCancelRequest: () async {
+                      await authenticatedPost(
+                        'friends/request',
+                        body: {
+                          'target_uid': searchResult!.uid,
+                          'action': 'cancel',
+                        },
+                      );
+                      if (!ctx.mounted) return;
+                      setState(() => addState = 'none');
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Friend request cancelled',
+                            style: GoogleFonts.manrope(color: Colors.white),
+                          ),
+                          duration: snackBarDuration,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
+                      );
+                    },
+                    onUnfriend: () async {
+                      final confirmed = await showHoldToConfirmDialog(
+                        context: ctx,
+                        appColor: appColor,
+                        title: 'Unfriend ${searchResult!.username}?',
+                        subtitle:
+                            'You will need to send a new friend request to reconnect.',
+                        icon: HugeIcons.strokeRoundedUserRemove01,
+                      );
+                      if (confirmed != true || !ctx.mounted) return;
+                      await authenticatedPost(
+                        'friends/unfriend',
+                        body: {'target_uid': searchResult!.uid},
+                      );
+                      if (!ctx.mounted) return;
+                      setState(() => addState = 'none');
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Removed ${searchResult!.username} from friends',
+                            style: GoogleFonts.manrope(color: Colors.white),
+                          ),
+                          duration: snackBarDuration,
+                        ),
+                      );
+                    },
+                  ),
+                ],
               )
-            : const SizedBox.shrink(),
+            : Padding(
+                padding: EdgeInsets.only(bottom: Responsive.height(ctx, 8)),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Text(
+                    isSelf
+                        ? "You can't add yourself."
+                        : 'No user found with that username.',
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(ctx, 13),
+                      color: Colors.white70,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
       );
     },
   );
@@ -398,22 +391,30 @@ Widget _searchResultTile(
 
   return Row(
     children: [
-      Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: c.iconBox,
-          border: Border.all(color: c.border, width: 1.5),
+      GestureDetector(
+        onTap: () => showProfileCard(
+          ctx,
+          uid: user.uid,
+          appColor: appColor,
+          isOwnProfile: false,
         ),
-        child: ClipOval(
-          child: user.pfpBytes != null
-              ? Image.memory(user.pfpBytes!, fit: BoxFit.cover)
-              : Icon(
-                  Icons.person_rounded,
-                  color: primary,
-                  size: Responsive.scale(ctx, 20),
-                ),
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: c.iconBox,
+            border: Border.all(color: c.border, width: 1.5),
+          ),
+          child: ClipOval(
+            child: user.pfpBytes != null
+                ? Image.memory(user.pfpBytes!, fit: BoxFit.cover)
+                : Icon(
+                    Icons.person_rounded,
+                    color: primary,
+                    size: Responsive.scale(ctx, 20),
+                  ),
+          ),
         ),
       ),
       SizedBox(width: Responsive.width(ctx, 12)),

@@ -65,8 +65,9 @@ class FcmService {
         );
       }
 
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('FCM token: ${deviceToken != null ? "obtained" : "NULL"}');
+      }
 
       if (deviceToken != null) {
         await notifier.initializeFcmToken(deviceToken);

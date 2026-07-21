@@ -1018,11 +1018,11 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin>
           ),
           SizedBox(height: Responsive.padding(context, 16)),
         ],
-        buildGoogleButton(),
         if (!showEmailForm) ...[
-          SizedBox(height: Responsive.padding(context, 12)),
           buildTermsCheckbox(),
+          SizedBox(height: Responsive.padding(context, 12)),
         ],
+        buildGoogleButton(),
         SizedBox(height: Responsive.padding(context, 12)),
         buildOutlinedButton(
           label: "Browse as a guest",

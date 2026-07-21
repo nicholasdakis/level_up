@@ -463,6 +463,7 @@ Future<void> showProfileCard(
   VoidCallback? onDecline,
   VoidCallback? onUnfriend,
   VoidCallback? onBlock,
+  VoidCallback? onUnblock,
 }) {
   return showFrostedDialog(
     context: context,
@@ -477,6 +478,7 @@ Future<void> showProfileCard(
       onDecline: onDecline,
       onUnfriend: onUnfriend,
       onBlock: onBlock,
+      onUnblock: onUnblock,
     ),
   );
 }
@@ -493,6 +495,7 @@ class _ProfileCardLoader extends StatefulWidget {
   final VoidCallback? onDecline;
   final VoidCallback? onUnfriend;
   final VoidCallback? onBlock;
+  final VoidCallback? onUnblock;
 
   const _ProfileCardLoader({
     required this.uid,
@@ -504,6 +507,7 @@ class _ProfileCardLoader extends StatefulWidget {
     this.onDecline,
     this.onUnfriend,
     this.onBlock,
+    this.onUnblock,
   });
 
   @override
@@ -559,8 +563,27 @@ class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
   }
 
   Future<void> _unblock() async {
+    final username = _profile?.username ?? 'this user';
+    final confirmed = await showFrostedAlertDialog<bool>(
+      context: context,
+      appColor: widget.appColor,
+      title: 'Unblock $username?',
+      actions: [
+        TextButton(
+          onPressed: () =>
+              Navigator.of(context, rootNavigator: true).pop(false),
+          child: Text('Cancel', style: dialogButtonStyle()),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+          child: Text('Unblock', style: dialogButtonStyle(confirm: true)),
+        ),
+      ],
+    );
+    if (confirmed != true) return;
     setState(() => _blockStatus = BlockStatus.none);
     await authenticatedPost('unblock', body: {'target_uid': widget.uid});
+    widget.onUnblock?.call();
   }
 
   Future<void> _sendFriendAction(

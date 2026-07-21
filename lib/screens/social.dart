@@ -79,13 +79,19 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
         return Padding(
           padding: EdgeInsets.only(top: Responsive.height(ctx, 16)),
           child: results.isEmpty
-              ? Text(
-                  'No friends found',
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(ctx, 13),
-                    color: dim,
+              ? Padding(
+                  padding: EdgeInsets.only(bottom: Responsive.height(ctx, 8)),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      'No friends found',
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(ctx, 13),
+                        color: Colors.white70,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  textAlign: TextAlign.center,
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,

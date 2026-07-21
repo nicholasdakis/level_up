@@ -266,7 +266,7 @@ class _MyAppState extends ConsumerState<MyApp> {
               hintStyle: const TextStyle(color: Colors.white70),
               labelStyle: const TextStyle(color: Colors.white),
               enabledBorder: const OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.white24),
+                borderSide: BorderSide(color: Colors.white70),
               ),
               focusedBorder: const OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.white),

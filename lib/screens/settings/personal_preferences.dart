@@ -1,4 +1,6 @@
 ﻿import 'dart:async';
+import 'dart:convert';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
 import 'dart:ui';
@@ -19,6 +21,7 @@ import '/services/user_data_manager.dart';
 import '/utility/responsive.dart';
 import '/services/fcm/notification_service.dart';
 import '../premium_sheet.dart' show showPremiumSheet;
+import '../widgets/profile_card.dart' show showProfileCard;
 
 Future<void> showUsernameDialogBox(
   BuildContext context,
@@ -41,15 +44,16 @@ Future<void> showUsernameDialogBox(
       builder: (context, setDialogState) {
         return Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               title,
               style: GoogleFonts.manrope(
                 color: accent,
-                fontSize: Responsive.font(context, 16),
-                fontWeight: FontWeight.w700,
+                fontSize: Responsive.font(context, 18),
+                fontWeight: FontWeight.w800,
               ),
+              textAlign: TextAlign.center,
             ),
             if (hasUsername) ...[
               SizedBox(height: Responsive.height(context, 4)),
@@ -59,6 +63,7 @@ Future<void> showUsernameDialogBox(
                   color: dim,
                   fontSize: Responsive.font(context, 12),
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
             SizedBox(height: Responsive.height(context, 16)),
@@ -70,47 +75,46 @@ Future<void> showUsernameDialogBox(
               textCapitalization: TextCapitalization.none,
               decoration: InputDecoration(
                 hintText: 'Username',
-                hintStyle: GoogleFonts.manrope(color: Colors.white),
+                hintStyle: GoogleFonts.manrope(color: Colors.white38),
                 filled: true,
                 fillColor: Colors.white.withAlpha(10),
                 counterStyle: GoogleFonts.manrope(
-                  color: Colors.white,
+                  color: Colors.white54,
                   fontSize: Responsive.font(context, 11),
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 12),
+                    Responsive.scale(context, 10),
                   ),
-                  borderSide: const BorderSide(color: Colors.white),
+                  borderSide: BorderSide(color: Colors.white.withAlpha(25)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 12),
+                    Responsive.scale(context, 10),
                   ),
-                  borderSide: const BorderSide(color: Colors.white),
+                  borderSide: BorderSide(color: Colors.white.withAlpha(25)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 12),
+                    Responsive.scale(context, 10),
                   ),
                   borderSide: const BorderSide(color: Colors.white, width: 1.5),
                 ),
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 16),
-                  vertical: Responsive.height(context, 14),
+                  horizontal: Responsive.width(context, 14),
+                  vertical: Responsive.height(context, 12),
                 ),
               ),
             ),
             SizedBox(height: Responsive.height(context, 16)),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 TextButton(
                   onPressed: () =>
                       Navigator.of(context, rootNavigator: true).pop(),
                   child: Text('Cancel', style: dialogButtonStyle()),
                 ),
-                SizedBox(width: Responsive.width(context, 8)),
                 TextButton(
                   onPressed: () async {
                     final updatedUsername = usernameController.text.trim();
@@ -1020,6 +1024,524 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
     );
   }
 
+  Future<void> _showBlockedUsersDialog() async {
+    const int pageSize = 10;
+    List<Map<String, dynamic>> items = [];
+    bool isLoading = true;
+    bool hasMore = false;
+    int offset = 0;
+
+    // Search state
+    final searchController = TextEditingController();
+    Map<String, dynamic>? searchResult;
+    bool searched = false;
+    bool searchLoading = false;
+    // 'none' | 'blocking' | 'blocked'
+    String blockState = 'none';
+
+    Future<void> fetchPage(void Function(void Function()) setState) async {
+      setState(() => isLoading = true);
+      try {
+        final res = await authenticatedGet(
+          'blocked_users?limit=${pageSize + 1}&offset=$offset',
+        );
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body) as Map<String, dynamic>;
+          final page = (data['items'] as List).cast<Map<String, dynamic>>();
+          hasMore = page.length > pageSize;
+          offset += pageSize;
+          setState(() {
+            items = [...items, ...page.take(pageSize)];
+            isLoading = false;
+          });
+        } else {
+          setState(() => isLoading = false);
+        }
+      } catch (_) {
+        setState(() => isLoading = false);
+      }
+    }
+
+    Future<void> doSearch(void Function(void Function()) setState) async {
+      final query = searchController.text.trim();
+      if (query.isEmpty) return;
+      setState(() {
+        searched = false;
+        searchResult = null;
+        searchLoading = true;
+        blockState = 'none';
+      });
+      final res = await authenticatedGet(
+        'search_user?username=${Uri.encodeComponent(query)}',
+      );
+      Map<String, dynamic>? result;
+      if (res.statusCode == 200) {
+        result = jsonDecode(res.body) as Map<String, dynamic>;
+        final alreadyBlocked = items.any((u) => u['uid'] == result!['uid']);
+        setState(() {
+          searchResult = result;
+          searched = true;
+          searchLoading = false;
+          blockState = alreadyBlocked ? 'blocked' : 'none';
+        });
+      } else {
+        setState(() {
+          searched = true;
+          searchLoading = false;
+        });
+      }
+    }
+
+    bool initialFetchDone = false;
+
+    await showFrostedDialog(
+      context: context,
+      appColor: appColor,
+      child: StatefulBuilder(
+        builder: (ctx, setState) {
+          final primary = lightenColor(appColor, 0.45);
+          final c = cardColors(appColor);
+
+          if (!initialFetchDone) {
+            initialFetchDone = true;
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) => fetchPage(setState),
+            );
+          }
+
+          Widget buildUserRow({
+            required String uid,
+            required String username,
+            required Map<String, dynamic>? rawUser,
+            required Widget trailing,
+          }) {
+            final pfpBytes = rawUser?['pfp_base64'] != null
+                ? base64Decode(rawUser!['pfp_base64'] as String)
+                : null;
+            return Padding(
+              padding: EdgeInsets.only(bottom: Responsive.height(ctx, 10)),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => showProfileCard(
+                      ctx,
+                      uid: uid,
+                      appColor: appColor,
+                      isOwnProfile: false,
+                      onUnblock: () => setState(
+                        () => items.removeWhere((u) => u['uid'] == uid),
+                      ),
+                    ),
+                    child: Container(
+                      width: Responsive.scale(ctx, 36),
+                      height: Responsive.scale(ctx, 36),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: c.iconBox,
+                        border: Border.all(color: c.border, width: 1.5),
+                      ),
+                      child: ClipOval(
+                        child: pfpBytes != null
+                            ? Image.memory(pfpBytes, fit: BoxFit.cover)
+                            : Icon(
+                                Icons.person_rounded,
+                                color: lightenColor(appColor, 0.40),
+                                size: Responsive.scale(ctx, 18),
+                              ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: Responsive.width(ctx, 10)),
+                  Expanded(
+                    child: Text(
+                      username,
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(ctx, 13),
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  trailing,
+                ],
+              ),
+            );
+          }
+
+          Widget unblockButton(String uid, String username) {
+            return GestureDetector(
+              onTap: () async {
+                final confirmed = await showFrostedAlertDialog<bool>(
+                  context: ctx,
+                  appColor: appColor,
+                  title: 'Unblock $username?',
+                  actions: [
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.of(ctx, rootNavigator: true).pop(false),
+                      child: Text('Cancel', style: dialogButtonStyle()),
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.of(ctx, rootNavigator: true).pop(true),
+                      child: Text(
+                        'Unblock',
+                        style: dialogButtonStyle(confirm: true),
+                      ),
+                    ),
+                  ],
+                );
+                if (confirmed != true) return;
+                await authenticatedPost('unblock', body: {'target_uid': uid});
+                setState(() {
+                  items.removeWhere((u) => u['uid'] == uid);
+                  if (searchResult?['uid'] == uid) blockState = 'none';
+                });
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(ctx, 12),
+                  vertical: Responsive.height(ctx, 6),
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(12),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(ctx, 20),
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(30),
+                    width: 1.5,
+                  ),
+                ),
+                child: Text(
+                  'Unblock',
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(ctx, 12),
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Blocked Users',
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 18),
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: Responsive.height(ctx, 14)),
+
+              sectionHeader(
+                'BLOCK A USER',
+                ctx,
+                appColor: appColor,
+                padding: EdgeInsets.only(bottom: Responsive.height(ctx, 8)),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: searchController,
+                      maxLength: 20,
+                      cursorColor: Colors.white,
+                      style: GoogleFonts.manrope(
+                        color: Colors.white,
+                        fontSize: Responsive.font(ctx, 13),
+                      ),
+                      textCapitalization: TextCapitalization.none,
+                      decoration: InputDecoration(
+                        hintText: 'Search by username',
+                        hintStyle: GoogleFonts.manrope(
+                          color: Colors.white38,
+                          fontSize: Responsive.font(ctx, 13),
+                        ),
+                        counterText: '',
+                        filled: true,
+                        fillColor: Colors.white.withAlpha(10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(ctx, 10),
+                          ),
+                          borderSide: BorderSide(
+                            color: Colors.white.withAlpha(60),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(ctx, 10),
+                          ),
+                          borderSide: BorderSide(
+                            color: Colors.white.withAlpha(60),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(ctx, 10),
+                          ),
+                          borderSide: const BorderSide(
+                            color: Colors.white,
+                            width: 1.5,
+                          ),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: Responsive.width(ctx, 12),
+                          vertical: Responsive.height(ctx, 10),
+                        ),
+                      ),
+                      onSubmitted: (_) => doSearch(setState),
+                    ),
+                  ),
+                  SizedBox(width: Responsive.width(ctx, 8)),
+                  GestureDetector(
+                    onTap: () => doSearch(setState),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(ctx, 14),
+                        vertical: Responsive.height(ctx, 10),
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: c.gradient,
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(ctx, 10),
+                        ),
+                        border: Border.all(color: c.border, width: 1),
+                      ),
+                      child: searchLoading
+                          ? SizedBox(
+                              width: Responsive.scale(ctx, 14),
+                              height: Responsive.scale(ctx, 14),
+                              child: const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              'Search',
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(ctx, 13),
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Search result
+              if (searched) ...[
+                SizedBox(height: Responsive.height(ctx, 12)),
+                if (searchResult == null)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: Responsive.height(ctx, 4)),
+                    child: Text(
+                      'No user found with that username.',
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(ctx, 13),
+                        color: Colors.white70,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                else
+                  buildUserRow(
+                    uid: searchResult!['uid'] as String,
+                    username: searchResult!['username'] as String? ?? 'Unknown',
+                    rawUser: searchResult,
+                    trailing: blockState == 'blocked'
+                        ? unblockButton(
+                            searchResult!['uid'] as String,
+                            searchResult!['username'] as String? ?? 'Unknown',
+                          )
+                        : GestureDetector(
+                            onTap: () async {
+                              final uid = searchResult!['uid'] as String;
+                              final username =
+                                  searchResult!['username'] as String? ??
+                                  'Unknown';
+                              final confirmed = await showHoldToConfirmDialog(
+                                context: ctx,
+                                appColor: appColor,
+                                title: 'Block $username?',
+                                subtitle:
+                                    'They won\'t be able to find your profile or send you friend requests.',
+                                icon: HugeIcons.strokeRoundedUserRemove01,
+                              );
+                              if (confirmed != true) return;
+                              await authenticatedPost(
+                                'block',
+                                body: {'target_uid': uid},
+                              );
+                              setState(() {
+                                items.removeWhere((u) => u['uid'] == uid);
+                                items.insert(0, searchResult!);
+                                searchResult = null;
+                                searched = false;
+                                searchController.clear();
+                                blockState = 'none';
+                              });
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Responsive.width(ctx, 12),
+                                vertical: Responsive.height(ctx, 6),
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: c.gradient,
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                                borderRadius: BorderRadius.circular(
+                                  Responsive.scale(ctx, 20),
+                                ),
+                                border: Border.all(color: c.border, width: 1.5),
+                              ),
+                              child: Text(
+                                'Block',
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(ctx, 12),
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                  ),
+              ],
+
+              if (items.isNotEmpty || (isLoading && items.isEmpty))
+                Padding(
+                  padding: EdgeInsets.only(top: Responsive.height(ctx, 14)),
+                  child: sectionHeader(
+                    'BLOCKED USERS',
+                    ctx,
+                    appColor: appColor,
+                    padding: EdgeInsets.only(bottom: Responsive.height(ctx, 8)),
+                  ),
+                ),
+
+              if (isLoading && items.isEmpty)
+                Skeletonizer(
+                  enabled: true,
+                  effect: ShimmerEffect(
+                    baseColor: c.iconBox,
+                    highlightColor: c.border,
+                    duration: const Duration(milliseconds: 1200),
+                  ),
+                  child: Column(
+                    children: List.generate(
+                      3,
+                      (_) => Padding(
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.height(ctx, 12),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: Responsive.scale(ctx, 36),
+                              height: Responsive.scale(ctx, 36),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: c.iconBox,
+                              ),
+                            ),
+                            SizedBox(width: Responsive.width(ctx, 10)),
+                            Expanded(
+                              child: Container(
+                                height: Responsive.height(ctx, 14),
+                                decoration: BoxDecoration(
+                                  color: c.iconBox,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              else if (items.isEmpty && !searched)
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: Responsive.height(ctx, 12),
+                  ),
+                  child: Text(
+                    'No blocked users',
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(ctx, 13),
+                      color: Colors.white70,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              else if (items.isNotEmpty)
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: Responsive.height(ctx, 220),
+                  ),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: items.length + (hasMore ? 1 : 0),
+                    itemBuilder: (ctx, i) {
+                      if (i == items.length) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: Responsive.height(ctx, 8),
+                          ),
+                          child: GestureDetector(
+                            onTap: () => fetchPage(setState),
+                            child: Text(
+                              'Load more',
+                              style: GoogleFonts.manrope(
+                                color: primary,
+                                fontSize: Responsive.font(ctx, 12),
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        );
+                      }
+                      final user = items[i];
+                      final uid = user['uid'] as String;
+                      final username = user['username'] as String? ?? 'Unknown';
+                      return buildUserRow(
+                        uid: uid,
+                        username: username,
+                        rawUser: user,
+                        trailing: unblockButton(uid, username),
+                      );
+                    },
+                  ),
+                ),
+              SizedBox(height: Responsive.height(ctx, 8)),
+              TextButton(
+                onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
+                child: Text('Close', style: dialogButtonStyle()),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   // builds a single tappable row inside a frosted glass card
   // each row has: icon badge on the left, label + optional subtitle, and a trailing widget or chevron
   Widget buildPreferenceRow({
@@ -1621,6 +2143,31 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                       ],
                                     )
                                   : const SizedBox.shrink(),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: Responsive.height(context, 28)),
+                      sectionHeader(
+                        "SOCIAL",
+                        context,
+                        appColor: appColor,
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.height(context, 4),
+                          left: Responsive.width(context, 4),
+                        ),
+                      ),
+                      frostedGlassCard(
+                        context,
+                        color: appColor,
+                        child: Column(
+                          children: [
+                            buildPreferenceRow(
+                              icon: HugeIcons.strokeRoundedUserRemove01,
+                              label: 'Blocked Users',
+                              subtitle: 'Manage who you have blocked',
+                              onTap: () => _showBlockedUsersDialog(),
                             ),
                           ],
                         ),
