@@ -12,6 +12,7 @@ import '../utility/responsive.dart';
 import 'social/friends_card.dart'
     show showAddFriendDialog, showUsernameDialog, friendsPendingBadge;
 import 'widgets/profile_card.dart' show showProfileCard;
+import 'widgets/add_friends_cta.dart';
 
 class SocialScreen extends ConsumerStatefulWidget {
   const SocialScreen({super.key});
@@ -553,6 +554,14 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                             ),
                           ),
 
+                        if (!friendsAsync.isLoading &&
+                            (friendsAsync.value?.friends.isEmpty ?? false)) ...[
+                          SizedBox(height: Responsive.height(context, 20)),
+                          AddFriendsCta(
+                            appColor: appColor,
+                            onFriendAdded: _refresh,
+                          ),
+                        ],
                         SizedBox(height: Responsive.height(context, 120)),
                       ],
                     ),
