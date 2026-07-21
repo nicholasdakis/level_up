@@ -695,6 +695,10 @@ def get_user_profile_card():
             username=user.get("username"),
             level=user.get("level", 1),
             exp_points=0,
+            is_premium=user.get("is_premium", False),
+            best_daily_streak=0,
+            best_food_streak=0,
+            best_workout_streak=0,
             friendship_status="none",
             block_status=block_status,
         ).model_dump()), 200
