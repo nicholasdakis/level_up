@@ -2969,3 +2969,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Token upsert, duplicate cleanup, and cap enforcement are handled atomically in a single Postgres RPC so concurrent requests cannot interfere
 - A trigger keeps updated_at accurate on the fcm_tokens table so the 5-device trim always evicts the least recently active device
 - Caught the 500 error that happened yesterday due to the fcm token accumulation so it can be handled more gracefully
+- Made social tab skeletonizer wrap the real data instead of making a separate branch for creating the skeletonizer
+- Fixed FcmService.initialize never being called on web because AppInitScreen was unmounted before the async init completed
+- It now uses the root navigator context instead

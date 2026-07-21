@@ -554,7 +554,10 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
       }
     }
 
-    if (mounted && !isGuest) FcmService.initialize(context, notifier);
+    if (!isGuest) {
+      final ctx = appRouter.routerDelegate.navigatorKey.currentContext;
+      if (ctx != null) FcmService.initialize(ctx, notifier);
+    }
 
     appReadyNotifier.setReady();
   }

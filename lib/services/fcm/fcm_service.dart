@@ -29,6 +29,7 @@ class FcmService {
     BuildContext context,
     UserDataNotifierNew notifier,
   ) async {
+    try {
     // Background message handler must be registered before any other FCM events
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
@@ -52,7 +53,7 @@ class FcmService {
       try {
         deviceToken = await web_fcm
             .getWebFcmToken(fcmVapidKey)
-            .timeout(const Duration(seconds: 2), onTimeout: () => null);
+            .timeout(const Duration(seconds: 10), onTimeout: () => null);
       } catch (e) {
         deviceToken = null;
       }
@@ -64,9 +65,7 @@ class FcmService {
       );
     }
 
-    if (kDebugMode) {
-      debugPrint('FCM token: ${deviceToken != null ? "obtained" : "NULL"}');
-    }
+    debugPrint('FCM token: ${deviceToken != null ? "obtained" : "NULL"}');
 
     if (deviceToken != null) {
       await notifier.initializeFcmToken(deviceToken);
@@ -119,6 +118,9 @@ class FcmService {
         web_fcm.showJsNotification(title, body);
       }
     });
+    } catch (e) {
+      debugPrint('FcmService.initialize error: $e');
+    }
   }
 
   // Re-fetches the FCM token and updates Firestore if it changed
