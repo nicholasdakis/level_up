@@ -555,6 +555,8 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
     }
 
     if (!isGuest) {
+      // Use the root navigator context instead of AppInitScreen's context, which is
+      // already unmounted by the time this runs because appRouter.refresh() above navigated away
       final ctx = appRouter.routerDelegate.navigatorKey.currentContext;
       if (ctx != null) FcmService.initialize(ctx, notifier);
     }
