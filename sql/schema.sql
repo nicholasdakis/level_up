@@ -360,7 +360,11 @@ CREATE TABLE user_settings (
     app_color BIGINT,                       -- Flutter Color value stored as an integer
     units TEXT NOT NULL DEFAULT 'metric',   -- display units preference: 'metric' or 'imperial'
     notifications_enabled BOOLEAN NOT NULL DEFAULT true,  -- whether the user has push notifications turned on
-    pfp_base64 TEXT                         -- profile picture stored as a Base64-encoded string
+    pfp_base64 TEXT,                        -- profile picture stored as a Base64-encoded string
+    notify_friend_requests BOOLEAN NOT NULL DEFAULT true,  -- send push when someone sends a friend request
+    notify_friend_accepts BOOLEAN NOT NULL DEFAULT true,   -- send push when a friend request is accepted
+    notify_nudges BOOLEAN NOT NULL DEFAULT true,           -- send push when a friend nudges you
+    notify_daily_reward BOOLEAN NOT NULL DEFAULT true      -- send push for daily reward reminders
 );
 
 -- RPC to atomically increment download_count on a workout template

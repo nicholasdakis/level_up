@@ -2983,3 +2983,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Avatars in the Add a Friend dialog and blocked users dialog are tappable and open the profile card
 - Added onUnblock callback to showProfileCard so unblocking from the profile card removes the user from the blocked list in the calling dialog
 - Added push notifications for sending and accepting friend requests
+- Added per-type notification preferences: Daily Reward, Friend Requests, Friend Accepts, and Nudges
+- Notification prefs are stored in user_settings and enforced server-side before any FCM send, so they remain accurate regardless of client state
+- The backend checks the recipient's prefs before sending friend request, friend accept, and nudge notifications
+- Daily reward reminders respect the notify_daily_reward pref

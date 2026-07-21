@@ -182,12 +182,6 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
   late String _units; // tracks the selected unit system (metric or imperial)
   bool _cropLoading = false;
 
-  // TODO: load per-type prefs from backend when setup
-  bool _notifyDailyReward = true;
-  bool _notifyFriendRequests = true;
-  bool _notifyNudges = true;
-  bool _notifyReminders = true;
-
   @override
   void initState() {
     super.initState();
@@ -2088,12 +2082,28 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                           label: "Daily Reward",
                                           subtitle:
                                               "Remind me to claim my reward",
-                                          value: _notifyDailyReward,
+                                          value: ref.watch(
+                                            userDataProvider.select(
+                                              (s) =>
+                                                  s.value?.notifyDailyReward ??
+                                                  true,
+                                            ),
+                                          ),
                                           onChanged: (v) {
-                                            setState(
-                                              () => _notifyDailyReward = v,
-                                            );
-                                            // TODO: save to backend notification_prefs
+                                            final u = ref
+                                                .read(userDataProvider)
+                                                .value;
+                                            if (u == null) return;
+                                            ref
+                                                .read(userDataProvider.notifier)
+                                                .updateNotificationPrefs(
+                                                  notifyFriendRequests:
+                                                      u.notifyFriendRequests,
+                                                  notifyFriendAccepts:
+                                                      u.notifyFriendAccepts,
+                                                  notifyNudges: u.notifyNudges,
+                                                  notifyDailyReward: v,
+                                                );
                                           },
                                         ),
                                         _notifTypeRow(
@@ -2103,12 +2113,30 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                               HugeIcons.strokeRoundedUserAdd01,
                                           label: "Friend Requests",
                                           subtitle: "When someone adds you",
-                                          value: _notifyFriendRequests,
+                                          value: ref.watch(
+                                            userDataProvider.select(
+                                              (s) =>
+                                                  s
+                                                      .value
+                                                      ?.notifyFriendRequests ??
+                                                  true,
+                                            ),
+                                          ),
                                           onChanged: (v) {
-                                            setState(
-                                              () => _notifyFriendRequests = v,
-                                            );
-                                            // TODO: save to backend notification_prefs
+                                            final u = ref
+                                                .read(userDataProvider)
+                                                .value;
+                                            if (u == null) return;
+                                            ref
+                                                .read(userDataProvider.notifier)
+                                                .updateNotificationPrefs(
+                                                  notifyFriendRequests: v,
+                                                  notifyFriendAccepts:
+                                                      u.notifyFriendAccepts,
+                                                  notifyNudges: u.notifyNudges,
+                                                  notifyDailyReward:
+                                                      u.notifyDailyReward,
+                                                );
                                           },
                                         ),
                                         _notifTypeRow(
@@ -2118,26 +2146,28 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                               .strokeRoundedNotification01,
                                           label: "Nudges",
                                           subtitle: "When a friend nudges you",
-                                          value: _notifyNudges,
+                                          value: ref.watch(
+                                            userDataProvider.select(
+                                              (s) =>
+                                                  s.value?.notifyNudges ?? true,
+                                            ),
+                                          ),
                                           onChanged: (v) {
-                                            setState(() => _notifyNudges = v);
-                                            // TODO: save to backend notification_prefs
-                                          },
-                                        ),
-                                        _notifTypeRow(
-                                          context,
-                                          appColor: appColor,
-                                          icon:
-                                              HugeIcons.strokeRoundedAlarmClock,
-                                          label: "Reminders",
-                                          subtitle:
-                                              "Custom reminders you've set",
-                                          value: _notifyReminders,
-                                          onChanged: (v) {
-                                            setState(
-                                              () => _notifyReminders = v,
-                                            );
-                                            // TODO: save to backend notification_prefs
+                                            final u = ref
+                                                .read(userDataProvider)
+                                                .value;
+                                            if (u == null) return;
+                                            ref
+                                                .read(userDataProvider.notifier)
+                                                .updateNotificationPrefs(
+                                                  notifyFriendRequests:
+                                                      u.notifyFriendRequests,
+                                                  notifyFriendAccepts:
+                                                      u.notifyFriendAccepts,
+                                                  notifyNudges: v,
+                                                  notifyDailyReward:
+                                                      u.notifyDailyReward,
+                                                );
                                           },
                                         ),
                                       ],

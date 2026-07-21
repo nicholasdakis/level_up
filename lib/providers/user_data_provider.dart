@@ -169,6 +169,10 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
           pfpBase64: data['pfp_base64'],
           username: data['username'] ?? current.uid,
           notificationsEnabled: data['notifications_enabled'] ?? true,
+          notifyFriendRequests: data['notify_friend_requests'] ?? true,
+          notifyFriendAccepts: data['notify_friend_accepts'] ?? true,
+          notifyNudges: data['notify_nudges'] ?? true,
+          notifyDailyReward: data['notify_daily_reward'] ?? true,
           fcmTokens:
               (data['fcm_tokens'] as List<dynamic>?)
                   ?.map((t) => t.toString())
@@ -680,6 +684,37 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
           SnackBar(content: Text(message), duration: snackBarDuration),
         );
       }
+    }
+  }
+
+  Future<void> updateNotificationPrefs({
+    required bool notifyFriendRequests,
+    required bool notifyFriendAccepts,
+    required bool notifyNudges,
+    required bool notifyDailyReward,
+  }) async {
+    final previous = state.value;
+    if (previous == null) return;
+    state = AsyncData(
+      previous.copyWith(
+        notifyFriendRequests: notifyFriendRequests,
+        notifyFriendAccepts: notifyFriendAccepts,
+        notifyNudges: notifyNudges,
+        notifyDailyReward: notifyDailyReward,
+      ),
+    );
+    try {
+      await authenticatedPost(
+        'update_notification_prefs',
+        body: {
+          'notify_friend_requests': notifyFriendRequests,
+          'notify_friend_accepts': notifyFriendAccepts,
+          'notify_nudges': notifyNudges,
+          'notify_daily_reward': notifyDailyReward,
+        },
+      );
+    } catch (_) {
+      state = AsyncData(previous);
     }
   }
 

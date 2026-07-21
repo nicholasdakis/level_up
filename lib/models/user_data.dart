@@ -8,6 +8,10 @@ class UserData {
   int expPoints;
   bool canClaimDailyReward;
   bool notificationsEnabled;
+  bool notifyFriendRequests;
+  bool notifyFriendAccepts;
+  bool notifyNudges;
+  bool notifyDailyReward;
   DateTime? lastDailyClaim;
   int dailyClaimStreak;
   int dailyClaimStreakBest;
@@ -50,6 +54,10 @@ class UserData {
     this.expPoints = 0,
     this.canClaimDailyReward = true,
     this.notificationsEnabled = true,
+    this.notifyFriendRequests = true,
+    this.notifyFriendAccepts = true,
+    this.notifyNudges = true,
+    this.notifyDailyReward = true,
     this.lastDailyClaim,
     this.dailyClaimStreak = 0,
     this.dailyClaimStreakBest = 0,
@@ -91,6 +99,10 @@ class UserData {
     int? expPoints,
     bool? canClaimDailyReward,
     bool? notificationsEnabled,
+    bool? notifyFriendRequests,
+    bool? notifyFriendAccepts,
+    bool? notifyNudges,
+    bool? notifyDailyReward,
     DateTime? lastDailyClaim,
     int? dailyClaimStreak,
     int? dailyClaimStreakBest,
@@ -132,6 +144,10 @@ class UserData {
       expPoints: expPoints ?? this.expPoints,
       canClaimDailyReward: canClaimDailyReward ?? this.canClaimDailyReward,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      notifyFriendRequests: notifyFriendRequests ?? this.notifyFriendRequests,
+      notifyFriendAccepts: notifyFriendAccepts ?? this.notifyFriendAccepts,
+      notifyNudges: notifyNudges ?? this.notifyNudges,
+      notifyDailyReward: notifyDailyReward ?? this.notifyDailyReward,
       lastDailyClaim: lastDailyClaim ?? this.lastDailyClaim,
       dailyClaimStreak: dailyClaimStreak ?? this.dailyClaimStreak,
       dailyClaimStreakBest: dailyClaimStreakBest ?? this.dailyClaimStreakBest,
