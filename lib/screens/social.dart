@@ -102,6 +102,9 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                             onUnfriend: () => ref
                                 .read(friendsProvider.notifier)
                                 .removeFriend(friend.uid),
+                            onBlock: () => ref
+                                .read(friendsProvider.notifier)
+                                .removeFriend(friend.uid),
                           );
                         },
                         child: Padding(
@@ -637,6 +640,9 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                             appColor: appColor,
                             isOwnProfile: false,
                             onUnfriend: () => ref
+                                .read(friendsProvider.notifier)
+                                .removeFriend(friend.uid),
+                            onBlock: () => ref
                                 .read(friendsProvider.notifier)
                                 .removeFriend(friend.uid),
                           ),

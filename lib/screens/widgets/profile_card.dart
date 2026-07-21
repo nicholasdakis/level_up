@@ -12,6 +12,9 @@ import '/services/user_data_manager.dart'
 // Friendship state between the viewer and the profile owner
 enum FriendStatus { none, pendingSent, pendingReceived, accepted }
 
+// Block state between the viewer and the profile owner
+enum BlockStatus { none, blockedByYou, blockedYou }
+
 // Maps the backend friendship_status string to the local enum
 FriendStatus _parseFriendStatus(String? raw) {
   switch (raw) {
@@ -26,9 +29,23 @@ FriendStatus _parseFriendStatus(String? raw) {
   }
 }
 
+// Maps the backend block_status string to the local enum
+BlockStatus _parseBlockStatus(String? raw) {
+  switch (raw) {
+    case 'blocked_by_you':
+      return BlockStatus.blockedByYou;
+    case 'blocked_you':
+      return BlockStatus.blockedYou;
+    default:
+      return BlockStatus.none;
+  }
+}
+
 // Fetches public profile data and friendship status for a given uid from the backend
 // Returns null on failure so callers can fall back gracefully
-Future<(PublicProfile, FriendStatus)?> fetchProfileCardData(String uid) async {
+Future<(PublicProfile, FriendStatus, BlockStatus)?> fetchProfileCardData(
+  String uid,
+) async {
   try {
     final response = await authenticatedGet('user_profile_card?uid=$uid');
     if (response.statusCode != 200) return null;
@@ -54,7 +71,8 @@ Future<(PublicProfile, FriendStatus)?> fetchProfileCardData(String uid) async {
     final friendStatus = _parseFriendStatus(
       data['friendship_status'] as String?,
     );
-    return (profile, friendStatus);
+    final blockStatus = _parseBlockStatus(data['block_status'] as String?);
+    return (profile, friendStatus, blockStatus);
   } catch (e) {
     if (kDebugMode) debugPrint('fetchProfileCardData error: $e');
     return null;
@@ -444,6 +462,7 @@ Future<void> showProfileCard(
   VoidCallback? onAccept,
   VoidCallback? onDecline,
   VoidCallback? onUnfriend,
+  VoidCallback? onBlock,
 }) {
   return showFrostedDialog(
     context: context,
@@ -457,6 +476,7 @@ Future<void> showProfileCard(
       onAccept: onAccept,
       onDecline: onDecline,
       onUnfriend: onUnfriend,
+      onBlock: onBlock,
     ),
   );
 }
@@ -472,6 +492,7 @@ class _ProfileCardLoader extends StatefulWidget {
   final VoidCallback? onAccept;
   final VoidCallback? onDecline;
   final VoidCallback? onUnfriend;
+  final VoidCallback? onBlock;
 
   const _ProfileCardLoader({
     required this.uid,
@@ -482,6 +503,7 @@ class _ProfileCardLoader extends StatefulWidget {
     this.onAccept,
     this.onDecline,
     this.onUnfriend,
+    this.onBlock,
   });
 
   @override
@@ -491,6 +513,7 @@ class _ProfileCardLoader extends StatefulWidget {
 class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
   PublicProfile? _profile;
   FriendStatus _friendStatus = FriendStatus.none;
+  BlockStatus _blockStatus = BlockStatus.none;
 
   @override
   void initState() {
@@ -500,9 +523,44 @@ class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
         setState(() {
           _profile = result.$1;
           _friendStatus = result.$2;
+          _blockStatus = result.$3;
         });
       }
     });
+  }
+
+  Future<void> _block() async {
+    final username = _profile?.username ?? 'this user';
+    final confirmed = await showHoldToConfirmDialog(
+      context: context,
+      appColor: widget.appColor,
+      title: 'Block $username?',
+      subtitle:
+          'They won\'t be able to find your profile or send you friend requests.',
+      icon: HugeIcons.strokeRoundedUserRemove01,
+    );
+    if (confirmed != true) return;
+    setState(() {
+      _blockStatus = BlockStatus.blockedByYou;
+      _friendStatus = FriendStatus.none;
+    });
+    await authenticatedPost('block', body: {'target_uid': widget.uid});
+    widget.onBlock?.call();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '$username has been blocked',
+          style: GoogleFonts.manrope(color: Colors.white),
+        ),
+        duration: snackBarDuration,
+      ),
+    );
+  }
+
+  Future<void> _unblock() async {
+    setState(() => _blockStatus = BlockStatus.none);
+    await authenticatedPost('unblock', body: {'target_uid': widget.uid});
   }
 
   Future<void> _sendFriendAction(
@@ -581,6 +639,7 @@ class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
       appColor: widget.appColor,
       isOwnProfile: widget.isOwnProfile,
       friendStatus: _friendStatus,
+      blockStatus: _blockStatus,
       onAddFriend: () => _sendFriendAction('send', FriendStatus.pendingSent),
       onCancelRequest: () => _sendFriendAction('cancel', FriendStatus.none),
       onAccept: () => _sendFriendAction('accept', FriendStatus.accepted),
@@ -594,6 +653,8 @@ class _ProfileCardLoaderState extends State<_ProfileCardLoader> {
             )
           : null,
       onUnfriend: _unfriend,
+      onBlock: _block,
+      onUnblock: _unblock,
     );
   }
 }
@@ -708,24 +769,30 @@ class _ProfileCardContent extends StatelessWidget {
   final Color appColor;
   final bool isOwnProfile;
   final FriendStatus friendStatus;
+  final BlockStatus blockStatus;
   final VoidCallback? onAddFriend;
   final VoidCallback? onCancelRequest;
   final VoidCallback? onAccept;
   final VoidCallback? onDecline;
   final VoidCallback? onNudge;
   final VoidCallback? onUnfriend;
+  final VoidCallback? onBlock;
+  final VoidCallback? onUnblock;
 
   const _ProfileCardContent({
     required this.profile,
     required this.appColor,
     required this.isOwnProfile,
     required this.friendStatus,
+    this.blockStatus = BlockStatus.none,
     this.onAddFriend,
     this.onCancelRequest,
     this.onAccept,
     this.onDecline,
     this.onNudge,
     this.onUnfriend,
+    this.onBlock,
+    this.onUnblock,
   });
 
   @override
@@ -805,29 +872,59 @@ class _ProfileCardContent extends StatelessWidget {
               ),
             ),
             if (!isOwnProfile &&
-                friendStatus == FriendStatus.accepted &&
-                onUnfriend != null)
+                blockStatus != BlockStatus.blockedYou &&
+                (blockStatus == BlockStatus.blockedByYou ||
+                    friendStatus == FriendStatus.accepted ||
+                    friendStatus == FriendStatus.none ||
+                    friendStatus == FriendStatus.pendingSent ||
+                    friendStatus == FriendStatus.pendingReceived))
               GestureDetector(
                 onTap: () => showFrostedAlertDialog(
                   context: context,
                   appColor: appColor,
-                  title: 'Manage Friendship',
+                  title: blockStatus == BlockStatus.blockedByYou
+                      ? 'Blocked User'
+                      : 'Manage',
                   actions: [
                     TextButton(
                       onPressed: () =>
                           Navigator.of(context, rootNavigator: true).pop(),
                       child: Text('Close', style: dialogButtonStyle()),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context, rootNavigator: true).pop();
-                        onUnfriend!();
-                      },
-                      child: Text(
-                        'Unfriend',
-                        style: dialogButtonStyle(confirm: true),
+                    if (blockStatus == BlockStatus.blockedByYou)
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context, rootNavigator: true).pop();
+                          onUnblock?.call();
+                        },
+                        child: Text(
+                          'Unblock',
+                          style: dialogButtonStyle(confirm: true),
+                        ),
+                      )
+                    else ...[
+                      if (friendStatus == FriendStatus.accepted)
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context, rootNavigator: true).pop();
+                            onUnfriend?.call();
+                          },
+                          child: Text(
+                            'Unfriend',
+                            style: dialogButtonStyle(confirm: true),
+                          ),
+                        ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context, rootNavigator: true).pop();
+                          onBlock?.call();
+                        },
+                        child: Text(
+                          'Block',
+                          style: dialogButtonStyle(confirm: true),
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
                 child: Padding(
@@ -1009,6 +1106,24 @@ class _ProfileCardContent extends StatelessWidget {
 
   // Renders the correct action button(s) based on the viewer's friendship status with this user
   Widget _actionButtons(BuildContext context) {
+    if (blockStatus == BlockStatus.blockedByYou) {
+      return _fullButton(
+        context,
+        label: 'Unblock',
+        icon: HugeIcons.strokeRoundedUserAdd01,
+        onTap: onUnblock ?? () {},
+        muted: true,
+      );
+    }
+    if (blockStatus == BlockStatus.blockedYou) {
+      return _fullButton(
+        context,
+        label: 'Blocked',
+        icon: HugeIcons.strokeRoundedUserRemove01,
+        onTap: () {},
+        muted: true,
+      );
+    }
     switch (friendStatus) {
       case FriendStatus.none:
         return _fullButton(

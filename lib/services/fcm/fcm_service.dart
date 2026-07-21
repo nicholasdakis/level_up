@@ -30,94 +30,95 @@ class FcmService {
     UserDataNotifierNew notifier,
   ) async {
     try {
-    // Background message handler must be registered before any other FCM events
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      // Background message handler must be registered before any other FCM events
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    // iOS only, skip on web to avoid triggering an automatic permission request
-    if (!kIsWeb) {
-      await FirebaseMessaging.instance
-          .setForegroundNotificationPresentationOptions(
-            alert: true,
-            badge: true,
-            sound: true,
+      // iOS only, skip on web to avoid triggering an automatic permission request
+      if (!kIsWeb) {
+        await FirebaseMessaging.instance
+            .setForegroundNotificationPresentationOptions(
+              alert: true,
+              badge: true,
+              sound: true,
+            );
+      }
+
+      // Get the device's FCM token and save it to Firestore
+      // Timeout prevents hanging if the browser blocks the permission dialog
+      String? deviceToken;
+
+      if (kIsWeb) {
+        // On web, use JS interop to pass the service worker registration to getToken()
+        // Flutter's plugin can't find the SW on subdirectory deployments (e.g. GitHub Pages at /level_up/)
+        try {
+          deviceToken = await web_fcm
+              .getWebFcmToken(fcmVapidKey)
+              .timeout(const Duration(seconds: 10), onTimeout: () => null);
+        } catch (e) {
+          deviceToken = null;
+        }
+      } else {
+        // On mobile, just get the token normally
+        deviceToken = await FirebaseMessaging.instance.getToken().timeout(
+          const Duration(seconds: 10),
+          onTimeout: () => null,
+        );
+      }
+
+      if (kDebugMode)
+        debugPrint('FCM token: ${deviceToken != null ? "obtained" : "NULL"}');
+
+      if (deviceToken != null) {
+        await notifier.initializeFcmToken(deviceToken);
+      }
+
+      // Update the token in Firestore if Firebase rotates it (e.g. after reinstall)
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+        if (newToken.isNotEmpty) {
+          // if Firebase rotates the token while the app is active, add the new one and remove the stale one
+          await notifier.addFcmToken(newToken, oldToken: deviceToken);
+          deviceToken = newToken;
+        }
+      });
+
+      if (kIsWeb) {
+        final observer = _FcmLifecycleObserver(notifier);
+        WidgetsBinding.instance.addObserver(
+          observer,
+        ); // observer on Web so that it automatically calls refreshToken() on resuming the app
+      }
+
+      // Track when user opens the app by tapping a notification
+      FirebaseMessaging.instance.getInitialMessage().then((message) {
+        if (message != null) {
+          FirebaseAnalytics.instance.logEvent(
+            name: 'notification_tapped',
+            parameters: {
+              'type': message.data['type'] ?? 'unknown',
+              'source': 'terminated',
+            },
           );
-    }
-
-    // Get the device's FCM token and save it to Firestore
-    // Timeout prevents hanging if the browser blocks the permission dialog
-    String? deviceToken;
-
-    if (kIsWeb) {
-      // On web, use JS interop to pass the service worker registration to getToken()
-      // Flutter's plugin can't find the SW on subdirectory deployments (e.g. GitHub Pages at /level_up/)
-      try {
-        deviceToken = await web_fcm
-            .getWebFcmToken(fcmVapidKey)
-            .timeout(const Duration(seconds: 10), onTimeout: () => null);
-      } catch (e) {
-        deviceToken = null;
-      }
-    } else {
-      // On mobile, just get the token normally
-      deviceToken = await FirebaseMessaging.instance.getToken().timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => null,
-      );
-    }
-
-    debugPrint('FCM token: ${deviceToken != null ? "obtained" : "NULL"}');
-
-    if (deviceToken != null) {
-      await notifier.initializeFcmToken(deviceToken);
-    }
-
-    // Update the token in Firestore if Firebase rotates it (e.g. after reinstall)
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-      if (newToken.isNotEmpty) {
-        // if Firebase rotates the token while the app is active, add the new one and remove the stale one
-        await notifier.addFcmToken(newToken, oldToken: deviceToken);
-        deviceToken = newToken;
-      }
-    });
-
-    if (kIsWeb) {
-      final observer = _FcmLifecycleObserver(notifier);
-      WidgetsBinding.instance.addObserver(
-        observer,
-      ); // observer on Web so that it automatically calls refreshToken() on resuming the app
-    }
-
-    // Track when user opens the app by tapping a notification
-    FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) {
+        }
+      });
+      FirebaseMessaging.onMessageOpenedApp.listen((message) {
         FirebaseAnalytics.instance.logEvent(
           name: 'notification_tapped',
           parameters: {
             'type': message.data['type'] ?? 'unknown',
-            'source': 'terminated',
+            'source': 'background',
           },
         );
-      }
-    });
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      FirebaseAnalytics.instance.logEvent(
-        name: 'notification_tapped',
-        parameters: {
-          'type': message.data['type'] ?? 'unknown',
-          'source': 'background',
-        },
-      );
-    });
+      });
 
-    // Show a browser notification for foreground messages on web
-    // (setForegroundNotificationPresentationOptions is iOS-only and does nothing on web)
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (kIsWeb) {
-        final title = message.notification?.title ?? 'Level Up! Reminder';
-        final body = message.notification?.body ?? message.data['body'] ?? '';
-        web_fcm.showJsNotification(title, body);
-      }
-    });
+      // Show a browser notification for foreground messages on web
+      // (setForegroundNotificationPresentationOptions is iOS-only and does nothing on web)
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        if (kIsWeb) {
+          final title = message.notification?.title ?? 'Level Up! Reminder';
+          final body = message.notification?.body ?? message.data['body'] ?? '';
+          web_fcm.showJsNotification(title, body);
+        }
+      });
     } catch (e) {
       debugPrint('FcmService.initialize error: $e');
     }

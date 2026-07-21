@@ -2972,3 +2972,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made social tab skeletonizer wrap the real data instead of making a separate branch for creating the skeletonizer
 - Fixed FcmService.initialize never being called on web because AppInitScreen was unmounted before the async init completed
 - It now uses the root navigator context instead
+- Added a blocked table
+- Made profile cards show blocked cases (blocked by vs someone the user blocked)
+- Added a block button to the Manage Friendship dialog
+- Manage button added to non-friend profiles too so they can be blocked

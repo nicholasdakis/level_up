@@ -805,7 +805,9 @@ def handle_nudge():
     if err:
         return err
 
-    # verify they are actually friends
+    # verify they are actually friends and neither has blocked the other
+    if friendship_repo.get_block_status(uid, body.target_uid) != "none":
+        return jsonify({"error": "blocked"}), 403
     status = friendship_repo.get_status(uid, body.target_uid)
     if status != "accepted":
         return jsonify({"error": "not_friends"}), 403
