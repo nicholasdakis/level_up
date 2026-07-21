@@ -64,6 +64,19 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
               _buildChangelogCard(
                 context,
                 appColor,
+                date: 'July 21, 2026',
+                version: '1.3.0',
+                changes: [
+                  'The brand new Social tab is here! Add friends, send friend requests, view public profiles, and manage your friends list',
+                  'Profile cards have been introduced. Tap a user\'s avatar from the leaderboard, friends list, or requests to view and interact with them',
+                  'Nudges added to send custom notifications to friends to help keep each other motivated',
+                  'Friends-only filter added to the leaderboards',
+                  'Added individual notification preference toggles',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
+                appColor,
                 date: 'July 19, 2026',
                 version: '1.2.51',
                 changes: [

@@ -14,6 +14,8 @@ import 'social/friends_card.dart'
     show showAddFriendDialog, showUsernameDialog, friendsPendingBadge;
 import 'widgets/profile_card.dart' show showProfileCard;
 import 'widgets/add_friends_cta.dart';
+import '../services/fcm/notification_service.dart'
+    show requestNotificationPermissionIfNeeded;
 
 class SocialScreen extends ConsumerStatefulWidget {
   const SocialScreen({super.key});
@@ -39,6 +41,17 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
       screenName: '/social',
       screenClass: 'SocialScreen',
     );
+    if (!isGuest) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        requestNotificationPermissionIfNeeded(
+          context,
+          ref.read(userDataProvider.notifier),
+          appColor: appColor,
+          skipIfDenied: true,
+        );
+      });
+    }
   }
 
   Future<void> _refresh() async {

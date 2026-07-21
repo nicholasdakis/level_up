@@ -398,7 +398,7 @@ Widget buildSettingsDrawer(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "Release 1.2.51",
+                          "Release 1.3.0",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 11),
                             color: cardColors(appColor).onCard,

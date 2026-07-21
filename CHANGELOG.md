@@ -3000,3 +3000,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Friends Only leaderboard with no friends shows a CTA card with Add a Friend and Invite buttons
 - Invite a Friend in the settings drawer and referral dialog now uses SharePlus on all platforms instead of copying to clipboard on web
 - Added locks to the social tab for guests
+- Made the requestIfNeeded method show up when the user opens the Social tab as a new action that checks notification permissions apart from daily reward claim and reminders
