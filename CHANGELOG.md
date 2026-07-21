@@ -2990,3 +2990,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Nudge rate limit errors now show a message to the sender instead of silently succeeding
 - Backend returns a nudges_disabled reason when the recipient has nudge notifications off, and the sender sees a clear message instead of a false success
 - Nudge pref check now happens before the rate limit counter so nudging someone with notifications off does not consume a rate limit slot
+- Fixed tapping an avatar in incoming/outgoing requests and unfriending or blocking via the profile card not refreshing the social tab
+- Fixed cancelling an outgoing friend request showing no feedback
+- Fixed the Add a Friend snackbar using the dialog context after it was popped, which could silently fail
+- Fixed unfriending or blocking via the avatar in Add a Friend not resetting the action button back to Add

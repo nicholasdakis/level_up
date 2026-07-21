@@ -256,6 +256,8 @@ Future<void> showAddFriendDialog(BuildContext context, Color appColor) async {
                     primary,
                     dim,
                     addState: addState,
+                    onUnfriendFromCard: () => setState(() => addState = 'none'),
+                    onBlockFromCard: () => setState(() => addState = 'none'),
                     onAdd: () async {
                       final res = await authenticatedPost(
                         'friends/request',
@@ -276,8 +278,8 @@ Future<void> showAddFriendDialog(BuildContext context, Color appColor) async {
                         return;
                       }
                       Navigator.of(ctx, rootNavigator: true).pop();
-                      if (ctx.mounted) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
                               'Friend request sent to ${searchResult!.username}',
@@ -368,6 +370,8 @@ Widget _searchResultTile(
   required VoidCallback onAdd,
   required VoidCallback onCancelRequest,
   required VoidCallback onUnfriend,
+  VoidCallback? onBlockFromCard,
+  VoidCallback? onUnfriendFromCard,
 }) {
   final c = cardColors(appColor);
   final size = Responsive.scale(ctx, 40);
@@ -397,6 +401,8 @@ Widget _searchResultTile(
           uid: user.uid,
           appColor: appColor,
           isOwnProfile: false,
+          onUnfriend: onUnfriendFromCard,
+          onBlock: onBlockFromCard,
         ),
         child: Container(
           width: size,

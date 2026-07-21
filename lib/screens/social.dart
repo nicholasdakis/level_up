@@ -513,6 +513,23 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                                                       },
                                                     );
                                                     _refresh();
+                                                    if (!mounted) return;
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          'Friend request to ${entry.username} cancelled',
+                                                          style:
+                                                              GoogleFonts.manrope(
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                        ),
+                                                        duration:
+                                                            snackBarDuration,
+                                                      ),
+                                                    );
                                                   },
                                                 ),
                                               ),
@@ -881,6 +898,8 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                 onAccept: _refresh,
                 onDecline: _refresh,
                 onCancelRequest: _refresh,
+                onUnfriend: _refresh,
+                onBlock: _refresh,
               ),
               child: Container(
                 width: size,
