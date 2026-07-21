@@ -122,7 +122,7 @@ class SetReminderRequest(BaseModel):
     message: str = Field(..., min_length=1)
     scheduled_at: str = Field(..., min_length=1)
     notification_id: int
-    source: str = Field(default="user", pattern="^(user|system)$")
+    source: str = Field(default="user", min_length=1, max_length=100)
 
 class DeleteReminderRequest(BaseModel):
     reminder_id: str = Field(..., min_length=1)

@@ -311,7 +311,6 @@ class DailyRewardDialog {
       ),
     );
 
-    final updatedData = ref.read(userDataProvider).value;
     if (context.mounted) {
       await handleLevelUpOverlay(context, levelBefore, appColor, ref);
     }
@@ -320,8 +319,8 @@ class DailyRewardDialog {
       await _showFirstClaimNotificationPrompt(context, appColor, ref);
     }
 
-    // Set a reminder 23 hours from now
-    if (updatedData?.notificationsEnabled ?? false) {
+    // Set a reminder 23 hours from now, read after the permission prompt so the flag is current
+    if (ref.read(userDataProvider).value?.notificationsEnabled ?? false) {
       await setDailyRewardNotification();
     }
     // Show the confetti celebration
