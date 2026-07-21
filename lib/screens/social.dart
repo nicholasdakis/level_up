@@ -391,6 +391,23 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
                                                     },
                                                   );
                                                   _refresh();
+                                                  if (!mounted) return;
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        'You and ${entry.username} are now friends',
+                                                        style:
+                                                            GoogleFonts.manrope(
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                      ),
+                                                      duration:
+                                                          snackBarDuration,
+                                                    ),
+                                                  );
                                                 },
                                               ),
                                               SizedBox(
