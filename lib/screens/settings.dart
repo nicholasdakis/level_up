@@ -239,19 +239,9 @@ Widget buildSettingsDrawer(
                       final message = code != null
                           ? "I've been using Level Up! to track my health and it's actually fun. Join me and we both get XP bonuses!\n\nDownload it here: https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup\n\nUse my referral code: $code"
                           : "I've been using Level Up! to track my health and it's actually fun.\n\nDownload it here: https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup";
-                      if (kIsWeb) {
-                        await Clipboard.setData(ClipboardData(text: message));
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Invite message copied!"),
-                              duration: snackBarDuration,
-                            ),
-                          );
-                        }
-                        return;
-                      }
-                      SharePlus.instance.share(ShareParams(text: message));
+                      await SharePlus.instance.share(
+                        ShareParams(text: message),
+                      );
                     },
                   ),
                   buildActionTile(

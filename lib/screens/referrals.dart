@@ -1,6 +1,5 @@
 ﻿import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -404,19 +403,9 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                         logAnalyticsEvent('tap_invite_friend');
                         final message =
                             "I've been using Level Up to track my health and it's actually fun. Join me and we both get XP bonuses!\n\nDownload it here: https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup\n\nUse my referral code: $code";
-                        if (kIsWeb) {
-                          await Clipboard.setData(ClipboardData(text: message));
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Invite message copied!"),
-                                duration: snackBarDuration,
-                              ),
-                            );
-                          }
-                          return;
-                        }
-                        SharePlus.instance.share(ShareParams(text: message));
+                        await SharePlus.instance.share(
+                          ShareParams(text: message),
+                        );
                       },
                       child: Text(
                         "Invite a Friend",

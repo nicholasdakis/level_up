@@ -2997,3 +2997,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added Friends Only toggle to the leaderboard that filters results to friends and the viewer
 - XP leaderboard friends filter queries Supabase directly with IN (friend_uids) so friends beyond the top 100 still appear
 - Foods and workouts friends filter fetches the aggregated RPC result and filters by UID set server-side before returning
+- Friends Only leaderboard with no friends shows a CTA card with Add a Friend and Invite buttons
+- Invite a Friend in the settings drawer and referral dialog now uses SharePlus on all platforms instead of copying to clipboard on web
