@@ -40,7 +40,6 @@ class FriendshipRepository:
             .select("sender_uid, recipient_uid") \
             .eq("status", "accepted") \
             .or_(f"sender_uid.eq.{uid},recipient_uid.eq.{uid}") \
-            .order("created_at", desc=True) \
             .range(offset, offset + limit - 1) \
             .execute().data
         other_uids = [
@@ -52,10 +51,9 @@ class FriendshipRepository:
         users = self._supabase.table("users") \
             .select("uid, username, level, exp_points, pfp_base64, is_premium") \
             .in_("uid", other_uids) \
+            .order("username", desc=False) \
             .execute().data
-        # preserve the order from friendships query
-        order_map = {uid_: i for i, uid_ in enumerate(other_uids)}
-        return sorted(users, key=lambda u: order_map.get(u["uid"], 999))
+        return users
 
     def get_incoming_requests(self, uid: str, limit: int, offset: int) -> list:
         rows = self._supabase.table("friendships") \
