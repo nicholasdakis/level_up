@@ -35,6 +35,7 @@ from backend.schemas import (
     UpdatePfpRequest,
     UpdateAppColorRequest,
     UpdateNotificationsRequest,
+    UpdateNotificationPrefsRequest,
     UpdateUnitsRequest,
     AddFcmTokenRequest,
     UpsertFcmTokenRequest,
@@ -284,6 +285,15 @@ def send_due_reminders():
 
             # Skip if the user has no registered devices
             if not fcm_tokens:
+                continue
+
+            # Skip if the user has the relevant notification type turned off
+            user_settings = user_repo.get_user_settings(uid)
+            if not user_settings.get("notifications_enabled", True):
+                continue
+            source = reminder.get('source')
+            is_daily_reward = source in ('daily_reward', 'system')
+            if is_daily_reward and not user_settings.get("notify_daily_reward", True):
                 continue
 
             # Build and send the FCM notification
@@ -732,41 +742,45 @@ def handle_friend_request():
             return jsonify({"error": "blocked"}), 403
         result = friendship_service.send_friend_request(uid, body.target_uid)
         if result.get("ok"):
-            sender_name = user_repo.get_username(uid) or "Someone"
-            tokens = user_repo.get_user_fcm_tokens(body.target_uid)
-            if tokens:
-                try:
-                    msg = messaging.MulticastMessage(
-                        notification=messaging.Notification(
-                            title="New Friend Request",
-                            body=f"{sender_name} sent you a friend request.",
-                        ),
-                        data={"type": "friend_request", "sender_uid": uid},
-                        tokens=tokens,
-                    )
-                    resp = messaging.send_each_for_multicast(msg)
-                    _cleanup_invalid_fcm_tokens(body.target_uid, tokens, resp)
-                except Exception as e:
-                    logger.warning(f"[friend_request] FCM send failed: {e}")
+            target_settings = user_repo.get_user_settings(body.target_uid)
+            if target_settings.get("notify_friend_requests", True) and target_settings.get("notifications_enabled", True):
+                sender_name = user_repo.get_username(uid) or "Someone"
+                tokens = user_repo.get_user_fcm_tokens(body.target_uid)
+                if tokens:
+                    try:
+                        msg = messaging.MulticastMessage(
+                            notification=messaging.Notification(
+                                title="New Friend Request",
+                                body=f"{sender_name} sent you a friend request.",
+                            ),
+                            data={"type": "friend_request", "sender_uid": uid},
+                            tokens=tokens,
+                        )
+                        resp = messaging.send_each_for_multicast(msg)
+                        _cleanup_invalid_fcm_tokens(body.target_uid, tokens, resp)
+                    except Exception as e:
+                        logger.warning(f"[friend_request] FCM send failed: {e}")
     elif body.action == "accept":
         result = friendship_service.accept_friend_request(uid, body.target_uid)
         if result.get("ok"):
-            accepter_name = user_repo.get_username(uid) or "Someone"
-            tokens = user_repo.get_user_fcm_tokens(body.target_uid)
-            if tokens:
-                try:
-                    msg = messaging.MulticastMessage(
-                        notification=messaging.Notification(
-                            title="Friend Request Accepted",
-                            body=f"{accepter_name} accepted your friend request.",
-                        ),
-                        data={"type": "friend_accept", "sender_uid": uid},
-                        tokens=tokens,
-                    )
-                    resp = messaging.send_each_for_multicast(msg)
-                    _cleanup_invalid_fcm_tokens(body.target_uid, tokens, resp)
-                except Exception as e:
-                    logger.warning(f"[friend_accept] FCM send failed: {e}")
+            target_settings = user_repo.get_user_settings(body.target_uid)
+            if target_settings.get("notify_friend_accepts", True) and target_settings.get("notifications_enabled", True):
+                accepter_name = user_repo.get_username(uid) or "Someone"
+                tokens = user_repo.get_user_fcm_tokens(body.target_uid)
+                if tokens:
+                    try:
+                        msg = messaging.MulticastMessage(
+                            notification=messaging.Notification(
+                                title="Friend Request Accepted",
+                                body=f"{accepter_name} accepted your friend request.",
+                            ),
+                            data={"type": "friend_accept", "sender_uid": uid},
+                            tokens=tokens,
+                        )
+                        resp = messaging.send_each_for_multicast(msg)
+                        _cleanup_invalid_fcm_tokens(body.target_uid, tokens, resp)
+                    except Exception as e:
+                        logger.warning(f"[friend_accept] FCM send failed: {e}")
     elif body.action == "decline":
         result = friendship_service.decline_friend_request(uid, body.target_uid)
     elif body.action == "cancel":
@@ -883,6 +897,10 @@ def handle_nudge():
     pipe.incr(day_key)
     pipe.expire(day_key, 86400)
     pipe.execute()
+
+    target_settings = user_repo.get_user_settings(body.target_uid)
+    if not target_settings.get("notify_nudges", True) or not target_settings.get("notifications_enabled", True):
+        return jsonify({"ok": True, "delivered": False}), 200
 
     # get target's FCM tokens
     tokens = user_repo.get_user_fcm_tokens(body.target_uid)
@@ -1010,6 +1028,19 @@ def update_notifications():
         return err
 
     progression_service.update_notifications_enabled(uid, body.enabled)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/update_notification_prefs", methods=["POST"])
+def update_notification_prefs():
+    uid, body, err = _parse_and_auth(UpdateNotificationPrefsRequest)
+    if err:
+        return err
+    progression_service.update_notification_prefs(uid, {
+        "notify_friend_requests": body.notify_friend_requests,
+        "notify_friend_accepts": body.notify_friend_accepts,
+        "notify_nudges": body.notify_nudges,
+        "notify_daily_reward": body.notify_daily_reward,
+    })
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 @app.route("/update_units", methods=["POST"])
