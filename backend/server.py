@@ -764,7 +764,7 @@ def handle_friend_request():
         result = friendship_service.accept_friend_request(uid, body.target_uid)
         if result.get("ok"):
             target_settings = user_repo.get_user_settings(body.target_uid)
-            if target_settings.get("notify_friend_accepts", True) and target_settings.get("notifications_enabled", True):
+            if target_settings.get("notifications_enabled", True):
                 accepter_name = user_repo.get_username(uid) or "Someone"
                 tokens = user_repo.get_user_fcm_tokens(body.target_uid)
                 if tokens:
@@ -1037,7 +1037,6 @@ def update_notification_prefs():
         return err
     progression_service.update_notification_prefs(uid, {
         "notify_friend_requests": body.notify_friend_requests,
-        "notify_friend_accepts": body.notify_friend_accepts,
         "notify_nudges": body.notify_nudges,
         "notify_daily_reward": body.notify_daily_reward,
     })

@@ -42,7 +42,6 @@ class UpdateNotificationsRequest(BaseModel):
 
 class UpdateNotificationPrefsRequest(BaseModel):
     notify_friend_requests: bool
-    notify_friend_accepts: bool
     notify_nudges: bool
     notify_daily_reward: bool
 
@@ -344,7 +343,6 @@ class GetUserDataResponse(BaseModel):
     fcm_tokens: list[str] = []  # TODO: drop once MIN_APP_VERSION forces all clients onto upsert_fcm_token; remove fcm_tokens array from users table at the same time
     notifications_enabled: bool = True
     notify_friend_requests: bool = True
-    notify_friend_accepts: bool = True
     notify_nudges: bool = True
     notify_daily_reward: bool = True
     last_daily_claim: str | None = None  # ISO string

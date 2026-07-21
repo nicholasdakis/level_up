@@ -346,7 +346,6 @@ class ProgressionService: # Service class to handle all progression-related busi
             "fcm_tokens": user.get("fcm_tokens") or [],
             "notifications_enabled": settings.get("notifications_enabled") if settings.get("notifications_enabled") is not None else user.get("notifications_enabled", True),
             "notify_friend_requests": settings.get("notify_friend_requests", True),
-            "notify_friend_accepts": settings.get("notify_friend_accepts", True),
             "notify_nudges": settings.get("notify_nudges", True),
             "notify_daily_reward": settings.get("notify_daily_reward", True),
             "last_daily_claim": user.get("last_daily_claim"),
