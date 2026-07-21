@@ -509,6 +509,15 @@ class ProgressionService: # Service class to handle all progression-related busi
             return self._repo.get_leaderboard_by_workouts(since)
         return self._repo.get_leaderboard()
 
+    def get_leaderboard_friends(self, type: str = "xp", period: str = "all_time", uids: list = []):
+        # Returns leaderboard filtered to the given UIDs only, queried directly
+        since = _period_to_since_date(period)
+        if type == "foods":
+            return self._repo.get_leaderboard_by_foods(since, uids=uids)
+        if type == "workouts":
+            return self._repo.get_leaderboard_by_workouts(since, uids=uids)
+        return self._repo.get_leaderboard_friends(uids)
+
     def get_leaderboard_standing(self, uid: str, type: str = "xp"):
         # Returns the user's rank and total player count for the given leaderboard type
         return self._repo.get_leaderboard_standing(uid, type=type)

@@ -1167,14 +1167,21 @@ def bulk_delete_food_logs():
 
 @app.route("/leaderboard", methods=["GET"])
 def get_leaderboard():
-    _, _, err = _parse_and_auth()
+    uid, _, err = _parse_and_auth()
     if err:
         return err
 
     type_ = request.args.get("type", "xp")
     period = request.args.get("period", "all_time")
+    friends_only = request.args.get("friends_only", "false").lower() == "true"
 
-    result = progression_service.get_leaderboard(type=type_, period=period)
+    if friends_only:
+        friend_uids = friendship_service.get_friend_uids(uid)
+        friend_uids.append(uid)
+        result = progression_service.get_leaderboard_friends(type=type_, period=period, uids=friend_uids)
+    else:
+        result = progression_service.get_leaderboard(type=type_, period=period)
+
     response = GetLeaderboardResponse(
         users=[LeaderboardUserEntry(**entry) for entry in result]
     )

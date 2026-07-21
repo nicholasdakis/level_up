@@ -69,15 +69,30 @@ class UserRepository:
         result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64, is_premium").order("level", desc=True).order("exp_points", desc=True).order("uid", desc=False).limit(101).execute()
         return result.data
 
-    def get_leaderboard_by_foods(self, since: str | None):
-        # Delegates to a Supabase RPC that does the GROUP BY and LIMIT 100 in SQL
-        params = {"since_date": since} if since else {}
-        return self._supabase.rpc("leaderboard_by_foods", params).execute().data
+    def get_leaderboard_friends(self, uids: list[str]):
+        # Fetches leaderboard rows only for the given UIDs, ordered by level and XP descending
+        if not uids:
+            return []
+        result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64, is_premium").in_("uid", uids).order("level", desc=True).order("exp_points", desc=True).order("uid", desc=False).execute()
+        return result.data
 
-    def get_leaderboard_by_workouts(self, since: str | None):
+    def get_leaderboard_by_foods(self, since: str | None, uids: list[str] | None = None):
         # Delegates to a Supabase RPC that does the GROUP BY and LIMIT 100 in SQL
         params = {"since_date": since} if since else {}
-        return self._supabase.rpc("leaderboard_by_workouts", params).execute().data
+        rows = self._supabase.rpc("leaderboard_by_foods", params).execute().data
+        if uids is not None:
+            uid_set = set(uids)
+            rows = [r for r in rows if r.get("uid") in uid_set]
+        return rows
+
+    def get_leaderboard_by_workouts(self, since: str | None, uids: list[str] | None = None):
+        # Delegates to a Supabase RPC that does the GROUP BY and LIMIT 100 in SQL
+        params = {"since_date": since} if since else {}
+        rows = self._supabase.rpc("leaderboard_by_workouts", params).execute().data
+        if uids is not None:
+            uid_set = set(uids)
+            rows = [r for r in rows if r.get("uid") in uid_set]
+        return rows
 
     def get_users_by_offsets(self, offsets: list[int]):
         # Fetch the users whose utc_offset_minutes matches the targets

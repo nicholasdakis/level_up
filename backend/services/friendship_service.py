@@ -36,6 +36,9 @@ class FriendshipService:
     def search_friends(self, uid: str, query: str, limit: int = 20) -> list:
         return self._repo.search_friends(uid, query, limit)
 
+    def get_friend_uids(self, uid: str) -> list[str]:
+        return self._repo.get_friend_uids(uid)
+
     def get_friends(self, uid: str, limit: int, offset: int) -> list:
         return self._repo.get_friends(uid, limit, offset)
 

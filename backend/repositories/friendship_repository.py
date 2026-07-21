@@ -34,6 +34,17 @@ class FriendshipRepository:
             "p_other_uid": other_uid,
         }).execute().data
 
+    def get_friend_uids(self, uid: str) -> list[str]:
+        rows = self._supabase.table("friendships") \
+            .select("sender_uid, recipient_uid") \
+            .eq("status", "accepted") \
+            .or_(f"sender_uid.eq.{uid},recipient_uid.eq.{uid}") \
+            .execute().data
+        return [
+            row["recipient_uid"] if row["sender_uid"] == uid else row["sender_uid"]
+            for row in rows
+        ]
+
     def get_friends(self, uid: str, limit: int, offset: int) -> list:
         # get all accepted friendship rows involving this uid
         rows = self._supabase.table("friendships") \
