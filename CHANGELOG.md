@@ -2987,3 +2987,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Notification prefs are stored in user_settings and enforced server-side before any FCM send, so they remain accurate regardless of client state
 - The backend checks the recipient's prefs before sending friend request, friend accept, and nudge notifications
 - Daily reward reminders respect the notify_daily_reward pref
+- Nudge rate limit errors now show a message to the sender instead of silently succeeding
+- Backend returns a nudges_disabled reason when the recipient has nudge notifications off, and the sender sees a clear message instead of a false success
+- Nudge pref check now happens before the rate limit counter so nudging someone with notifications off does not consume a rate limit slot

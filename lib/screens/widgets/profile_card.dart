@@ -401,7 +401,14 @@ Future<void> _showNudgeDialog(
                     snackText =
                         'You\'ve nudged $toUsername too many times. Try again later.';
                   } else {
-                    snackText = 'Nudge sent to $toUsername';
+                    final body =
+                        jsonDecode(nudgeRes.body) as Map<String, dynamic>;
+                    if (body['reason'] == 'nudges_disabled') {
+                      snackText =
+                          '$toUsername has nudge notifications turned off.';
+                    } else {
+                      snackText = 'Nudge sent to $toUsername';
+                    }
                   }
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
