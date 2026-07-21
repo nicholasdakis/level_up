@@ -686,8 +686,20 @@ def get_user_profile_card():
     streaks = user_repo.get_streaks(target_uid)
     streak_map = {s["streak_type"]: s for s in streaks}
 
-    friendship_status = friendship_repo.get_status(uid, target_uid)
     block_status = friendship_repo.get_block_status(uid, target_uid)
+
+    # If either party has blocked the other, return minimal info with just the block status
+    if block_status != "none":
+        return jsonify(UserProfileCardResponse(
+            uid=user["uid"],
+            username=user.get("username"),
+            level=user.get("level", 1),
+            exp_points=0,
+            friendship_status="none",
+            block_status=block_status,
+        ).model_dump()), 200
+
+    friendship_status = friendship_repo.get_status(uid, target_uid)
 
     response = UserProfileCardResponse(
         uid=user["uid"],
@@ -712,6 +724,8 @@ def handle_friend_request():
         return err
 
     if body.action == "send":
+        if friendship_repo.get_block_status(uid, body.target_uid) != "none":
+            return jsonify({"error": "blocked"}), 403
         result = friendship_service.send_friend_request(uid, body.target_uid)
     elif body.action == "accept":
         result = friendship_service.accept_friend_request(uid, body.target_uid)
@@ -796,6 +810,8 @@ def search_user():
     if user["uid"] == uid:
         return jsonify({"error": "self_search"}), 400
 
+    if friendship_repo.get_block_status(uid, user["uid"]) != "none":
+        return jsonify({"error": "not_found"}), 404
     friendship_status = friendship_repo.get_status(uid, user["uid"])
     return jsonify({**SearchUserResponse(**user).model_dump(), "friendship_status": friendship_status}), 200
 
