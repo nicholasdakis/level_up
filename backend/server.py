@@ -331,7 +331,7 @@ def send_due_reminders():
     except Exception as e:
         logger.exception(f'Error sending reminders: {e}')
 
-MIN_APP_VERSION = "1.2.1"
+MIN_APP_VERSION = "1.3.0"
 
 @app.route("/app_config")
 def app_config():
