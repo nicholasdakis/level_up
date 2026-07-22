@@ -111,6 +111,9 @@ class ProgressionService: # Service class to handle all progression-related busi
     def update_utc_offset_minutes(self, uid: str, utc_offset: int):
         self._repo.update_utc_offset_minutes(uid, utc_offset)
 
+    def update_last_active(self, uid: str):
+        self._repo.update_last_active(uid)
+
     def _track_achievement(self, uid: str, achievement_id: str):
         # Silently increments achievement progress by 1, never breaking the caller if it fails
         if achievement_id not in SERVER_ACHIEVEMENT_IDS:

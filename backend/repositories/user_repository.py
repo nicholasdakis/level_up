@@ -1,4 +1,5 @@
 import re
+from datetime import datetime, timezone
 from supabase import Client
 from backend.utils import paginate_query
 
@@ -445,6 +446,9 @@ class UserRepository:
 
     def update_utc_offset_minutes(self, uid: str, utc_offset: int):
         self._supabase.table("users").update({"utc_offset_minutes": utc_offset}).eq("uid", uid).execute()
+
+    def update_last_active(self, uid: str):
+        self._supabase.table("users").update({"last_active_at": datetime.now(timezone.utc).isoformat()}).eq("uid", uid).execute()
 
     def set_premium(self, uid: str, is_premium: bool, expires_at: str | None, purchase_token: str | None = None):
         # Sets the user's premium status and expiry timestamp

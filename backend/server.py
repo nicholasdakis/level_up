@@ -1018,6 +1018,15 @@ def update_utc_offset_minutes():
     if err:
         return err
     progression_service.update_utc_offset_minutes(uid, body.utc_offset)
+    progression_service.update_last_active(uid)  # TODO: remove next update, /app_open handles this for newer clients
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/app_open", methods=["POST"])
+def app_open():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    progression_service.update_last_active(uid)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 @app.route("/update_notifications", methods=["POST"])

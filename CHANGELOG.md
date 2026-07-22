@@ -3003,3 +3003,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the requestIfNeeded method show up when the user opens the Social tab as a new action that checks notification permissions apart from daily reward claim and reminders
 - Added Firebase Analytics events for all social actions: profile card views with source tracking, friend request sent/accepted/declined/cancelled, friend removed, user blocked/unblocked, nudge sent, and friends list search
 - Fixed daily reward reminders never being inserted because the SetReminderRequest schema rejected the daily_reward source value, and fixed the notification enabled flag being read before the first-time permission prompt on first claim
+- Added last_active_at column to users table, updated on every app open via the new /app_open endpoint for future anti-churn notification targeting

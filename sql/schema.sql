@@ -30,6 +30,7 @@ CREATE TABLE users (
     referral_code TEXT UNIQUE,           -- unique referral code, generated lazily on first request
     units TEXT NOT NULL DEFAULT 'metric', -- display units preference: 'metric' or 'imperial'
     created_at TIMESTAMPTZ,              -- when the user first signed up
+    last_active_at TIMESTAMPTZ,          -- when the user last opened the app, updated on every startup
     is_premium BOOLEAN NOT NULL DEFAULT FALSE,        -- whether the user currently has an active premium subscription
     premium_expires_at TIMESTAMPTZ NULL,              -- when the premium subscription expires; null means not premium
     purchase_token TEXT NULL,                         -- latest Google Play purchase token, used by the RTDN webhook to resolve uid
