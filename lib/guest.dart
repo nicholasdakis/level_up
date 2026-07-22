@@ -309,6 +309,7 @@ class Guest {
         TextButton(
           onPressed: () {
             Navigator.of(context, rootNavigator: true).pop();
+            logAnalyticsEvent('guest_block_converted', parameters: {'title': title});
             exit();
           },
           child: const _ShimmerSignUp(),

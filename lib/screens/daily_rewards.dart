@@ -317,6 +317,14 @@ class DailyRewardDialog {
 
     if (isFirstClaim && context.mounted) {
       await _showFirstClaimNotificationPrompt(context, appColor, ref);
+    } else if (context.mounted) {
+      // Silently request permission for existing users who were never asked due to the FCM bug
+      await requestNotificationPermissionIfNeeded(
+        context,
+        ref.read(userDataProvider.notifier),
+        appColor: appColor,
+        skipIfDenied: true,
+      );
     }
 
     // Set a reminder 23 hours from now, read after the permission prompt so the flag is current
@@ -501,6 +509,10 @@ Future<void> _showFirstClaimNotificationPrompt(
 ) async {
   const accent = Colors.white;
   const dim = Colors.white;
+  logAnalyticsEvent(
+    'notification_prompt_shown',
+    parameters: {'source': 'first_claim'},
+  );
   final confirmed = await showFrostedDialog<bool>(
     context: context,
     appColor: appColor,
@@ -554,6 +566,10 @@ Future<void> _showFirstClaimNotificationPrompt(
     ),
   );
   if (confirmed == true && context.mounted) {
+    logAnalyticsEvent(
+      'notification_prompt_accepted',
+      parameters: {'source': 'first_claim'},
+    );
     await requestNotificationPermissionIfNeeded(
       context,
       ref.read(userDataProvider.notifier),

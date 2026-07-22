@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/reminder_data.dart';
 import '../services/user_data_manager.dart';
+import '../globals.dart' show logAnalyticsEvent;
 
 class RemindersNotifier extends AsyncNotifier<List<ReminderData>> {
   @override
@@ -43,6 +44,7 @@ class RemindersNotifier extends AsyncNotifier<List<ReminderData>> {
       },
     );
     if (response.statusCode != 200) return false;
+    logAnalyticsEvent('reminder_set');
     await fetchReminders();
     return true;
   }
@@ -54,6 +56,7 @@ class RemindersNotifier extends AsyncNotifier<List<ReminderData>> {
       body: {'reminder_id': reminder.id},
     );
     if (response.statusCode != 200) return false;
+    logAnalyticsEvent('reminder_deleted');
     final current = state.value ?? [];
     state = AsyncData(current.where((r) => r.id != reminder.id).toList());
     return true;
