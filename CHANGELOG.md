@@ -3004,3 +3004,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added Firebase Analytics events for all social actions: profile card views with source tracking, friend request sent/accepted/declined/cancelled, friend removed, user blocked/unblocked, nudge sent, and friends list search
 - Fixed daily reward reminders never being inserted because the SetReminderRequest schema rejected the daily_reward source value, and fixed the notification enabled flag being read before the first-time permission prompt on first claim
 - Added last_active_at column to users table, updated on every app open via the new /app_open endpoint for future anti-churn notification targeting
+
+## 2026-07-22
+- Added a retry mechanism that persists the purchase token to SharedPreferences on failure and re-calls /verify_purchase on the next app launch

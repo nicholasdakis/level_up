@@ -8,6 +8,10 @@ import '../providers/user_data_provider.dart';
 import 'user_data_manager.dart' show authenticatedPost;
 import '../globals/global_state.dart'
     show logFacebookPurchase, logAnalyticsEvent;
+import 'package:shared_preferences/shared_preferences.dart'
+    show SharedPreferencesAsync;
+import '../utility/shared_preferences/shared_prefs_async.dart'
+    show SharedPreferencesKey;
 
 const String _subscriptionId = 'level_up_premium';
 // queryProductDetails takes the subscription ID, not the base plan IDs
@@ -34,6 +38,8 @@ class PremiumService {
     );
     // Pre-fetch off the critical path so the binder call happens in the background, not when the sheet opens
     unawaited(_fetchProducts());
+    // Retry any purchase that failed to verify last session
+    unawaited(_retryPendingPurchase());
   }
 
   void dispose() {
@@ -84,14 +90,25 @@ class PremiumService {
   }
 
   Future<void> _verifyAndGrant(PurchaseDetails purchase) async {
-    try {
-      final token = purchase.verificationData.serverVerificationData;
-      final productId = purchase.productID;
-      // Strip the base plan suffix to get the subscription ID
-      final subscriptionId = productId.contains(':')
-          ? productId.split(':').first
-          : productId;
+    final token = purchase.verificationData.serverVerificationData;
+    final productId = purchase.productID;
+    final subscriptionId = productId.contains(':')
+        ? productId.split(':').first
+        : productId;
+    await _verifyToken(
+      token: token,
+      productId: productId,
+      subscriptionId: subscriptionId,
+    );
+  }
 
+  Future<void> _verifyToken({
+    required String token,
+    required String productId,
+    required String subscriptionId,
+  }) async {
+    final prefs = SharedPreferencesAsync();
+    try {
       final response = await authenticatedPost(
         'verify_purchase',
         body: {
@@ -102,6 +119,10 @@ class PremiumService {
       );
 
       if (response.statusCode == 200) {
+        // Clear any pending retry now that it succeeded
+        await prefs.remove(SharedPreferencesKey.pendingPurchaseToken);
+        await prefs.remove(SharedPreferencesKey.pendingPurchaseProductId);
+
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final expiresAt = data['premium_expires_at'] != null
             ? DateTime.tryParse(data['premium_expires_at'] as String)?.toLocal()
@@ -130,6 +151,12 @@ class PremiumService {
           },
         );
       } else {
+        // Non-200: persist for retry on next launch
+        await prefs.setString(SharedPreferencesKey.pendingPurchaseToken, token);
+        await prefs.setString(
+          SharedPreferencesKey.pendingPurchaseProductId,
+          productId,
+        );
         if (kDebugMode) {
           debugPrint(
             'verify_purchase failed: ${response.statusCode} ${response.body}',
@@ -137,7 +164,37 @@ class PremiumService {
         }
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('PremiumService _verifyAndGrant error: $e');
+      // Network or auth failure: persist for retry on next launch
+      await prefs.setString(SharedPreferencesKey.pendingPurchaseToken, token);
+      await prefs.setString(
+        SharedPreferencesKey.pendingPurchaseProductId,
+        productId,
+      );
+      if (kDebugMode) debugPrint('PremiumService _verifyToken error: $e');
+    }
+  }
+
+  Future<void> _retryPendingPurchase() async {
+    try {
+      final prefs = SharedPreferencesAsync();
+      final token = await prefs.getString(
+        SharedPreferencesKey.pendingPurchaseToken,
+      );
+      final productId = await prefs.getString(
+        SharedPreferencesKey.pendingPurchaseProductId,
+      );
+      if (token == null || productId == null) return;
+      final subscriptionId = productId.contains(':')
+          ? productId.split(':').first
+          : productId;
+      await _verifyToken(
+        token: token,
+        productId: productId,
+        subscriptionId: subscriptionId,
+      );
+    } catch (e) {
+      if (kDebugMode)
+        debugPrint('PremiumService _retryPendingPurchase error: $e');
     }
   }
 }

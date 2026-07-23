@@ -21,6 +21,10 @@ class SharedPreferencesKey {
   // Device ID key for FCM token upsert
   static const String deviceId = 'device_id';
 
+  // PremiumService keys
+  static const String pendingPurchaseToken = 'pending_purchase_token';
+  static const String pendingPurchaseProductId = 'pending_purchase_product_id';
+
   // POIService keys
   static const String cachedPois = 'cached_pois';
   static const String cachedPoiLat = 'cached_poi_lat';
