@@ -193,8 +193,9 @@ class PremiumService {
         subscriptionId: subscriptionId,
       );
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('PremiumService _retryPendingPurchase error: $e');
+      }
     }
   }
 }

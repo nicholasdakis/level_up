@@ -1923,13 +1923,11 @@ def verify_purchase():
         return err
     try:
         raw_sa = os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON", "")
-        logger.error(f"verify_purchase: env_var_length={len(raw_sa)}, first_10={raw_sa[:10]!r}")
         try:
             sa_json = json.loads(raw_sa)
         except Exception as e:
             logger.error(f"verify_purchase: failed to parse service account JSON: {e}")
             return jsonify({"error": "Service account config error"}), 500
-        logger.error(f"verify_purchase: service_account_email={sa_json.get('client_email', 'NOT FOUND')}")
         credentials = service_account.Credentials.from_service_account_info(
             sa_json,
             scopes=["https://www.googleapis.com/auth/androidpublisher"],
@@ -1953,6 +1951,7 @@ def verify_purchase():
 
         # Pull expiry from the first line item
         expiry_time = line_items[0].get("expiryTime")
+        logger.info(f"verify_purchase: uid={uid} state={subscription_state} expiry={expiry_time}")
         user_repo.set_premium(uid, True, expiry_time, purchase_token=body.purchase_token)
         return jsonify(PremiumStatusResponse(is_premium=True, premium_expires_at=expiry_time).model_dump()), 200
 
@@ -2026,7 +2025,7 @@ def play_webhook():
         expiry_time = line_items[0].get("expiryTime") if line_items else None
 
         user_repo.set_premium(uid, is_active, expiry_time if is_active else None)
-        logger.info(f"play_webhook: uid={uid} state={subscription_state} is_active={is_active}")
+        logger.info(f"play_webhook: uid={uid} state={subscription_state} is_active={is_active} expiry={expiry_time} notification_type={notification_type}")
     except Exception as e:
         logger.error(f"play_webhook: failed to update uid={uid}: {e}")
         return jsonify({"error": "Internal error"}), 500
