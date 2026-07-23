@@ -1003,7 +1003,7 @@ BEGIN
         'new_level',    v_new_level,
         'new_exp',      v_new_exp,
         'new_streak',   v_new_streak,
-        'best_streak',  (SELECT highest_streak FROM streaks WHERE uid = p_uid AND streak_type = 'workout_streak'),
+        'best_streak',  COALESCE((SELECT highest_streak FROM streaks WHERE uid = p_uid AND streak_type = 'workout_streak'), 0),
         'streak_last_date', v_today::TEXT
     );
 END;

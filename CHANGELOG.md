@@ -3007,3 +3007,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-07-22
 - Added a retry mechanism that persists the purchase token to SharedPreferences on failure and re-calls /verify_purchase on the next app launch
+
+## 2026-07-23
+- Fixed best_streak (and any similar streak fields) to return 0 instead of NULL when a user has no streak record yet since the schema expects an int
